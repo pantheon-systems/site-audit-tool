@@ -8,7 +8,7 @@ use TestUtils\DrushTestTrait;
  * Some simple tests of our example extension, which does nothing more
  * than exercise Drush APIs.
  */
-class DrushExtensionTest extends TestCase
+class ExampleCommandsTest extends TestCase
 {
     use DrushTestTrait;
 
@@ -42,6 +42,7 @@ class DrushExtensionTest extends TestCase
      */
     public function testExampleConfiguration()
     {
+        // See sut/drush/drush.yml
         $this->drush('example:config', ['example.key']);
         $this->assertOutputEquals('The value is "This is a configuration value"');
     }

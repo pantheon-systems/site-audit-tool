@@ -1,12 +1,13 @@
 #
-# A Drush configuration file
+# Drush configuration file used to configure the System Unter Test (sut)
 #
 # Docs at https://github.com/drush-ops/drush/blob/master/examples/example.drush.yml
 #
-# Edit or remove this file as needed.
-
 drush:
+  # Instructs Drush to follow the symlink at sut/drush/Commands/example-drush-extension
+  # It is recommended that symlinks only be used in testing.
   command-follow-symlinks: true
 
 example:
+  # Used in testExampleConfiguration in tests/DrushExtensionTest.php
   key: 'This is a configuration value'

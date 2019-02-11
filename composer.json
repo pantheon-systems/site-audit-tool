@@ -1,7 +1,7 @@
 {
     "name": "drush/example-drush-extension",
-    "description": "Example Drush extension",
-    "type": "project",
+    "description": "Example Drush site-wide extension",
+    "type": "drupal-drush",
     "license": "GPL-2.0-or-later",
     "authors": [
         {
@@ -15,12 +15,11 @@
         }
     ],
     "require": {
-        "php": ">=5.6",
-        "consolidation/site-alias": "^2.1.1",
-        "drush/drush": "dev-extensions-follow-symlinks"
+        "php": ">=5.6"
     },
     "require-dev": {
         "composer/installers": "^1.2",
+        "drush/drush": "dev-master",
         "cweagans/composer-patches": "^1.6.5",
         "drupal-composer/drupal-scaffold": "^2.5",
         "drupal/core": "^8.6.0",
@@ -46,6 +45,8 @@
         }
     },
     "scripts": {
+        "test": "phpunit --color=always",
+        "drush": "drush",
         "pre-install-cmd": [
             "DrupalProject\\composer\\ScriptHandler::checkComposerVersion"
         ],
