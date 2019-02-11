@@ -15,14 +15,15 @@
         }
     ],
     "require": {
-        "php": ">=5.6"
+        "php": ">=5.6",
+        "consolidation/site-alias": "^2.1.1",
+        "drush/drush": "dev-extensions-follow-symlinks"
     },
     "require-dev": {
         "composer/installers": "^1.2",
         "cweagans/composer-patches": "^1.6.5",
         "drupal-composer/drupal-scaffold": "^2.5",
         "drupal/core": "^8.6.0",
-        "drush/drush": "^9.0.0",
         "webflo/drupal-finder": "^1.0.0",
         "webmozart/path-util": "^2.3",
         "zaporylie/composer-drupal-optimizations": "^1.0",
@@ -39,7 +40,10 @@
     "autoload-dev": {
         "classmap": [
             "tests/scripts/composer/ScriptHandler.php"
-        ]
+        ],
+        "psr-4": {
+          "TestUtils\\": "tests/src/"
+        }
     },
     "scripts": {
         "pre-install-cmd": [
@@ -61,11 +65,11 @@
             "drupal/core": "-p2"
         },
         "installer-paths": {
-            "tests/fixtures/sut/web/core": ["type:drupal-core"],
-            "tests/fixtures/sut/web/libraries/{$name}": ["type:drupal-library"],
-            "tests/fixtures/sut/web/modules/contrib/{$name}": ["type:drupal-module"],
-            "tests/fixtures/sut/web/profiles/contrib/{$name}": ["type:drupal-profile"],
-            "tests/fixtures/sut/web/themes/contrib/{$name}": ["type:drupal-theme"],
+            "sut/web/core": ["type:drupal-core"],
+            "sut/web/libraries/{$name}": ["type:drupal-library"],
+            "sut/web/modules/contrib/{$name}": ["type:drupal-module"],
+            "sut/web/profiles/contrib/{$name}": ["type:drupal-profile"],
+            "sut/web/themes/contrib/{$name}": ["type:drupal-theme"],
             "drush/Commands/{$name}": ["type:drupal-drush"]
         }
     }
