@@ -16,35 +16,37 @@ Avoid using Drush APIs, save for those that are defined by your command's base c
 Usage
 -----
 
-In development:
-
-1. Clone this repository.
-2. Run `composer install && composer drupal:scaffold` to set up the System Under Test (sut)
-
+In development, clone this repository, then set up the System Under Test (sut) via:
+```
+composer install
+composer drupal:scaffold
+```
 In production:
-
-1. `cd /path/to/my-drupal-composer-drupal-project`
-2. `composer require drush/example-drush-extension`
+```
+cd /path/to/my-drupal-composer-drupal-project
+composer require drush/example-drush-extension
+```
 
 Running Tests
 -------------
 
 Set up for 'development' as described in usage section. Then, run:
-
-`composer test`
+```
+composer test
+```
 
 Ad-hoc Testing
 --------------
 
 In development:
-
-`composer drush example:param test`
-
+```
+composer drush example:param test
+```
 In production:
-
-1. `cd /path/to/my-drupal-composer-drupal-project`
-2. `drush example:param test`
-
+```
+cd /path/to/my-drupal-composer-drupal-project
+drush example:param test
+```
 Customizing
 -----------
 
@@ -52,4 +54,4 @@ Customizing
 2. Alter "name", "description" and etc. in composer.json to suit.
 3. Rename ExampleCommands.php and ExampleCommandsTest.php for your project.
 4. Configuration and site aliases for use in testing can be placed in 'sut/drush/drush.yml' and 'sut/drush/sites/self.site.yml', respectively.
-5. Advertise your extension on packagist.org so that it may be installed via Composer.
+5. Add your extension on packagist.org so that it may be installed via Composer.
