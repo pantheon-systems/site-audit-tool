@@ -11,7 +11,7 @@ Usage
 In development:
 
 1. Clone this repository.
-2. Run `composer install` to set up the System Under Test (sut)
+2. Run `composer install && composer drupal:scaffold` to set up the System Under Test (sut)
 
 In production:
 

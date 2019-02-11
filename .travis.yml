@@ -24,6 +24,7 @@ before_install:
 install:
   - composer --verbose validate
   - composer --verbose install
+  - composer drupal:scaffold
 
 script:
   - composer test
