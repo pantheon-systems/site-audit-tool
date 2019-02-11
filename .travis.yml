@@ -9,6 +9,19 @@ php:
   - 7.0
   - 5.6
 
+matrix:
+  include:
+    - php: 7.3
+      env: 'DEPENDENCIES=highest'
+    - php: 7.2
+    - php: 7.1
+    - php: 7.0
+      env: 'SCENARIO=phpunit4'
+    - php: 5.6
+      env: 'SCENARIO=phpunit4'
+    - php: 5.6
+      env: 'SCENARIO=phpunit4 DEPENDENCIES=lowest'
+
 env:
   global:
     - SIMPLETEST_DB=sqlite://tmp/site.sqlite
@@ -23,7 +36,7 @@ before_install:
 
 install:
   - composer --verbose validate
-  - composer --verbose install
+  - '.scenarios.lock/install "${SCENARIO}" "${DEPENDENCIES}"'
   - composer drupal:scaffold
 
 script:

@@ -18,9 +18,9 @@
         "php": ">=5.6"
     },
     "require-dev": {
+        "phpunit/phpunit": "^4.8.36",
         "composer/installers": "^1.2",
         "drush/drush": "dev-master",
-        "phpunit/phpunit": "^6.5",
         "g1a/composer-test-scenarios": "^3",
         "cweagans/composer-patches": "^1.6.5",
         "drupal-composer/drupal-scaffold": "^2.5",
@@ -37,16 +37,17 @@
     "prefer-stable": true,
     "config": {
         "platform": {
-          "php": "7.1"
+            "php": "5.6"
         },
-        "sort-packages": true
+        "sort-packages": true,
+        "vendor-dir": "../../vendor"
     },
     "autoload-dev": {
         "classmap": [
             "tests/scripts/composer/ScriptHandler.php"
         ],
         "psr-4": {
-          "TestUtils\\": "tests/src/"
+            "TestUtils\\": "../../tests/src/"
         }
     },
     "scripts": {
@@ -65,24 +66,24 @@
             "drupal/core": "-p2"
         },
         "installer-paths": {
-            "sut/web/core": ["type:drupal-core"],
-            "sut/web/libraries/{$name}": ["type:drupal-library"],
-            "sut/web/modules/contrib/{$name}": ["type:drupal-module"],
-            "sut/web/profiles/contrib/{$name}": ["type:drupal-profile"],
-            "sut/web/themes/contrib/{$name}": ["type:drupal-theme"],
-            "drush/Commands/{$name}": ["type:drupal-drush"]
-        },
-        "scenarios": {
-            "phpunit4": {
-                "require-dev": {
-                    "phpunit/phpunit": "^4.8.36"
-                },
-                "config": {
-                    "platform": {
-                        "php": "5.6"
-                    }
-                }
-            }
+            "../../sut/web/core": [
+                "type:drupal-core"
+            ],
+            "../../sut/web/libraries/{$name}": [
+                "type:drupal-library"
+            ],
+            "../../sut/web/modules/contrib/{$name}": [
+                "type:drupal-module"
+            ],
+            "../../sut/web/profiles/contrib/{$name}": [
+                "type:drupal-profile"
+            ],
+            "../../sut/web/themes/contrib/{$name}": [
+                "type:drupal-theme"
+            ],
+            "../../drush/Commands/{$name}": [
+                "type:drupal-drush"
+            ]
         }
     }
 }
