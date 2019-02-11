@@ -1,9 +1,17 @@
 Example Drush Extension
 =======================
 
-This is an example Drush extension with tests. This example is what is known as a "site-wide" Drush extension. Site-wide extensions are installed via Composer into a particular Drupal site. The other kinds of Drush extensions are Drush module commands and Drush global commands. See the [Creating Custom Drush Commands documentation](http://docs.drush.org/en/master/commands/) for more information.
+[![Build Status](https://travis-ci.org/drush-ops/example-drush-extension.svg?branch=master)](https://travis-ci.org/drush-ops/example-drush-extension)
 
-For maximum compatibility with future versions of Drush, a site-wide Drush extension should only call Drupal APIs, and APIs provided by Drupal's dependencies, or the dependencies in the site-wide extension's own composer.json file. Avoid using Drush APIs, save for those that are part of your command's base class, [DrushCommands](https://github.com/drush-ops/drush/blob/master/src/Commands/DrushCommands.php), or those that are provided by objects injected into your command class by Drush. See [ExampleCommands.php](ExampleCommands.php) for examples.
+This is an example Drush extension with tests. This this project demonstrates what is known as a "site-wide" Drush extension. Site-wide extensions are installed via Composer into a particular Drupal site. The other kinds of Drush extensions are Drush module commands and Drush global commands. See the [Creating Custom Drush Commands documentation](http://docs.drush.org/en/master/commands/) for more information.
+
+For maximum compatibility with future versions of Drush, a site-wide Drush extension should only call the following APIs:
+
+  - APIs provided by Drupal
+  - APIs provided by Drupal's dependencies
+  - Libraries decleared in the site-wide extension's own composer.json file
+  
+Avoid using Drush APIs, save for those that are defined by your command's base class, [DrushCommands](https://github.com/drush-ops/drush/blob/master/src/Commands/DrushCommands.php), or those that are provided by objects injected into your command class by Drush. See [ExampleCommands.php](ExampleCommands.php) for examples.
 
 Usage
 -----
