@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "40fce208f7a1dc6cf6a7a3271fc64c57",
+    "content-hash": "4455b73f92c6dee2325169a6116fc239",
     "packages": [],
     "packages-dev": [
         {
@@ -2436,16 +2436,16 @@
         },
         {
             "name": "g1a/composer-test-scenarios",
-            "version": "3.0.1",
+            "version": "3.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/g1a/composer-test-scenarios.git",
-                "reference": "224531e20d13a07942a989a70759f726cd2df9a1"
+                "reference": "28f932580981e912ab8f01d15788f1dee06550c8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/g1a/composer-test-scenarios/zipball/224531e20d13a07942a989a70759f726cd2df9a1",
-                "reference": "224531e20d13a07942a989a70759f726cd2df9a1",
+                "url": "https://api.github.com/repos/g1a/composer-test-scenarios/zipball/28f932580981e912ab8f01d15788f1dee06550c8",
+                "reference": "28f932580981e912ab8f01d15788f1dee06550c8",
                 "shasum": ""
             },
             "require": {
@@ -2484,7 +2484,7 @@
                 }
             ],
             "description": "Useful scripts for testing multiple sets of Composer dependencies.",
-            "time": "2018-11-27T05:58:39+00:00"
+            "time": "2019-02-11T20:22:44+00:00"
         },
         {
             "name": "grasmash/expander",

@@ -21,7 +21,7 @@
         "composer/installers": "^1.2",
         "drush/drush": "dev-master",
         "phpunit/phpunit": "^6.5",
-        "g1a/composer-test-scenarios": "^3",
+        "g1a/composer-test-scenarios": "^3.0.2",
         "cweagans/composer-patches": "^1.6.5",
         "drupal-composer/drupal-scaffold": "^2.5",
         "drupal/core": "^8.6.0",
