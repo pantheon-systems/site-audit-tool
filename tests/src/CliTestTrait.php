@@ -145,6 +145,32 @@ trait CliTestTrait
         return $arg;
     }
 
+    /**
+     * Borrowed from \Symfony\Component\Process\Exception\ProcessTimedOutException
+     *
+     * @return string
+     */
+    public function buildProcessMessage()
+    {
+        $error = sprintf(
+            "%s\n\nExit Code: %s(%s)\n\nWorking directory: %s",
+            $this->process->getCommandLine(),
+            $this->process->getExitCode(),
+            $this->process->getExitCodeText(),
+            $this->process->getWorkingDirectory()
+        );
+
+        if (!$this->process->isOutputDisabled()) {
+            $error .= sprintf(
+                "\n\nOutput:\n================\n%s\n\nError Output:\n================\n%s",
+                $this->process->getOutput(),
+                $this->process->getErrorOutput()
+            );
+        }
+
+        return $error;
+    }
+
     protected function assertOutputEquals($expected, $filter = '')
     {
         $output = $this->getSimplifiedOutput();
