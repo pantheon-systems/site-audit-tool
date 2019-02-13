@@ -5,15 +5,17 @@ sudo: false
 matrix:
   include:
     - php: 7.3
-      env: 'DEPENDENCIES=highest'
+      env: 'SCENARIO=drush8 DEPENDENCIES=highest'
     - php: 7.2
+      env: 'SCENARIO=drush8'
     - php: 7.1
-    - php: 7.0
-      env: 'SCENARIO=phpunit4'
-    - php: 5.6
-      env: 'SCENARIO=phpunit4'
-    - php: 5.6
-      env: 'SCENARIO=phpunit4 DEPENDENCIES=lowest'
+      env: 'SCENARIO=drush8'
+#    - php: 7.0
+#      env: 'SCENARIO=phpunit4'
+#    - php: 5.6
+#      env: 'SCENARIO=phpunit4'
+#    - php: 5.6
+#      env: 'SCENARIO=phpunit4 DEPENDENCIES=lowest'
 
 env:
   global:

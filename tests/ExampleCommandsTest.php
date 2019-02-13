@@ -26,7 +26,7 @@ class ExampleCommandsTest extends TestCase
      */
     public function testExampleLog()
     {
-        $this->drush('example:log');
+        $this->drush('example:log', ['-v']);
         $output = $this->getSimplifiedErrorOutput();
         $this->assertContains('This is a notice', $output);
         $this->assertContains('This is a warning', $output);
@@ -42,7 +42,7 @@ class ExampleCommandsTest extends TestCase
      */
     public function testExampleConfiguration()
     {
-        // See sut/drush/drush.yml
+        // See sut/drush/drush.yml (Drush 9) and sut/drush/drushrc.php (Drush 8)
         $this->drush('example:config', ['example.key']);
         $this->assertOutputEquals('The value is "This is a configuration value"');
     }
