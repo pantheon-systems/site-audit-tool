@@ -16,7 +16,7 @@
     ],
     "require": {
         "php": ">=5.6",
-        "drush/drush": "^8.1.18 || ^9.5.2"
+        "drush/drush": "dev-namespaced-includes"
     },
     "require-dev": {
         "composer/installers": "^1.2",

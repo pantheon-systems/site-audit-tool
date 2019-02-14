@@ -4,9 +4,11 @@
 # Docs at https://github.com/drush-ops/drush/blob/master/examples/example.drush.yml
 #
 drush:
-  # Instructs Drush to follow the symlink at sut/drush/Commands/example-drush-extension
-  # It is recommended that symlinks only be used in testing.
-  command-follow-symlinks: true
+  # Instructs Drush to include the current working directory (env.PWD) as a
+  # search path for commands, and to use \Drush\Commands\example_drush_extension
+  # as the base namespace for commands found there.
+  include:
+    'Commands/example_drush_extension': '${env.PWD}'
 
 example:
   # Used in testExampleConfiguration in tests/DrushExtensionTest.php
