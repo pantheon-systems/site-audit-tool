@@ -75,7 +75,7 @@
         "scenarios": {
             "drush8": {
                 "require": {
-                    "drush/drush": "dev-sitewide-commandfiles as 8.1.18"
+                    "drush/drush": "8.x-dev as 8.1.18"
                 }
             },
             "phpunit4": {

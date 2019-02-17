@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9c061e5608497751a6c3c47390af4a92",
+    "content-hash": "d91c085d98ee2d0d78422a338d09d20d",
     "packages": [
         {
             "name": "consolidation/annotated-command",
@@ -252,16 +252,16 @@
         },
         {
             "name": "drush/drush",
-            "version": "dev-sitewide-commandfiles",
+            "version": "8.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/drush-ops/drush.git",
-                "reference": "abcc3fb262594921dff18a951e57484bb3000c63"
+                "reference": "391a9ced1437ffb01ce40d7da7c1e72357e649ee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/drush-ops/drush/zipball/abcc3fb262594921dff18a951e57484bb3000c63",
-                "reference": "abcc3fb262594921dff18a951e57484bb3000c63",
+                "url": "https://api.github.com/repos/drush-ops/drush/zipball/391a9ced1437ffb01ce40d7da7c1e72357e649ee",
+                "reference": "391a9ced1437ffb01ce40d7da7c1e72357e649ee",
                 "shasum": ""
             },
             "require": {
@@ -358,7 +358,7 @@
             ],
             "description": "Drush is a command line shell and scripting interface for Drupal, a veritable Swiss Army knife designed to make life easier for those of us who spend some of our working hours hacking away at the command prompt.",
             "homepage": "http://www.drush.org",
-            "time": "2019-02-13T00:21:02+00:00"
+            "time": "2019-02-17T15:02:08+00:00"
         },
         {
             "name": "jakub-onderka/php-console-color",
@@ -450,16 +450,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v4.2.0",
+            "version": "v4.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "594bcae1fc0bccd3993d2f0d61a018e26ac2865a"
+                "reference": "5221f49a608808c1e4d436df32884cbc1b821ac0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/594bcae1fc0bccd3993d2f0d61a018e26ac2865a",
-                "reference": "594bcae1fc0bccd3993d2f0d61a018e26ac2865a",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/5221f49a608808c1e4d436df32884cbc1b821ac0",
+                "reference": "5221f49a608808c1e4d436df32884cbc1b821ac0",
                 "shasum": ""
             },
             "require": {
@@ -497,7 +497,7 @@
                 "parser",
                 "php"
             ],
-            "time": "2019-01-12T16:31:37+00:00"
+            "time": "2019-02-16T20:54:15+00:00"
         },
         {
             "name": "pear/console_table",
@@ -4317,6 +4317,7 @@
                 "mock",
                 "xunit"
             ],
+            "abandoned": true,
             "time": "2018-08-09T05:50:03+00:00"
         },
         {
@@ -6654,7 +6655,7 @@
         {
             "alias": "8.1.18",
             "alias_normalized": "8.1.18.0",
-            "version": "dev-sitewide-commandfiles",
+            "version": "8.9999999.9999999.9999999-dev",
             "package": "drush/drush"
         }
     ],
