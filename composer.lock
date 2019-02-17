@@ -933,12 +933,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/drush-ops/drush.git",
-                "reference": "f50ebec612ccc3f03cd4f907ce6e19c3b1c2dd0c"
+                "reference": "7482481506fd5c684ee4f9d676f0b60bbe4787fe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/drush-ops/drush/zipball/f50ebec612ccc3f03cd4f907ce6e19c3b1c2dd0c",
-                "reference": "f50ebec612ccc3f03cd4f907ce6e19c3b1c2dd0c",
+                "url": "https://api.github.com/repos/drush-ops/drush/zipball/7482481506fd5c684ee4f9d676f0b60bbe4787fe",
+                "reference": "7482481506fd5c684ee4f9d676f0b60bbe4787fe",
                 "shasum": ""
             },
             "require": {
@@ -1069,7 +1069,7 @@
             ],
             "description": "Drush is a command line shell and scripting interface for Drupal, a veritable Swiss Army knife designed to make life easier for those of us who spend some of our working hours hacking away at the command prompt.",
             "homepage": "http://www.drush.org",
-            "time": "2019-02-14T06:50:46+00:00"
+            "time": "2019-02-17T15:14:53+00:00"
         },
         {
             "name": "grasmash/expander",
@@ -5285,6 +5285,7 @@
                 "mock",
                 "xunit"
             ],
+            "abandoned": true,
             "time": "2018-08-09T05:50:03+00:00"
         },
         {
