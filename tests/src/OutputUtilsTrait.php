@@ -55,8 +55,6 @@ trait OutputUtilsTrait
         $output = preg_replace('# --verbose #', ' ', $output);
         // Get rid of any full paths in the output
         $output = preg_replace('#' . dirname(dirname(__DIR__)) . '/[^/]*#', '__DIR__', $output);
-//        $output = str_replace(self::getSandbox(), '__SANDBOX__', $output);
-//        $output = str_replace(self::getSut(), '__SUT__', $output);
 
         return $output;
     }
