@@ -26,6 +26,11 @@ In production:
 cd /path/to/my-drupal-composer-drupal-project
 composer require drush/example-drush-extension
 ```
+To test with Drush 8:
+```
+composer scenario drush8
+```
+The [Composer Test Scenarios](https://github.com/g1a/composer-test-scenarios) project is used to manage the Composer dependencies needed to test different scenarios of this project. Running `composer scenario` is like running `composer install`; it will install the appropriate dependencies for the requested testing scenario. Run `composer install` to return to the default installation.
 
 Running Tests
 -------------
