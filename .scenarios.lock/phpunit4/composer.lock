@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d5f1f3fe3574bac4653d36d40f8d9b33",
+    "content-hash": "62ed3f019ce9c301b05dc61c1f68509e",
     "packages": [
         {
             "name": "chi-teck/drupal-code-generator",
@@ -934,12 +934,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/drush-ops/drush.git",
-                "reference": "235dd5486c059d48b8e6a5ff25177411eded27a3"
+                "reference": "5558a587cc44fbae65f94a52e78190dab2c8b07a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/drush-ops/drush/zipball/235dd5486c059d48b8e6a5ff25177411eded27a3",
-                "reference": "235dd5486c059d48b8e6a5ff25177411eded27a3",
+                "url": "https://api.github.com/repos/drush-ops/drush/zipball/5558a587cc44fbae65f94a52e78190dab2c8b07a",
+                "reference": "5558a587cc44fbae65f94a52e78190dab2c8b07a",
                 "shasum": ""
             },
             "require": {
@@ -1070,7 +1070,7 @@
             ],
             "description": "Drush is a command line shell and scripting interface for Drupal, a veritable Swiss Army knife designed to make life easier for those of us who spend some of our working hours hacking away at the command prompt.",
             "homepage": "http://www.drush.org",
-            "time": "2019-03-11T02:46:18+00:00"
+            "time": "2019-03-11T03:19:08+00:00"
         },
         {
             "name": "grasmash/expander",
@@ -3582,115 +3582,6 @@
             ],
             "description": "Drupal is an open source content management platform powering millions of websites and applications.",
             "time": "2019-02-20T18:35:01+00:00"
-        },
-        {
-            "name": "drupal/examples",
-            "version": "dev-1.x",
-            "source": {
-                "type": "git",
-                "url": "https://git.drupal.org/project/examples",
-                "reference": "0be75808520a7c921ad7c87ac1cc87d716f5dc51"
-            },
-            "require": {
-                "drupal/core": "*"
-            },
-            "require-dev": {
-                "drupal/stream_wrapper_example": "*"
-            },
-            "suggest": {
-                "drupal/devel": "Some modules will be able to pretty-print PHP with this module."
-            },
-            "type": "drupal-module",
-            "extra": {
-                "branch-alias": {
-                    "dev-1.x": "1.x-dev"
-                },
-                "drupal": {
-                    "version": "8.x-1.x-dev",
-                    "datestamp": "1536200285",
-                    "security-coverage": {
-                        "status": "not-covered",
-                        "message": "Project has not opted into security advisory coverage!"
-                    }
-                }
-            },
-            "notification-url": "https://packages.drupal.org/8/downloads",
-            "license": [
-                "GPL-2.0+"
-            ],
-            "authors": [
-                {
-                    "name": "Dave Reid",
-                    "homepage": "https://www.drupal.org/user/53892"
-                },
-                {
-                    "name": "Itangalo",
-                    "homepage": "https://www.drupal.org/user/153998"
-                },
-                {
-                    "name": "Mile23",
-                    "homepage": "https://www.drupal.org/user/116231"
-                },
-                {
-                    "name": "Torenware",
-                    "homepage": "https://www.drupal.org/user/18784"
-                },
-                {
-                    "name": "add1sun",
-                    "homepage": "https://www.drupal.org/user/65088"
-                },
-                {
-                    "name": "cyberswat",
-                    "homepage": "https://www.drupal.org/user/27802"
-                },
-                {
-                    "name": "ilo",
-                    "homepage": "https://www.drupal.org/user/118449"
-                },
-                {
-                    "name": "jhodgdon",
-                    "homepage": "https://www.drupal.org/user/155601"
-                },
-                {
-                    "name": "jn2",
-                    "homepage": "https://www.drupal.org/user/1001014"
-                },
-                {
-                    "name": "katbailey",
-                    "homepage": "https://www.drupal.org/user/172987"
-                },
-                {
-                    "name": "linclark",
-                    "homepage": "https://www.drupal.org/user/396253"
-                },
-                {
-                    "name": "marvil07",
-                    "homepage": "https://www.drupal.org/user/132175"
-                },
-                {
-                    "name": "mikl",
-                    "homepage": "https://www.drupal.org/user/58679"
-                },
-                {
-                    "name": "rfay",
-                    "homepage": "https://www.drupal.org/user/30906"
-                },
-                {
-                    "name": "socketwench",
-                    "homepage": "https://www.drupal.org/user/65793"
-                },
-                {
-                    "name": "yched",
-                    "homepage": "https://www.drupal.org/user/39567"
-                }
-            ],
-            "description": "The Examples for Developers project aims to provide high-quality, well-documented API examples for a broad range of Drupal core functionality.",
-            "homepage": "https://www.drupal.org/project/examples",
-            "support": {
-                "source": "http://cgit.drupalcode.org/examples",
-                "issues": "https://www.drupal.org/project/issues/examples",
-                "documentation": "https://api.drupal.org/api/examples"
-            }
         },
         {
             "name": "easyrdf/easyrdf",
@@ -6963,8 +6854,7 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "drush/drush": 20,
-        "drupal/examples": 20
+        "drush/drush": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

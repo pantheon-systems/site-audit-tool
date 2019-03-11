@@ -84,7 +84,7 @@ class ExampleCommandsTest extends TestCase
     public function testExampleDrush()
     {
         $this->drush('example:drush');
-        $output = $this->assertOutputEquals('The Drupal database status is Connected');
+        $output = $this->assertOutputEquals("The Drupal site path is 'sites/default'");
     }
 
     /**

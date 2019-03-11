@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5bc59ca068cbf708c34aec6aebf9e0b1",
+    "content-hash": "fb6593ca852f19387eaf9445d7b5b2a2",
     "packages": [
         {
             "name": "consolidation/annotated-command",
@@ -3178,115 +3178,6 @@
             ],
             "description": "Drupal is an open source content management platform powering millions of websites and applications.",
             "time": "2019-02-20T18:35:01+00:00"
-        },
-        {
-            "name": "drupal/examples",
-            "version": "dev-1.x",
-            "source": {
-                "type": "git",
-                "url": "https://git.drupal.org/project/examples",
-                "reference": "0be75808520a7c921ad7c87ac1cc87d716f5dc51"
-            },
-            "require": {
-                "drupal/core": "*"
-            },
-            "require-dev": {
-                "drupal/stream_wrapper_example": "*"
-            },
-            "suggest": {
-                "drupal/devel": "Some modules will be able to pretty-print PHP with this module."
-            },
-            "type": "drupal-module",
-            "extra": {
-                "branch-alias": {
-                    "dev-1.x": "1.x-dev"
-                },
-                "drupal": {
-                    "version": "8.x-1.x-dev",
-                    "datestamp": "1536200285",
-                    "security-coverage": {
-                        "status": "not-covered",
-                        "message": "Project has not opted into security advisory coverage!"
-                    }
-                }
-            },
-            "notification-url": "https://packages.drupal.org/8/downloads",
-            "license": [
-                "GPL-2.0+"
-            ],
-            "authors": [
-                {
-                    "name": "Dave Reid",
-                    "homepage": "https://www.drupal.org/user/53892"
-                },
-                {
-                    "name": "Itangalo",
-                    "homepage": "https://www.drupal.org/user/153998"
-                },
-                {
-                    "name": "Mile23",
-                    "homepage": "https://www.drupal.org/user/116231"
-                },
-                {
-                    "name": "Torenware",
-                    "homepage": "https://www.drupal.org/user/18784"
-                },
-                {
-                    "name": "add1sun",
-                    "homepage": "https://www.drupal.org/user/65088"
-                },
-                {
-                    "name": "cyberswat",
-                    "homepage": "https://www.drupal.org/user/27802"
-                },
-                {
-                    "name": "ilo",
-                    "homepage": "https://www.drupal.org/user/118449"
-                },
-                {
-                    "name": "jhodgdon",
-                    "homepage": "https://www.drupal.org/user/155601"
-                },
-                {
-                    "name": "jn2",
-                    "homepage": "https://www.drupal.org/user/1001014"
-                },
-                {
-                    "name": "katbailey",
-                    "homepage": "https://www.drupal.org/user/172987"
-                },
-                {
-                    "name": "linclark",
-                    "homepage": "https://www.drupal.org/user/396253"
-                },
-                {
-                    "name": "marvil07",
-                    "homepage": "https://www.drupal.org/user/132175"
-                },
-                {
-                    "name": "mikl",
-                    "homepage": "https://www.drupal.org/user/58679"
-                },
-                {
-                    "name": "rfay",
-                    "homepage": "https://www.drupal.org/user/30906"
-                },
-                {
-                    "name": "socketwench",
-                    "homepage": "https://www.drupal.org/user/65793"
-                },
-                {
-                    "name": "yched",
-                    "homepage": "https://www.drupal.org/user/39567"
-                }
-            ],
-            "description": "The Examples for Developers project aims to provide high-quality, well-documented API examples for a broad range of Drupal core functionality.",
-            "homepage": "https://www.drupal.org/project/examples",
-            "support": {
-                "source": "http://cgit.drupalcode.org/examples",
-                "issues": "https://www.drupal.org/project/issues/examples",
-                "documentation": "https://api.drupal.org/api/examples"
-            }
         },
         {
             "name": "easyrdf/easyrdf",
@@ -7080,8 +6971,7 @@
     ],
     "minimum-stability": "dev",
     "stability-flags": {
-        "drush/drush": 20,
-        "drupal/examples": 20
+        "drush/drush": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
