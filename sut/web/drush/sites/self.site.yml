@@ -1,0 +1,3 @@
+other:
+  root: /path/to/other/drupal
+  uri: http://other.example.com

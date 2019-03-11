@@ -8,16 +8,13 @@ use Drush\Exceptions\UserAbortException;
 use Symfony\Component\Console\Input\InputInterface;
 use Consolidation\SiteAlias\SiteAliasManagerAwareInterface;
 use Consolidation\SiteAlias\SiteAliasManagerAwareTrait;
-use Consolidation\SiteProcess\ProcessManagerAwareInterface;
-use Consolidation\SiteProcess\ProcessManagerAwareTrait;
 
 /**
  * Edit this file to reflect your organization's needs.
  */
-class ExampleCommands extends DrushCommands implements SiteAliasManagerAwareInterface, ProcessManagerAwareInterface
+class ExampleCommands extends DrushCommands implements SiteAliasManagerAwareInterface
 {
     use SiteAliasManagerAwareTrait;
-    use ProcessManagerAwareTrait;
 
     /**
      * @command example:param
@@ -32,17 +29,15 @@ class ExampleCommands extends DrushCommands implements SiteAliasManagerAwareInte
     /**
      * @command example:input
      *
-     * @param string $param
-     * @option string $foo The "foo" option.
-     * @default foo undefined
+     * @param string $param A parameter
+     * @option string $foo The "foo" option. Default: bar
      *
      * Demonstrates a command that uses a Symfony Console InputInterface
      * to access the parameters and options passed to the command.
      */
     public function exampleInput(InputInterface $input)
     {
-        $this->io()->writeln('The parameter is ' . $input->getArgument('param'));
-        $this->io()->writeln('The "foo" option is ' . $input->getOption('foo'));
+        $this->io()->writeln('The parameter is ' . $input->getArgument('param') . 'and the "foo" option is ' . $input->getOption('foo'));
     }
 
     /**
@@ -70,7 +65,7 @@ class ExampleCommands extends DrushCommands implements SiteAliasManagerAwareInte
             throw new UserAbortException("Command cancelled.");
         }
         $this->io()->writeln('Continuing...');
-        sleep(3);
+        sleep(1);
         $this->io()->writeln('Done.');
     }
 
@@ -102,7 +97,8 @@ class ExampleCommands extends DrushCommands implements SiteAliasManagerAwareInte
 
         $result = $process->mustRun();
         $data = $process->getOutputAsJson();
-        $this->io()->writeln("The command result is:\n" . var_export($data, true));
+        $db_status = isset($data['db-status']) ? $data['db-status'] : 'unknown';
+        $this->io()->writeln("The Drupal database status is $db_status");
     }
 
     /**

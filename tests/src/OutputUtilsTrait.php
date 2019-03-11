@@ -123,12 +123,12 @@ trait OutputUtilsTrait
     public function getOutputFromJSON($key = null)
     {
         $output = $this->getOutput();
-        $json = json_decode($output);
+        $json = json_decode($output, true);
         if (!$json) {
             throw new \Exception("No json output received.\n\nOutput:\n\n$output\n\nStderr:\n\n" . $this->getErrorOutput());
         }
         if (isset($key)) {
-            $json = $json->{$key}; // http://stackoverflow.com/questions/2925044/hyphens-in-keys-of-object
+            $json = $json[$key];
         }
         return $json;
     }

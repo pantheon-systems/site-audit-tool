@@ -128,6 +128,11 @@ trait CliTestTrait
         }
     }
 
+    public static function isWindows()
+    {
+        return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+    }
+
     public static function _escapeshellargWindows($arg)
     {
         // Double up existing backslashes
