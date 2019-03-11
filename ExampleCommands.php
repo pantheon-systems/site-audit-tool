@@ -97,8 +97,8 @@ class ExampleCommands extends DrushCommands implements SiteAliasManagerAwareInte
 
         $result = $process->mustRun();
         $data = $process->getOutputAsJson();
-        $site_path = isset($data['site']) ? $data['site'] : 'unknown';
-        $this->io()->writeln("The Drupal site path is '$site_path'");
+        $drush_script = basename($data['drush-script']);
+        $this->io()->writeln("The Drush script is $drush_script");
     }
 
     /**

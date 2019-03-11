@@ -74,7 +74,7 @@ class ExampleCommandsTest extends TestCase
     public function testExampleAlias()
     {
         $this->drush('example:alias', ['@other']);
-        $output = $this->assertOutputEquals('The site root is: /path/to/other/drupal');
+        $this->assertOutputEquals('The site root is: /path/to/other/drupal');
     }
 
     /**
@@ -84,7 +84,9 @@ class ExampleCommandsTest extends TestCase
     public function testExampleDrush()
     {
         $this->drush('example:drush');
-        $output = $this->assertOutputEquals("The Drupal site path is 'sites/default'");
+        // Drush 8 will say 'drush.php', and Drush 9 will report 'drush'
+        $output = $this->getSimplifiedOutput();
+        $this->assertContains('The Drush script is drush', $output);
     }
 
     /**
