@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "62ed3f019ce9c301b05dc61c1f68509e",
+    "content-hash": "26212ca787a3f1717a578a4e410dbe20",
     "packages": [
         {
             "name": "chi-teck/drupal-code-generator",
@@ -663,16 +663,16 @@
         },
         {
             "name": "consolidation/site-alias",
-            "version": "3.0.0-beta2",
+            "version": "3.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/consolidation/site-alias.git",
-                "reference": "5d046f6c5a8981ebb630352625cc6b914aa5a186"
+                "reference": "8cfd3b6ab6d541086fc970bf850864293b284e6f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/consolidation/site-alias/zipball/5d046f6c5a8981ebb630352625cc6b914aa5a186",
-                "reference": "5d046f6c5a8981ebb630352625cc6b914aa5a186",
+                "url": "https://api.github.com/repos/consolidation/site-alias/zipball/8cfd3b6ab6d541086fc970bf850864293b284e6f",
+                "reference": "8cfd3b6ab6d541086fc970bf850864293b284e6f",
                 "shasum": ""
             },
             "require": {
@@ -731,25 +731,25 @@
                 }
             ],
             "description": "Manage alias records for local and remote sites.",
-            "time": "2019-03-08T16:23:52+00:00"
+            "time": "2019-03-12T17:31:48+00:00"
         },
         {
             "name": "consolidation/site-process",
-            "version": "2.0.0-beta6",
+            "version": "2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/consolidation/site-process.git",
-                "reference": "0a588d0db653b8d8d1af4e50f996a575d9d83687"
+                "reference": "29d6860e65eb22c1ffaff9777a6f1ce6e7adf188"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/consolidation/site-process/zipball/0a588d0db653b8d8d1af4e50f996a575d9d83687",
-                "reference": "0a588d0db653b8d8d1af4e50f996a575d9d83687",
+                "url": "https://api.github.com/repos/consolidation/site-process/zipball/29d6860e65eb22c1ffaff9777a6f1ce6e7adf188",
+                "reference": "29d6860e65eb22c1ffaff9777a6f1ce6e7adf188",
                 "shasum": ""
             },
             "require": {
                 "consolidation/config": "^1.2.1",
-                "consolidation/site-alias": "^3.0.0-beta1",
+                "consolidation/site-alias": "^3",
                 "php": ">=5.6.0",
                 "symfony/process": "^3.4"
             },
@@ -803,7 +803,7 @@
                 }
             ],
             "description": "A thin wrapper around the Symfony Process Component that allows applications to use the Site Alias library to specify the target for a remote call.",
-            "time": "2019-03-09T06:40:54+00:00"
+            "time": "2019-03-12T17:36:24+00:00"
         },
         {
             "name": "container-interop/container-interop",
@@ -930,28 +930,28 @@
         },
         {
             "name": "drush/drush",
-            "version": "dev-site-alias-path-parent",
+            "version": "9.6.0-rc6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/drush-ops/drush.git",
-                "reference": "5558a587cc44fbae65f94a52e78190dab2c8b07a"
+                "reference": "5da1401091bfe97fb2064fe3aa1ee7694ad7b0ed"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/drush-ops/drush/zipball/5558a587cc44fbae65f94a52e78190dab2c8b07a",
-                "reference": "5558a587cc44fbae65f94a52e78190dab2c8b07a",
+                "url": "https://api.github.com/repos/drush-ops/drush/zipball/5da1401091bfe97fb2064fe3aa1ee7694ad7b0ed",
+                "reference": "5da1401091bfe97fb2064fe3aa1ee7694ad7b0ed",
                 "shasum": ""
             },
             "require": {
                 "chi-teck/drupal-code-generator": "^1.27.0",
                 "composer/semver": "^1.4",
-                "consolidation/annotated-command": "^2.11.2",
+                "consolidation/annotated-command": "^2.12",
                 "consolidation/config": "^1.2",
                 "consolidation/filter-via-dot-access-data": "^1",
                 "consolidation/output-formatters": "^3.3.1",
                 "consolidation/robo": "^1.4.6",
-                "consolidation/site-alias": "^3.0.0-beta1",
-                "consolidation/site-process": "^2.0.0-beta5",
+                "consolidation/site-alias": "^3.0.0@stable",
+                "consolidation/site-process": "^2.0.0@stable",
                 "ext-dom": "*",
                 "grasmash/yaml-expander": "^1.1.1",
                 "league/container": "~2",
@@ -1070,7 +1070,7 @@
             ],
             "description": "Drush is a command line shell and scripting interface for Drupal, a veritable Swiss Army knife designed to make life easier for those of us who spend some of our working hours hacking away at the command prompt.",
             "homepage": "http://www.drush.org",
-            "time": "2019-03-11T03:19:08+00:00"
+            "time": "2019-03-12T20:05:25+00:00"
         },
         {
             "name": "grasmash/expander",
@@ -2127,16 +2127,16 @@
         },
         {
             "name": "twig/twig",
-            "version": "v1.37.1",
+            "version": "v1.38.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twigphp/Twig.git",
-                "reference": "66be9366c76cbf23e82e7171d47cbfa54a057a62"
+                "reference": "874adbd9222f928f6998732b25b01b41dff15b0c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twigphp/Twig/zipball/66be9366c76cbf23e82e7171d47cbfa54a057a62",
-                "reference": "66be9366c76cbf23e82e7171d47cbfa54a057a62",
+                "url": "https://api.github.com/repos/twigphp/Twig/zipball/874adbd9222f928f6998732b25b01b41dff15b0c",
+                "reference": "874adbd9222f928f6998732b25b01b41dff15b0c",
                 "shasum": ""
             },
             "require": {
@@ -2151,7 +2151,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.37-dev"
+                    "dev-master": "1.38-dev"
                 }
             },
             "autoload": {
@@ -2189,7 +2189,7 @@
             "keywords": [
                 "templating"
             ],
-            "time": "2019-01-14T14:59:29+00:00"
+            "time": "2019-03-12T18:45:24+00:00"
         },
         {
             "name": "webflo/drupal-finder",
@@ -6152,16 +6152,16 @@
         },
         {
             "name": "symfony/psr-http-message-bridge",
-            "version": "v1.1.0",
+            "version": "v1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/psr-http-message-bridge.git",
-                "reference": "53c15a6a7918e6c2ab16ae370ea607fb40cab196"
+                "reference": "921f8669c36ea0148d2520c0bb7838cda14879e0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/psr-http-message-bridge/zipball/53c15a6a7918e6c2ab16ae370ea607fb40cab196",
-                "reference": "53c15a6a7918e6c2ab16ae370ea607fb40cab196",
+                "url": "https://api.github.com/repos/symfony/psr-http-message-bridge/zipball/921f8669c36ea0148d2520c0bb7838cda14879e0",
+                "reference": "921f8669c36ea0148d2520c0bb7838cda14879e0",
                 "shasum": ""
             },
             "require": {
@@ -6170,12 +6170,11 @@
                 "symfony/http-foundation": "^2.3.42 || ^3.4 || ^4.0"
             },
             "require-dev": {
-                "symfony/phpunit-bridge": "^3.4 || 4.0"
+                "nyholm/psr7": "^1.1",
+                "symfony/phpunit-bridge": "^3.4 || ^4.0"
             },
             "suggest": {
-                "psr/http-factory-implementation": "To use the PSR-17 factory",
-                "psr/http-message-implementation": "To use the HttpFoundation factory",
-                "zendframework/zend-diactoros": "To use the Zend Diactoros factory"
+                "nyholm/psr7": "For a super lightweight PSR-7/17 implementation"
             },
             "type": "symfony-bridge",
             "extra": {
@@ -6186,7 +6185,10 @@
             "autoload": {
                 "psr-4": {
                     "Symfony\\Bridge\\PsrHttpMessage\\": ""
-                }
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -6207,9 +6209,10 @@
             "keywords": [
                 "http",
                 "http-message",
+                "psr-17",
                 "psr-7"
             ],
-            "time": "2018-08-30T16:28:28+00:00"
+            "time": "2019-03-11T15:23:15+00:00"
         },
         {
             "name": "symfony/routing",
@@ -6853,9 +6856,7 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {
-        "drush/drush": 20
-    },
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
