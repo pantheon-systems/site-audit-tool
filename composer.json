@@ -82,7 +82,9 @@
             },
             "phpunit4": {
                 "require-dev": {
-                    "phpunit/phpunit": "^4.8.36"
+                    "phpunit/phpunit": "^4.8.36",
+                    "consolidation/site-alias": "^3.0.0@stable",
+                    "consolidation/site-process": "^2.0.0@stable"
                 },
                 "config": {
                     "platform": {
