@@ -19,6 +19,8 @@ class ExampleCommands extends DrushCommands implements SiteAliasManagerAwareInte
     /**
      * @command example:param
      *
+     * @param string $param A parameter
+     *
      * Demonstrates a trivial command that takes a single required parameter.
      */
     public function exampleParam($param)
@@ -37,7 +39,7 @@ class ExampleCommands extends DrushCommands implements SiteAliasManagerAwareInte
      */
     public function exampleInput(InputInterface $input)
     {
-        $this->io()->writeln('The parameter is ' . $input->getArgument('param') . 'and the "foo" option is ' . $input->getOption('foo'));
+        $this->io()->writeln('The parameter is ' . $input->getArgument('param') . ' and the "foo" option is ' . $input->getOption('foo'));
     }
 
     /**

@@ -38,23 +38,13 @@ trait DrushTestTrait
       */
     public function drush($command, array $args = [], array $options = [], $site_specification = null, $cd = null, $expected_return = 0 /*self::EXIT_SUCCESS */, $suffix = null, $env = [])
     {
-        // cd is added for the benefit of siteSshTest which tests a strict command.
-        $global_option_list = ['simulate', 'root', 'uri', 'include', 'config', 'alias-path', 'ssh-options', 'backend', 'cd'];
-        $options += ['uri' => 'dev']; // Default value.
-        $hide_stderr = false;
+        $global_option_list = ['simulate', 'root', 'uri', 'include', 'config', 'alias-path', 'ssh-options'];
         $cmd[] = self::getDrush();
 
         // Insert global options.
         foreach ($options as $key => $value) {
             if (in_array($key, $global_option_list)) {
                 unset($options[$key]);
-                if ($key == 'backend') {
-                    $hide_stderr = true;
-                    $value = null;
-                }
-                if ($key == 'uri' && $value == 'OMIT') {
-                    continue;
-                }
                 if (!isset($value)) {
                     $cmd[] = "--$key";
                 } else {
@@ -83,9 +73,6 @@ trait DrushTestTrait
         }
 
         $cmd[] = $suffix;
-        if ($hide_stderr) {
-            $cmd[] = '2>' . $this->bitBucket();
-        }
         $exec = array_filter($cmd, 'strlen'); // Remove NULLs
         // Set sendmail_path to 'true' to disable any outgoing emails
         // that tests might cause Drupal to send.
@@ -102,20 +89,6 @@ trait DrushTestTrait
         }
 
         return $return;
-    }
-
-    /**
-     * Borrowed from Drush.
-     * Checks operating system and returns
-     * supported bit bucket folder.
-     */
-    public function bitBucket()
-    {
-        if (!$this->isWindows()) {
-            return '/dev/null';
-        } else {
-            return 'nul';
-        }
     }
 
     public function drushMajorVersion()

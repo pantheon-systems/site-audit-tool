@@ -29,7 +29,7 @@ class ExampleCommandsTest extends TestCase
     public function testExampleInputWithoutFooOption()
     {
         $this->drush('example:input', ['test']);
-        $this->assertOutputEquals('The parameter is testand the "foo" option is bar');
+        $this->assertOutputEquals('The parameter is test and the "foo" option is bar');
     }
 
     /**
@@ -40,7 +40,7 @@ class ExampleCommandsTest extends TestCase
     public function testExampleInputWithFooOption()
     {
         $this->drush('example:input', ['test'], ['foo' => 'baz']);
-        $this->assertOutputEquals('The parameter is testand the "foo" option is baz');
+        $this->assertOutputEquals('The parameter is test and the "foo" option is baz');
     }
 
     /**
@@ -64,6 +64,8 @@ class ExampleCommandsTest extends TestCase
     {
         $this->drush('example:log', ['-vvv']);
         $output = $this->getSimplifiedErrorOutput();
+        $this->assertContains('This is a notice', $output);
+        $this->assertContains('This is a warning', $output);
         $this->assertContains('This is a debug message', $output);
     }
 
@@ -95,7 +97,9 @@ class ExampleCommandsTest extends TestCase
      */
     public function testExampleConfiguration()
     {
-        // See sut/web/drush/drush.yml (Drush 9) and sut/web/drush/drushrc.php (Drush 8)
+        // See the configuration files:
+        //   - Drush 9: sut/web/drush/drush.yml
+        //   - Drush 8: sut/web/drush/drushrc.php
         $this->drush('example:config', ['example.key']);
         $this->assertOutputEquals('The value is "This is a configuration value"');
     }
