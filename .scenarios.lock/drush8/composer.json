@@ -15,25 +15,21 @@
         }
     ],
     "require": {
-        "drush/drush": "^8.2",
+        "drush/drush": "^8.2.1",
+        "php": ">=5.6",
         "consolidation/site-alias": "^3.0.0@stable",
-        "consolidation/site-process": "^2.0.0@stable",
-        "php": ">=5.6"
+        "consolidation/site-process": "^2.0.0@stable"
     },
     "require-dev": {
         "composer/installers": "^1.2",
         "phpunit/phpunit": "^6.5",
         "g1a/composer-test-scenarios": "^3.0.2",
-        "cweagans/composer-patches": "^1.6.5",
         "drupal-composer/drupal-scaffold": "^2.5",
         "drupal/core": "^8.6.0",
         "webflo/drupal-finder": "^1.1.0",
         "webmozart/path-util": "^2.3",
         "zaporylie/composer-drupal-optimizations": "^1.0.2",
         "webflo/drupal-core-require-dev": "^8.6.0"
-    },
-    "conflict": {
-        "drupal/drupal": "*"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -63,10 +59,6 @@
         ]
     },
     "extra": {
-        "composer-exit-on-patch-failure": true,
-        "patchLevel": {
-            "drupal/core": "-p2"
-        },
         "installer-paths": {
             "../../sut/web/core": [
                 "type:drupal-core"
