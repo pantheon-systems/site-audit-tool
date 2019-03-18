@@ -16,7 +16,7 @@ trait CliTestTrait
     private $defaultTimeout = 60;
 
     /**
-     * Timeout for command.
+     * Timeout for command. Set to zero for no timeouts.
      *
      * Reset to $defaultTimeout after executing a command.
      *
@@ -84,17 +84,14 @@ trait CliTestTrait
      *  Extra environment variables.
      * @param string $input
      *   A string representing the STDIN that is piped to the command.
-     * @return integer
-     *   Exit code. Usually self::EXIT_ERROR or self::EXIT_SUCCESS.
      */
-    public function execute($command, $expected_return = self::EXIT_SUCCESS, $cd = null, $env = null, $input = null)
+    public function execute($command, $expected_return = 0, $cd = null, $env = null, $input = null)
     {
         try {
             // Process uses a default timeout of 60 seconds, set it to 0 (none).
             $this->process = new Process($command, $cd, $env, $input, 0);
             $this->process->inheritEnvironmentVariables(true);
-            // TODO: Decide on timeout strategy
-            if (!getenv('UNISH_NO_TIMEOUTS')) {
+            if ($this->timeout) {
                 $this->process->setTimeout($this->timeout)
                 ->setIdleTimeout($this->idleTimeout);
             }
@@ -106,7 +103,6 @@ trait CliTestTrait
             // Reset timeouts to default.
             $this->timeout = $this->defaultTimeout;
             $this->idleTimeout = $this->defaultIdleTimeout;
-            return $return;
         } catch (ProcessTimedOutException $e) {
             if ($e->isGeneralTimeout()) {
                 $message = 'Command runtime exceeded ' . $this->timeout . " seconds:\n" .  $command;
@@ -176,6 +172,19 @@ trait CliTestTrait
 
         return $error;
     }
+
+    /**
+     * Checks that the output matches the expected output.
+     *
+     * This matches against a simplified version of the actual output that has
+     * absolute paths and duplicate whitespace removed, to avoid false negatives
+     * on minor differences.
+     *
+     * @param string $expected
+     *   The expected output.
+     * @param string $filter
+     *   Optional regular expression that should be ignored in the error output.
+     */
 
     protected function assertOutputEquals($expected, $filter = '')
     {
