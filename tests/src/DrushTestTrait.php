@@ -41,15 +41,13 @@ trait DrushTestTrait
      * @param $cd
      *   A directory to change into before executing.
      * @param $expected_return
-     *   The expected exit code. Usually self::EXIT_ERROR or self::EXIT_SUCCESS.
+     *   The expected exit code, e.g. 0 or 1 or some other expected value.
      * @param $suffix
      *   Any code to append to the command. For example, redirection like 2>&1.
      * @param array $env
      *   Environment variables to pass along to the subprocess.
-     * @return integer
-     *   An exit code.
      */
-    public function drush($command, array $args = [], array $options = [], $site_specification = null, $cd = null, $expected_return = 0 /*self::EXIT_SUCCESS */, $suffix = null, $env = [])
+    public function drush($command, array $args = [], array $options = [], $site_specification = null, $cd = null, $expected_return = 0, $suffix = null, $env = [])
     {
         $global_option_list = ['simulate', 'root', 'uri', 'include', 'config', 'alias-path', 'ssh-options'];
         $cmd[] = self::getPathToDrush();
@@ -85,9 +83,7 @@ trait DrushTestTrait
         // that tests might cause Drupal to send.
 
         $cmd = implode(' ', $exec);
-        $return = $this->execute($cmd, $expected_return, $cd, $env);
-
-        return $return;
+        $this->execute($cmd, $expected_return, $cd, $env);
     }
 
     /**
