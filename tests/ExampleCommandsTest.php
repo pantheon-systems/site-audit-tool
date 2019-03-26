@@ -2,7 +2,7 @@
 namespace ExampleDrushExtension;
 
 use PHPUnit\Framework\TestCase;
-use TestUtils\DrushTestTrait;
+use Drush\TestTraits\DrushTestTrait;
 
 /**
  * Some simple tests of our example extension, which does nothing more
