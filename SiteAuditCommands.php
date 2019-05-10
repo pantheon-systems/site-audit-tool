@@ -3,11 +3,13 @@
 namespace Drush\Commands\site_audit_tool;
 
 use Consolidation\AnnotatedCommand\CommandData;
-use Drush\Commands\DrushCommands;
-use Drush\Exceptions\UserAbortException;
-use Symfony\Component\Console\Input\InputInterface;
+use Consolidation\OutputFormatters\StructuredData\RowsOfFieldsWithMetadata;
 use Consolidation\SiteAlias\SiteAliasManagerAwareInterface;
 use Consolidation\SiteAlias\SiteAliasManagerAwareTrait;
+use Drush\Commands\DrushCommands;
+use Drush\Exceptions\UserAbortException;
+use SiteAudit\SiteAuditCheckInterface;
+use Symfony\Component\Console\Input\InputInterface;
 
 // For testing
 use SiteAudit\SiteAuditCheckBase;
@@ -42,20 +44,84 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
     /**
      * @command audit:best-practices
      * @aliases audit-best-practices,abp
+     * @field-labels
+     *     label: Label
+     *     description: Description
+     *     result: Result
+     *     action: Action
+     *     score: Score
+     * @return RowsOfFieldsWithMetadata
      *
      * @param string $param A parameter
      * @bootstrap full
      *
      * Demonstrates a trivial command that takes a single required parameter.
      */
-    public function bestPractices($param)
+    public function bestPractices($param = '', $options = ['format' => 'json'])
     {
-        $this->io()->writeln('The parameter is ' . $param);
-
         $check = new BestPracticesSettings();
 
-        $this->io()->writeln('The description of ' . $check->getId() . ' is ' . $check->getDescription());
+        // Temporary code to be thrown away
+        $report = $this->interimReport('Best Practices', [$check]);
 
+        // Note that we could improve the table output with the annotation
+        //   @default-fields description,result,action
+        // This would also by default hide the remaining fields in json
+        // format, though, which would not be desirable.
+        // @todo: Add a separate 'default-fields' for human-readable output,
+        // or maybe always ignore it in unstructured output modes.
+        return (new RowsOfFieldsWithMetadata($report))
+            ->setDataKey('checks');
     }
 
+    /**
+     * Temporary code to be thrown away
+     */
+    protected function interimReport($label, $checks)
+    {
+        $score = 0;
+        $max = 0;
+        $checkResults = [];
+
+        foreach ($checks as $check) {
+            $max += 2;
+            $score += $check->getScore();
+            $checkResults += $this->interimReportResults($check);
+        }
+
+        $percent = ($score * 100) / $max;
+
+        return [
+            "percent" => (int) $percent,
+            "label" => $label,
+            "checks" => $checkResults,
+        ];
+    }
+
+    /**
+     * Temporary code to be thrown away
+     */
+    protected function interimReportResults(SiteAuditCheckInterface $check)
+    {
+        $checkName = $this->getCheckName($check);
+        return [
+            $checkName => [
+                "label" => $check->getLabel(),
+                "description" => $check->getDescription(),
+                "result" => $check->getResult(),
+                "action" => $check->renderAction(),
+                "score" => $check->getScore(),
+            ],
+        ];
+    }
+
+    /**
+     * Temporary code to be thrown away
+     */
+    protected function getCheckName(SiteAuditCheckInterface $check)
+    {
+        $full_class_name = get_class($check);
+        $parts = explode('\\', $full_class_name);
+        return 'SiteAudit' . array_pop($parts);
+    }
 }

@@ -24,10 +24,9 @@ class BestPracticesTest extends TestCase
      */
     public function testBestPractices()
     {
-        $this->drush('audit:best-practices', ['test']);
+        $this->drush('audit:best-practices');
         $output = $this->getSimplifiedOutput();
-        $this->assertContains('The parameter is test', $output);
-        $this->assertContains('The description of best_practices_settings is Check if the configuration file exists', $output);
+        $this->assertContains('settings.php exists and is not a symbolic link', $output);
     }
 
 }
