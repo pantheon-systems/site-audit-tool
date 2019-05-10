@@ -5,7 +5,7 @@
 #
 drush:
   commands:
-    '\Drush\Commands\example_drush_extension\ExampleCommands': '${env.cwd}/ExampleCommands.php'
+    '\Drush\Commands\site_audit_tool\SiteAuditCommands': '${env.cwd}/SiteAuditCommands.php'
 
 example:
   # Used in testExampleConfiguration in tests/DrushExtensionTest.php

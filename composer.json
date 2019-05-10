@@ -39,6 +39,11 @@
         },
         "sort-packages": true
     },
+    "autoload": {
+        "psr-4": {
+          "SiteAudit\\": "src/"
+        }
+    },
     "autoload-dev": {
         "classmap": [
             "tests/scripts/composer/ScriptHandler.php"
