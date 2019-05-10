@@ -121,7 +121,6 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
     protected function getCheckName(SiteAuditCheckInterface $check)
     {
         $full_class_name = get_class($check);
-        $parts = explode('\\', $full_class_name);
-        return 'SiteAudit' . array_pop($parts);
+        return str_replace('\\', '', $full_class_name);
     }
 }
