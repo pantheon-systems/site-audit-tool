@@ -1,19 +1,15 @@
-Example Drush Extension
-=======================
+Experimental Site Audit Tool
+============================
 
-[![Build Status](https://travis-ci.org/drush-ops/example-drush-extension.svg?branch=master)](https://travis-ci.org/drush-ops/example-drush-extension)
+[![Build Status](https://travis-ci.org/greg-1-anderson/site-audit-tool.svg?branch=master)](https://travis-ci.org/greg-1-anderson/site-audit-tool)
 
-This is an example Drush extension that is compatible with both Drush 9.6+ and Drush 8.2+. It includes tests that run on both versions of Drush.
+This is an experimental Drush extension.
 
-This this project demonstrates what is known as a "site-wide" Drush extension. Site-wide extensions are installed via Composer into a particular Drupal site. The other kinds of Drush extensions are Drush module commands and Drush global commands. See the [Creating Custom Drush Commands documentation](http://docs.drush.org/en/master/commands/) for more information.
+Goal: Create a Global Drush command that runs all of the checks in the Site Audit 2.x branch.
 
-For maximum compatibility with future versions of Drush, a site-wide Drush extension should only call the following APIs:
+Potential future goal: Share checks between the Global Drush command in the Site Audit 3.x branch.
 
-  - APIs provided by Drupal
-  - APIs provided by Drupal's dependencies
-  - Libraries decleared in the site-wide extension's own composer.json file
-  
-Avoid using Drush APIs, save for those that are defined by your command's base class, [DrushCommands](https://github.com/drush-ops/drush/blob/master/src/Commands/DrushCommands.php), or those that are provided by objects injected into your command class by Drush. See [ExampleCommands.php](ExampleCommands.php) for examples.
+See the [#3052993](https://www.drupal.org/project/site_audit/issues/3052993) in the Site Audit issue queue.
 
 Usage
 -----
@@ -29,11 +25,17 @@ composer scenario drush8
 ```
 The [Composer Test Scenarios](https://github.com/g1a/composer-test-scenarios) project is used to manage the Composer dependencies needed to test different scenarios of this project. Running `composer scenario` is like running `composer install`; it will install the appropriate dependencies for the requested testing scenario. Run `composer install` to return to the default installation.
 
-To use this extension in production (that is, to install it in a Drupal 8 site):
+To use this extension as a global Drush command, set up your global drush.yml file as follows:
+
+
 ```
-cd /path/to/my-drupal-composer-drupal-project
-composer require drush/example-drush-extension
+drush:
+  paths:
+    include:
+      - '${env.home}/path/to/drush-extensions'
 ```
+
+Then install this project to `~/path/to/drush-extensions/Commands/site-audit-tool`
 
 Running Tests
 -------------
@@ -48,18 +50,5 @@ Ad-hoc Testing
 
 In development:
 ```
-composer drush example:param test
+composer drush audit:best-practices
 ```
-In production:
-```
-cd /path/to/my-drupal-composer-drupal-project
-drush example:param test
-```
-Customizing
------------
-
-1. Fork this repository.
-2. Alter "name", "description" and etc. in composer.json to suit.
-3. Rename ExampleCommands.php and ExampleCommandsTest.php for your project.
-4. Configuration and site aliases for use in testing can be placed in 'sut/drush/drush.yml' and 'sut/drush/sites/self.site.yml', respectively.
-5. Add your extension on packagist.org so that it may be installed via Composer.
