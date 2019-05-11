@@ -25,11 +25,10 @@
         "phpunit/phpunit": "^6.5",
         "g1a/composer-test-scenarios": "^3.0.2",
         "drupal-composer/drupal-scaffold": "^2.5",
-        "drupal/core": "^8.6.0",
+        "drupal/core": "^8.7",
         "webflo/drupal-finder": "^1.1.0",
         "webmozart/path-util": "^2.3",
-        "zaporylie/composer-drupal-optimizations": "^1.0.2",
-        "webflo/drupal-core-require-dev": "^8.6.0"
+        "zaporylie/composer-drupal-optimizations": "^1.0.2"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -79,6 +78,7 @@
             },
             "phpunit4": {
                 "require-dev": {
+                    "drupal/core": "~8.6.0",
                     "phpunit/phpunit": "^4.8.36"
                 },
                 "config": {
