@@ -14,6 +14,7 @@ use Symfony\Component\Console\Input\InputInterface;
 // For testing
 use SiteAudit\SiteAuditCheckBase;
 use SiteAudit\Check\BestPracticesSettings;
+use SiteAudit\Check\BestPracticesFast404;
 
 /**
  * Edit this file to reflect your organization's needs.
@@ -59,10 +60,13 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
      */
     public function bestPractices($param = '', $options = ['format' => 'json'])
     {
-        $check = new BestPracticesSettings();
+        $checks = [
+            new BestPracticesSettings(),
+            new BestPracticesFast404(),
+        ];
 
         // Temporary code to be thrown away
-        $report = $this->interimReport('Best Practices', [$check]);
+        $report = $this->interimReport('Best Practices', $checks);
 
         // Note that we could improve the table output with the annotation
         //   @default-fields description,result,action
