@@ -58,7 +58,18 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
      *
      * Demonstrates a trivial command that takes a single required parameter.
      */
-    public function bestPractices($param = '', $options = ['format' => 'json'])
+    public function bestPractices(
+        $param = '',
+        $options = [
+            'format' => 'json',
+
+            // Ignore these legacy flags for now
+            'html' => false,
+            'json' => false,
+            'detail' => false,
+            'vendor' => '',
+            'skip' => '',
+        ])
     {
         $checks = [
             new BestPracticesSettings(),
