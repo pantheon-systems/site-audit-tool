@@ -42,21 +42,16 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
         }
     }
 
+
     /**
-     * @command audit:best-practices
-     * @aliases audit-best-practices,abp,aa
-     * @field-labels
-     *     label: Label
-     *     description: Description
-     *     result: Result
-     *     action: Action
-     *     score: Score
-     * @return RowsOfFieldsWithMetadata
+     * @command audit:reports
+     * @aliases aa
+     * @return array
      *
      * @param string $param A parameter
      * @bootstrap full
      *
-     * Demonstrates a trivial command that takes a single required parameter.
+     * Combine all of our reports
      */
     public function bestPractices(
         $param = '',
@@ -70,6 +65,43 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
             'vendor' => '',
             'skip' => '',
         ])
+    {
+        $checks = [
+            new BestPracticesSettings(),
+            new BestPracticesFast404(),
+        ];
+
+        // Temporary code to be thrown away
+        $bestPracticeReport = $this->interimReport('Best Practices', $checks);
+
+        return [
+            'time' => time(),
+            'reports' => [
+                'SiteAuditReportBestPractices' => $bestPracticeReport,
+            ],
+        ];
+    }
+
+    /**
+     * @command audit:best-practices
+     * @aliases audit-best-practices,abp
+     * @field-labels
+     *     label: Label
+     *     description: Description
+     *     result: Result
+     *     action: Action
+     *     score: Score
+     * @return RowsOfFieldsWithMetadata
+     *
+     * @param string $param A parameter
+     * @bootstrap full
+     *
+     * Demonstrates a trivial command that takes a single required parameter.
+     */
+    public function auditReports(
+        $param = '',
+        $options = ['format' => 'json']
+        )
     {
         $checks = [
             new BestPracticesSettings(),
