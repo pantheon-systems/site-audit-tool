@@ -44,7 +44,7 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
 
     /**
      * @command audit:best-practices
-     * @aliases audit-best-practices,abp
+     * @aliases audit-best-practices,abp,aa
      * @field-labels
      *     label: Label
      *     description: Description
