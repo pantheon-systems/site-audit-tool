@@ -53,7 +53,7 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
      *
      * Combine all of our reports
      */
-    public function bestPractices(
+    public function auditReports(
         $param = '',
         $options = [
             'format' => 'json',
@@ -74,12 +74,21 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
         // Temporary code to be thrown away
         $bestPracticeReport = $this->interimReport('Best Practices', $checks);
 
-        return [
+        $result = [
             'time' => time(),
             'reports' => [
                 'SiteAuditReportBestPractices' => $bestPracticeReport,
             ],
         ];
+
+        // @todo Use output formatter. At the moment, the output formatter
+        // insists on always pretty-printing with JSON_PRETTY_PRINT, but
+        // the Pantheon dashboard expects non-pretty json, and does not
+        // parse correctly with the extra whitespace.
+
+        // return $result;
+
+        print json_encode($result);
     }
 
     /**
@@ -98,7 +107,7 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
      *
      * Demonstrates a trivial command that takes a single required parameter.
      */
-    public function auditReports(
+    public function bestPractices(
         $param = '',
         $options = ['format' => 'json']
         )
@@ -170,4 +179,5 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
         $full_class_name = get_class($check);
         return str_replace('\\', '', $full_class_name);
     }
+
 }
