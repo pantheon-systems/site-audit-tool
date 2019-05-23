@@ -75,7 +75,7 @@ abstract class SiteAuditCheckBase implements SiteAuditCheckInterface {
    * @param bool $opt_out
    *   If set, will not perform checks.
    */
-  public function __construct($registry = [], $options = [], $opt_out = false) {
+  public function __construct($registry, $options = [], $opt_out = false) {
     $this->registry = $registry;
     $this->options = $options;
     $this->optOut = $opt_out;

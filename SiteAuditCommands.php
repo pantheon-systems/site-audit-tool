@@ -4,8 +4,6 @@ namespace Drush\Commands\site_audit_tool;
 
 use Consolidation\AnnotatedCommand\CommandData;
 use Consolidation\OutputFormatters\StructuredData\RowsOfFieldsWithMetadata;
-use Consolidation\SiteAlias\SiteAliasManagerAwareInterface;
-use Consolidation\SiteAlias\SiteAliasManagerAwareTrait;
 use Drush\Commands\DrushCommands;
 use Drush\Exceptions\UserAbortException;
 use SiteAudit\SiteAuditCheckInterface;
@@ -19,10 +17,8 @@ use SiteAudit\Check\BestPracticesFast404;
 /**
  * Edit this file to reflect your organization's needs.
  */
-class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareInterface
+class SiteAuditCommands extends DrushCommands
 {
-    use SiteAliasManagerAwareTrait;
-
     /**
      * @hook init
      *
@@ -41,7 +37,6 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
             $loader->register();
         }
     }
-
 
     /**
      * @command audit:reports
@@ -66,20 +61,11 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
             'skip' => '',
         ])
     {
-        $checks = [
-            new BestPracticesSettings(),
-            new BestPracticesFast404(),
-        ];
+        $registry = new \stdClass();
+        $checks = $this->interimInstantiateChecks($registry);
+        $checks = $this->filterSkippedChecks($checks, $options['skip']);
 
-        // Temporary code to be thrown away
-        $bestPracticeReport = $this->interimReport('Best Practices', $checks);
-
-        $result = [
-            'time' => time(),
-            'reports' => [
-                'SiteAuditReportBestPractices' => $bestPracticeReport,
-            ],
-        ];
+        $result = $this->interimBuildReports($checks);
 
         // @todo Use output formatter. At the moment, the output formatter
         // insists on always pretty-printing with JSON_PRETTY_PRINT, but
@@ -112,13 +98,13 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
         $options = ['format' => 'json']
         )
     {
-        $checks = [
-            new BestPracticesSettings(),
-            new BestPracticesFast404(),
-        ];
+        $reportName = 'BestPractices';
+        $registry = new \stdClass();
+        $checks = $this->interimInstantiateChecks($registry);
+        $reportChecks = $this->checksForReport($reportName, $checks);
 
         // Temporary code to be thrown away
-        $report = $this->interimReport('Best Practices', $checks);
+        $report = $this->interimReport($this->interimReportLabel($reportName), $reportChecks);
 
         // Note that we could improve the table output with the annotation
         //   @default-fields description,result,action
@@ -128,6 +114,88 @@ class SiteAuditCommands extends DrushCommands implements SiteAliasManagerAwareIn
         // or maybe always ignore it in unstructured output modes.
         return (new RowsOfFieldsWithMetadata($report))
             ->setDataKey('checks');
+    }
+
+    protected function interimBuildReports($checks)
+    {
+        $reportsList = $this->interimReportsList();
+
+        foreach ($reportsList as $report => $label) {
+            $key = "SiteAuditReport$report";
+            $reportChecks = $this->checksForReport($report, $checks);
+            if (!empty($reportChecks)) {
+                $reports[$key] = $this->interimReport($label, $reportChecks);
+            }
+        }
+
+        return [
+            'time' => time(),
+            'reports' => $reports,
+        ];
+    }
+
+    protected function interimReportsList()
+    {
+        return [
+            'BestPractices' => "Best practices",
+            'Cache' => "Drupal's caching settings",
+            'Extensions' => "Extensions",
+            'Cron' => "Cron",
+            'Database' => "Database",
+            'Users' => "Users",
+            'FrontEnd' => "Front End",
+            'Status' => "Status",
+            'Watchdog' => "Watchdog database logs",
+            'Views' => "Views",
+        ];
+    }
+
+    protected function interimReportLabel($reportName)
+    {
+        $reports = $this->interimReportsList();
+
+        return $reports[$reportName];
+    }
+
+    protected function interimInstantiateChecks($registry)
+    {
+        $checks = [
+            new \SiteAudit\Check\BestPracticesSettings($registry),
+            new \SiteAudit\Check\BestPracticesFast404($registry),
+        ];
+
+        return $checks;
+    }
+
+    protected function checksForReport($report, $checks)
+    {
+        $result = [];
+
+        foreach ($checks as $check) {
+            if (strpos(get_class($check), $report) !== false) {
+                $result[] = $check;
+            }
+        }
+
+        return $result;
+    }
+
+    protected function filterSkippedChecks($checks, $skipped)
+    {
+        // Pantheon by default skips:
+        // insights,codebase,DatabaseSize,BlockCacheReport,DatabaseRowCount,content
+
+        if (!is_array($skipped)) {
+            $skipped = explode(',', $skipped);
+        }
+
+        foreach ($checks as $key => $check) {
+            if (strpos(get_class($check), $check) !== false) {
+                unset($checks[$key]);
+            }
+        }
+
+        return $checks;
     }
 
     /**
