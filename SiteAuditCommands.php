@@ -61,8 +61,7 @@ class SiteAuditCommands extends DrushCommands
             'skip' => '',
         ])
     {
-        $registry = new \stdClass();
-        $checks = $this->interimInstantiateChecks($registry);
+        $checks = $this->interimInstantiateChecks($this->createRegistry($options));
         $checks = $this->filterSkippedChecks($checks, $options['skip']);
 
         $result = $this->interimBuildReports($checks);
@@ -75,6 +74,16 @@ class SiteAuditCommands extends DrushCommands
         // return $result;
 
         print json_encode($result);
+    }
+
+    protected function createRegistry($options = [])
+    {
+        $options += ['vendor' => ''];
+
+        $registry = new \stdClass();
+        $registry->vendor = $options['vendor'];
+
+        return $registry;
     }
 
     /**
@@ -99,7 +108,7 @@ class SiteAuditCommands extends DrushCommands
         )
     {
         $reportId = 'best_practices';
-        $registry = new \stdClass();
+        $checks = $this->interimInstantiateChecks($this->createRegistry($options));
         $checks = $this->interimInstantiateChecks($registry);
         $reportChecks = $this->checksForReport($reportId, $checks);
 

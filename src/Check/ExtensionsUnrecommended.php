@@ -152,8 +152,7 @@ class ExtensionsUnrecommended extends SiteAuditCheckBase {
       'bad_judgement' => $this->t('Joke module, framework for anarchy.'),
       'php' => $this->t('Executable code should never be stored in the database.'),
     );
-    //if (drush_get_option('vendor') == 'pantheon') { TODO
-    if (TRUE) {
+    if ($this->registry->vendor == 'pantheon') {
       // Unsupported or redundant.
       $pantheon_unrecommended_modules = array(
         'memcache' => dt('Pantheon does not provide memcache; instead, redis is provided as a service to all customers; see http://helpdesk.getpantheon.com/customer/portal/articles/401317'),
