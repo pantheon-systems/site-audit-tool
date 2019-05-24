@@ -63,46 +63,46 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
    */
   public function getResultWarn() {
     $ret_val = $this->t('The following duplicate extensions were found:');
-
-    $paths = array();
-    foreach ($this->registry->extensions_dupe as $name => $instances) {
-      foreach ($instances as $instance) {
-        $paths[$name][] = $instance['path'];
+    if ($this->registry->html) {
+      $ret_val = '<p>' . $ret_val . '</p>';
+      $ret_val .= '<table class="table table-condensed">';
+      $ret_val .= '<thead><tr><th>' . dt('Name') . '</th><th>' . dt('Paths') . '</th></thead>';
+      $ret_val .= '<tbody>';
+      foreach ($this->registry['extensions_dupe'] as $name => $extension_infos) {
+        $ret_val .= '<tr><td>' . $name . '</td>';
+        $paths = array();
+        foreach ($extension_infos as $extension_info) {
+          $extension = $extension_info['path'];
+          if ($extension_info['version']) {
+            $extension .= ' (' . $extension_info['version'] . ')';
+          }
+          $paths[] = $extension;
+        }
+        $ret_val .= '<td>' . implode('<br/>', $paths) . '</td></tr>';
+      }
+      $ret_val .= '</tbody>';
+      $ret_val .= '</table>';
+    }
+    else {
+      foreach ($this->registry['extensions_dupe'] as $name => $extension_infos) {
+        $ret_val .= PHP_EOL;
+        if (!drush_get_option('json')) {
+          $ret_val .= str_repeat(' ', 6);
+        }
+        $ret_val .= $name . PHP_EOL;
+        $extension_list = '';
+        foreach ($extension_infos as $extension_info) {
+          $extension_list .= str_repeat(' ', 8);
+          $extension_list .= $extension_info['path'];
+          if ($extension_info['version']) {
+            $extension_list .= ' (' . $extension_info['version'] . ')';
+          }
+          $extension_list .= PHP_EOL;
+        }
+        $ret_val .= rtrim($extension_list);
       }
     }
-
-    $headers = array(
-      $this->t('Name'),
-      $this->t('Paths')
-    );
-    $rows = [];
-    switch ($this->options['format']) {
-      case 'html':
-        foreach ($this->registry->extensions_dupe as $name => $infos) {
-          $rows[] = [
-            $name,
-            implode('<br/>', $paths[$name]),
-          ];
-        }
-        break;
-      case 'text':
-        foreach ($this->registry->extensions_dupe as $name => $infos) {
-          $rows[] = [
-            $name,
-            implode("\n", $paths[$name]),
-          ];
-        }
-        break;
-      case 'json':
-        foreach ($this->registry->extensions_dupe as $name => $infos) {
-          $rows[] = [
-            'module' => $name,
-            'paths' => $paths[$name],
-          ];
-        }
-        break;
-    }
-    return array('#theme' => 'table', '#header' => $headers, '#rows' => $rows);
+    return $ret_val;
   }
 
   /**

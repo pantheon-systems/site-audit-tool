@@ -85,7 +85,7 @@ abstract class SiteAuditCheckBase implements SiteAuditCheckInterface {
     $static = FALSE;
 
     // Not ideal, but store a reference to ourself in the registry checks list
-    $this->registry->checksList[$this->getId()] = $this;
+    $this->registry->checksList->add($this);
   }
 
   /**
@@ -225,11 +225,7 @@ abstract class SiteAuditCheckBase implements SiteAuditCheckInterface {
    * invoke another check's calculateScore() method if it is needed
    */
   protected function checkInvokeCalculateScore($id) {
-    if (!isset($this->registry->checksList[$id])) {
-      return;
-    }
-    $check = $this->registry->checksList[$id];
-    $check->calculateScore();
+    $this->registry->checksList->checkInvokeCalculateScore($id);
   }
 
 }

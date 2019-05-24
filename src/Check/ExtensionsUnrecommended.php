@@ -48,10 +48,8 @@ class ExtensionsUnrecommended extends SiteAuditCheckBase {
     $ret_val = $this->t('The following unrecommended modules(s) currently exist in your codebase: @list', array(
       '@list' => implode(', ', array_keys($this->registry->extensions_unrec)),
     ));
-    //if (drush_get_option('detail')) {
-    if (TRUE) {
-      //if (drush_get_option('html')) {
-      if (TRUE) {
+    if ($this->registry->detail) {
+      if ($this->registry->html) {
         $ret_val .= '<br/>';
         $ret_val .= '<table class="table table-condensed">';
         $ret_val .= '<thead><tr><th>' . $this->t('Name') . '</th><th>' . $this->t('Reason') . '</th></thead>';
@@ -148,16 +146,16 @@ class ExtensionsUnrecommended extends SiteAuditCheckBase {
    *    Keyed by module machine name, value is explanation.
    */
   public function getExtensions() {
-    $unrecommended_modules = array(
+    $unrecommended_modules = [
       'bad_judgement' => $this->t('Joke module, framework for anarchy.'),
       'php' => $this->t('Executable code should never be stored in the database.'),
-    );
+    ];
     if ($this->registry->vendor == 'pantheon') {
       // Unsupported or redundant.
-      $pantheon_unrecommended_modules = array(
+      $pantheon_unrecommended_modules = [
         'memcache' => dt('Pantheon does not provide memcache; instead, redis is provided as a service to all customers; see http://helpdesk.getpantheon.com/customer/portal/articles/401317'),
         'memcache_storage' => dt('Pantheon does not provide memcache; instead, redis is provided as a service to all customers; see http://helpdesk.getpantheon.com/customer/portal/articles/401317'),
-      );
+      ];
       $unrecommended_modules = array_merge($unrecommended_modules, $pantheon_unrecommended_modules);
     }
     return $unrecommended_modules;

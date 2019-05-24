@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use SiteAudit\SiteAuditCheckBase;
 use SiteAudit\Check\BestPracticesSettings;
 use SiteAudit\Check\BestPracticesFast404;
+use SiteAudit\ChecksRegistry;
 
 /**
  * Edit this file to reflect your organization's needs.
@@ -66,24 +67,18 @@ class SiteAuditCommands extends DrushCommands
 
         $result = $this->interimBuildReports($checks);
 
-        // @todo Use output formatter. At the moment, the output formatter
+        // Hack: avoid using the output format when `--json` is specified.
+        // At the moment, the output formatter
         // insists on always pretty-printing with JSON_PRETTY_PRINT, but
         // the Pantheon dashboard expects non-pretty json, and does not
         // parse correctly with the extra whitespace.
+        if ($options['json']) {
+            print json_encode($result);
+            return null;
+        }
 
-        // return $result;
-
-        print json_encode($result);
-    }
-
-    protected function createRegistry($options = [])
-    {
-        $options += ['vendor' => ''];
-
-        $registry = new \stdClass();
-        $registry->vendor = $options['vendor'];
-
-        return $registry;
+        // Otherwise, use the output formatter
+        return $result;
     }
 
     /**
@@ -97,19 +92,42 @@ class SiteAuditCommands extends DrushCommands
      *     score: Score
      * @return RowsOfFieldsWithMetadata
      *
-     * @param string $param A parameter
      * @bootstrap full
      *
      * Demonstrates a trivial command that takes a single required parameter.
      */
-    public function bestPractices(
-        $param = '',
+    public function auditBestPractices(
         $options = ['format' => 'json']
         )
     {
-        $reportId = 'best_practices';
+        return $this->singleReport('best_practices', $options);
+    }
+
+    /**
+     * @command audit:extensions
+     * @aliases audit_extensions,ae
+     * @field-labels
+     *     label: Label
+     *     description: Description
+     *     result: Result
+     *     action: Action
+     *     score: Score
+     * @return RowsOfFieldsWithMetadata
+     *
+     * @bootstrap full
+     *
+     * Audit extensions (modules and themes).
+     */
+    public function auditExtensions(
+        $options = ['format' => 'json']
+        )
+    {
+        return $this->singleReport('extensions', $options);
+    }
+
+    protected function singleReport($reportId, $options)
+    {
         $checks = $this->interimInstantiateChecks($this->createRegistry($options));
-        $checks = $this->interimInstantiateChecks($registry);
         $reportChecks = $this->checksForReport($reportId, $checks);
 
         // Temporary code to be thrown away
@@ -123,6 +141,29 @@ class SiteAuditCommands extends DrushCommands
         // or maybe always ignore it in unstructured output modes.
         return (new RowsOfFieldsWithMetadata($report))
             ->setDataKey('checks');
+    }
+
+    protected function createRegistry($options = [])
+    {
+        $options += [
+            'vendor' => '',
+            'html' => false,
+            'detail' => false,
+        ];
+
+        $registry = new \stdClass();
+
+        // We'd rather 'registry' be a class with an interface, but
+        // since we do not have that, we will simply add these options
+        // as attributes of the stdClass to serve as a replacement for
+        // drush_get_option().
+        $registry->vendor = $options['vendor'];
+        $registry->html = $options['html'];
+        $registry->detail = $options['detail'];
+
+        $registry->checksList = new ChecksRegistry();
+
+        return $registry;
     }
 
     protected function interimBuildReports($checks)
@@ -237,8 +278,10 @@ class SiteAuditCommands extends DrushCommands
         $checkResults = [];
 
         foreach ($checks as $check) {
-            $max += 2;
-            $score += $check->getScore();
+            if ($check->getScore() != SiteAuditCheckBase::AUDIT_CHECK_SCORE_INFO) {
+                $max += SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
+                $score += $check->getScore();
+            }
             $checkResults += $this->interimReportResults($check);
         }
 
