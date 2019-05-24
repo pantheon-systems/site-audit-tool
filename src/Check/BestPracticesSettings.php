@@ -37,6 +37,13 @@ class BestPracticesSettings extends SiteAuditCheckBase {
   /**
    * {@inheritdoc}.
    */
+  public function getReportId() {
+    return 'best_practices';
+  }
+
+  /**
+   * {@inheritdoc}.
+   */
   public function getResultFail() {}
 
   /**

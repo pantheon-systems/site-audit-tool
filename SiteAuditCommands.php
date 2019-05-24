@@ -98,13 +98,13 @@ class SiteAuditCommands extends DrushCommands
         $options = ['format' => 'json']
         )
     {
-        $reportName = 'BestPractices';
+        $reportId = 'best_practices';
         $registry = new \stdClass();
         $checks = $this->interimInstantiateChecks($registry);
-        $reportChecks = $this->checksForReport($reportName, $checks);
+        $reportChecks = $this->checksForReport($reportId, $checks);
 
         // Temporary code to be thrown away
-        $report = $this->interimReport($this->interimReportLabel($reportName), $reportChecks);
+        $report = $this->interimReport($this->interimReportLabel($reportId), $reportChecks);
 
         // Note that we could improve the table output with the annotation
         //   @default-fields description,result,action
@@ -120,9 +120,9 @@ class SiteAuditCommands extends DrushCommands
     {
         $reportsList = $this->interimReportsList();
 
-        foreach ($reportsList as $report => $label) {
-            $key = "SiteAuditReport$report";
-            $reportChecks = $this->checksForReport($report, $checks);
+        foreach ($reportsList as $reportId => $label) {
+            $key = $this->interimReportKey($reportId);
+            $reportChecks = $this->checksForReport($reportId, $checks);
             if (!empty($reportChecks)) {
                 $reports[$key] = $this->interimReport($label, $reportChecks);
             }
@@ -137,42 +137,62 @@ class SiteAuditCommands extends DrushCommands
     protected function interimReportsList()
     {
         return [
-            'BestPractices' => "Best practices",
-            'Cache' => "Drupal's caching settings",
-            'Extensions' => "Extensions",
-            'Cron' => "Cron",
-            'Database' => "Database",
-            'Users' => "Users",
-            'FrontEnd' => "Front End",
-            'Status' => "Status",
-            'Watchdog' => "Watchdog database logs",
-            'Views' => "Views",
+            'best_practices' => "Best practices",
+            'cache' => "Drupal's caching settings",
+            'extensions' => "Extensions",
+            'cron' => "Cron",
+            'database' => "Database",
+            'users' => "Users",
+            'front_end' => "Front End",
+            'status' => "Status",
+            'watchdog' => "Watchdog database logs",
+            'views' => "Views",
         ];
     }
 
-    protected function interimReportLabel($reportName)
+    protected function interimReportLabel($reportId)
     {
         $reports = $this->interimReportsList();
 
-        return $reports[$reportName];
+        return $reports[$reportId];
+    }
+
+    protected function interimReportKey($reportId)
+    {
+        // Convert from snake_case to CamelCase and append to SiteAuditReport
+        return 'SiteAuditReport' . str_replace(' ', '', ucwords(str_replace('_', ' ', $reportId)));
     }
 
     protected function interimInstantiateChecks($registry)
     {
         $checks = [
-            new \SiteAudit\Check\BestPracticesSettings($registry),
+
+            // best_practices
             new \SiteAudit\Check\BestPracticesFast404($registry),
+            new \SiteAudit\Check\BestPracticesFolderStructure($registry),
+            new \SiteAudit\Check\BestPracticesMultisite($registry),
+            new \SiteAudit\Check\BestPracticesSettings($registry),
+            new \SiteAudit\Check\BestPracticesServices($registry),
+            new \SiteAudit\Check\BestPracticesSites($registry),
+            new \SiteAudit\Check\BestPracticesSitesDefault($registry),
+            new \SiteAudit\Check\BestPracticesSitesSuperfluous($registry),
+
+            // extensions
+            new \SiteAudit\Check\ExtensionsCount($registry),
+            new \SiteAudit\Check\ExtensionsDev($registry),
+            new \SiteAudit\Check\ExtensionsDuplicate($registry),
+            new \SiteAudit\Check\ExtensionsUnrecommended($registry),
         ];
 
         return $checks;
     }
 
-    protected function checksForReport($report, $checks)
+    protected function checksForReport($reportId, $checks)
     {
         $result = [];
 
         foreach ($checks as $check) {
-            if (strpos(get_class($check), $report) !== false) {
+            if ($reportId == $check->getReportId()) {
                 $result[] = $check;
             }
         }

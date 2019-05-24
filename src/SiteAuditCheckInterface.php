@@ -48,6 +48,14 @@ interface SiteAuditCheckInterface {
   public function getDescription();
 
   /**
+   * Get the report id for the report this check should be included in.
+   *
+   * @return string
+   *   The report id for this check.
+   */
+  public function getReportId();
+
+  /**
    * Get the description of what happened in a failed check.
    *
    * @return string

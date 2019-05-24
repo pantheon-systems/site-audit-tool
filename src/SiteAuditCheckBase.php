@@ -83,6 +83,9 @@ abstract class SiteAuditCheckBase implements SiteAuditCheckInterface {
       $this->score = SiteAuditCheckBase::AUDIT_CHECK_SCORE_INFO;
     }
     $static = FALSE;
+
+    // Not ideal, but store a reference to ourself in the registry checks list
+    $this->registry->checksList[$this->getId()] = $this;
   }
 
   /**
@@ -141,6 +144,11 @@ abstract class SiteAuditCheckBase implements SiteAuditCheckInterface {
    * {@inheritdoc}
    */
   abstract public function getDescription();
+
+  /**
+   * {@inheritdoc}
+   */
+  abstract public function getReportId();
 
   /**
    * {@inheritdoc}
@@ -211,6 +219,17 @@ abstract class SiteAuditCheckBase implements SiteAuditCheckInterface {
    */
   public function getPercentOverride() {
     return $this->percentOverride;
+  }
+
+  /**
+   * invoke another check's calculateScore() method if it is needed
+   */
+  protected function checkInvokeCalculateScore($id) {
+    if (!isset($this->registry->checksList[$id])) {
+      return;
+    }
+    $check = $this->registry->checksList[$id];
+    $check->calculateScore();
   }
 
 }
