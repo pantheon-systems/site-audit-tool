@@ -232,6 +232,9 @@ class SiteAuditCommands extends DrushCommands
             new \SiteAudit\Check\ExtensionsDev($registry),
             new \SiteAudit\Check\ExtensionsDuplicate($registry),
             new \SiteAudit\Check\ExtensionsUnrecommended($registry),
+
+            // status
+            new \SiteAudit\Check\StatusSystem($registry),
         ];
 
         return $checks;
