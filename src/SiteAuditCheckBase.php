@@ -228,4 +228,68 @@ abstract class SiteAuditCheckBase implements SiteAuditCheckInterface {
     $this->registry->checksList->checkInvokeCalculateScore($id);
   }
 
+  protected function simpleList($list, $listType = 'ul') {
+    if ($this->registry->html) {
+      return $this->simpleHtmlList($list, $listType);
+    }
+
+    foreach ($list as $value) {
+      $ret_val .= '- ' . $value . PHP_EOL;
+    }
+    return $ret_val;
+  }
+
+  private function simpleHtmlList($list, $listType = 'ul') {
+    $ret_val = "<$listType>";
+    foreach ($list as $value) {
+      $ret_val .= '<li>' . $value . '</li>';
+    }
+    $ret_val .= "</$listType>";
+
+    return $ret_val;
+  }
+
+  protected function simpleKeyValueList($keyHeader, $valueHeader, $list) {
+    if ($this->registry->html) {
+      return $this->simpleHtmlKeyValueList($keyHeader, $valueHeader, $list);
+    }
+
+    $ret_val  = $keyHeader . ': ' . $valueHeader . PHP_EOL;
+    $ret_val .= str_repeat('-', strlen($keyHeader) + strlen($valueHeader) + 2);
+    foreach ($list as $key => $value) {
+      $ret_val .= PHP_EOL;
+      $ret_val .= "$key: $value";
+    }
+    return $ret_val;
+  }
+
+  private function simpleHtmlKeyValueList($keyHeader, $valueHeader, $list) {
+    $ret_val = '<table class="table table-condensed">';
+    $ret_val .= "<thead><tr><th>$keyHeader</th><th>$valueHeader</th></tr></thead>";
+    $ret_val .= '<tbody>';
+    foreach ($list as $key => $value) {
+      $ret_val .= "<tr><td>$key</td><td>$value</td></tr>";
+    }
+    $ret_val .= '</tbody>';
+    $ret_val .= '</table>';
+
+    return $ret_val;
+  }
+
+  protected function linebreak() {
+    if ($this->registry->html) {
+      return '<br/>';
+    }
+    return PHP_EOL;
+  }
+
+  protected function rowsToKeyValueList($rows) {
+    return array_map(
+      function ($item) {
+        return (string)$item;
+      },
+      array_column($rows, 1, 0)
+    );
+  }
+
 }

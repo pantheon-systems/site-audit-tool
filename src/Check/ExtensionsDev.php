@@ -74,30 +74,9 @@ class ExtensionsDev extends SiteAuditCheckBase {
     }
 
     if ($this->registry->detail) {
-      if ($this->registry->html) {
-        if ($show_table) {
-          $ret_val .= '<br/>';
-          $ret_val .= '<table class="table table-condensed">';
-          $ret_val .= '<thead><tr><th>' . dt('Name') . '</th><th>' . dt('Reason') . '</th></thead>';
-          $ret_val .= '<tbody>';
-          foreach ($this->registry->extensions_dev as $row) {
-            $ret_val .= '<tr><td>' . implode('</td><td>', $row) . '</td></tr>';
-          }
-          $ret_val .= '</tbody>';
-          $ret_val .= '</table>';
-        }
-      }
-      elseif ($show_table) {
-        foreach ($this->registry->extensions_dev as $row) {
-          $ret_val .= PHP_EOL;
-          // @todo: should we put back in the padding for non-json output?
-          // This is not a great place to do this sort of formatting.
-//          if (!drush_get_option('json')) {
-//            $ret_val .= str_repeat(' ', 6);
-//          }
-          $ret_val .= '- ' . $row[0] . ': ' . $row[1];
-        }
-      }
+      $data = $this->rowsToKeyValueList($this->registry->extensions_dev);
+      $ret_val .= $this->linebreak();
+      $ret_val .= $this->simpleKeyValueList($this->t('Name'), $this->t('Reason'), $data);
     }
     return $ret_val;
   }

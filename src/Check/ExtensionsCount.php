@@ -80,25 +80,8 @@ class ExtensionsCount extends SiteAuditCheckBase {
       $options[] = $this->t('Consolidate functionality if possible, or custom develop a solution specific to your needs.');
       $options[] = $this->t('Avoid using modules that serve only one small purpose that is not mission critical.');
 
-      //if (drush_get_option('html')) {
-      if (TRUE) {
-        $ret_val .= '<ul>';
-        foreach ($options as $option) {
-          $ret_val .= '<li>' . $option . '</li>';
-        }
-        $ret_val .= '</ul>';
-      }
-      else {
-        foreach ($options as $option) {
-          if (!drush_get_option('json')) {
-            $ret_val .= str_repeat(' ', 6);
-          }
-          $ret_val .= '- ' . $option . PHP_EOL;
-        }
-        if (!drush_get_option('json')) {
-          $ret_val .= str_repeat(' ', 6);
-        }
-      }
+      $ret_val .= $this->simpleList($options);
+
       $ret_val .= $this->t('A lightweight site is a fast and happy site!');
       return $ret_val;
     }

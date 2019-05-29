@@ -49,26 +49,9 @@ class ExtensionsUnrecommended extends SiteAuditCheckBase {
       '@list' => implode(', ', array_keys($this->registry->extensions_unrec)),
     ));
     if ($this->registry->detail) {
-      if ($this->registry->html) {
-        $ret_val .= '<br/>';
-        $ret_val .= '<table class="table table-condensed">';
-        $ret_val .= '<thead><tr><th>' . $this->t('Name') . '</th><th>' . $this->t('Reason') . '</th></thead>';
-        $ret_val .= '<tbody>';
-        foreach ($this->registry->extensions_unrec as $row) {
-          $ret_val .= '<tr><td>' . implode('</td><td>', $row) . '</td></tr>';
-        }
-        $ret_val .= '</tbody>';
-        $ret_val .= '</table>';
-      }
-      else {
-        foreach ($this->registry->extensions_unrec as $row) {
-          $ret_val .= PHP_EOL;
-          if (!drush_get_option('json')) {
-            $ret_val .= str_repeat(' ', 6);
-          }
-          $ret_val .= '- ' . $row[0] . ': ' . $row[1];
-        }
-      }
+      $data = $this->rowsToKeyValueList($this->registry->extensions_unrec);
+      $ret_val .= $this->linebreak();
+      $ret_val .= $this->simpleKeyValueList($this->t('Name'), $this->t('Reason'), $data);
     }
     return $ret_val;
   }

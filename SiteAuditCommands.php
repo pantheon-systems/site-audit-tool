@@ -97,8 +97,12 @@ class SiteAuditCommands extends DrushCommands
      * Demonstrates a trivial command that takes a single required parameter.
      */
     public function auditBestPractices(
-        $options = ['format' => 'json']
-        )
+        $options = [
+            'format' => 'json',
+            'html' => false,
+            'detail' => false,
+            'vendor' => '',
+        ])
     {
         return $this->singleReport('best_practices', $options);
     }
@@ -119,10 +123,224 @@ class SiteAuditCommands extends DrushCommands
      * Audit extensions (modules and themes).
      */
     public function auditExtensions(
-        $options = ['format' => 'json']
-        )
+        $options = [
+            'format' => 'json',
+            'html' => false,
+            'detail' => false,
+            'vendor' => '',
+        ])
     {
         return $this->singleReport('extensions', $options);
+    }
+
+    // @todo check command name and aliases
+
+    /**
+     * @command audit:block
+     * @aliases audit_block,ab
+     * @field-labels
+     *     label: Label
+     *     description: Description
+     *     result: Result
+     *     action: Action
+     *     score: Score
+     * @return RowsOfFieldsWithMetadata
+     *
+     * @bootstrap full
+     *
+     * Audit blocks.
+     */
+    public function auditBlock(
+        $options = [
+            'format' => 'json',
+            'html' => false,
+            'detail' => false,
+            'vendor' => '',
+        ])
+    {
+        return $this->singleReport('block', $options);
+    }
+
+    /**
+     * @command audit:cache
+     * @aliases audit_cache,ac
+     * @field-labels
+     *     label: Label
+     *     description: Description
+     *     result: Result
+     *     action: Action
+     *     score: Score
+     * @return RowsOfFieldsWithMetadata
+     *
+     * @bootstrap full
+     *
+     * Audit blocks.
+     */
+    public function auditCache(
+        $options = [
+            'format' => 'json',
+            'html' => false,
+            'detail' => false,
+            'vendor' => '',
+        ])
+    {
+        return $this->singleReport('cache', $options);
+    }
+
+    /**
+     * @command audit:cron
+     * @aliases audit_cron
+     * @field-labels
+     *     label: Label
+     *     description: Description
+     *     result: Result
+     *     action: Action
+     *     score: Score
+     * @return RowsOfFieldsWithMetadata
+     *
+     * @bootstrap full
+     *
+     * Audit blocks.
+     */
+    public function auditCron(
+        $options = [
+            'format' => 'json',
+            'html' => false,
+            'detail' => false,
+            'vendor' => '',
+        ])
+    {
+        return $this->singleReport('cron', $options);
+    }
+
+    /**
+     * @command audit:database
+     * @aliases audit_database
+     * @field-labels
+     *     label: Label
+     *     description: Description
+     *     result: Result
+     *     action: Action
+     *     score: Score
+     * @return RowsOfFieldsWithMetadata
+     *
+     * @bootstrap full
+     *
+     * Audit blocks.
+     */
+    public function auditDatabase(
+        $options = [
+            'format' => 'json',
+            'html' => false,
+            'detail' => false,
+            'vendor' => '',
+        ])
+    {
+        return $this->singleReport('database', $options);
+    }
+
+    /**
+     * @command audit:security
+     * @aliases audit_security
+     * @field-labels
+     *     label: Label
+     *     description: Description
+     *     result: Result
+     *     action: Action
+     *     score: Score
+     * @return RowsOfFieldsWithMetadata
+     *
+     * @bootstrap full
+     *
+     * Audit blocks.
+     */
+    public function auditSecurity(
+        $options = [
+            'format' => 'json',
+            'html' => false,
+            'detail' => false,
+            'vendor' => '',
+        ])
+    {
+        return $this->singleReport('security', $options);
+    }
+
+    /**
+     * @command audit:users
+     * @aliases audit_users
+     * @field-labels
+     *     label: Label
+     *     description: Description
+     *     result: Result
+     *     action: Action
+     *     score: Score
+     * @return RowsOfFieldsWithMetadata
+     *
+     * @bootstrap full
+     *
+     * Audit blocks.
+     */
+    public function auditUsers(
+        $options = [
+            'format' => 'json',
+            'html' => false,
+            'detail' => false,
+            'vendor' => '',
+        ])
+    {
+        return $this->singleReport('users', $options);
+    }
+
+    /**
+     * @command audit:views
+     * @aliases audit_views
+     * @field-labels
+     *     label: Label
+     *     description: Description
+     *     result: Result
+     *     action: Action
+     *     score: Score
+     * @return RowsOfFieldsWithMetadata
+     *
+     * @bootstrap full
+     *
+     * Audit blocks.
+     */
+    public function auditViews(
+        $options = [
+            'format' => 'json',
+            'html' => false,
+            'detail' => false,
+            'vendor' => '',
+        ])
+    {
+        return $this->singleReport('views', $options);
+    }
+
+    /**
+     * @command audit:watchdog
+     * @aliases audit_watchdog
+     * @field-labels
+     *     label: Label
+     *     description: Description
+     *     result: Result
+     *     action: Action
+     *     score: Score
+     * @return RowsOfFieldsWithMetadata
+     *
+     * @bootstrap full
+     *
+     * Audit blocks.
+     */
+    public function auditWatchdog(
+        $options = [
+            'format' => 'json',
+            'html' => false,
+            'detail' => false,
+            'vendor' => '',
+        ])
+    {
+        return $this->singleReport('watchdog', $options);
     }
 
     protected function singleReport($reportId, $options)
@@ -166,37 +384,96 @@ class SiteAuditCommands extends DrushCommands
         return $registry;
     }
 
-    protected function interimBuildReports($checks)
+    protected function interimInstantiateChecks($registry)
     {
-        $reportsList = $this->interimReportsList();
+        $checks = [
 
-        foreach ($reportsList as $reportId => $label) {
-            $key = $this->interimReportKey($reportId);
-            $reportChecks = $this->checksForReport($reportId, $checks);
-            if (!empty($reportChecks)) {
-                $reports[$key] = $this->interimReport($label, $reportChecks);
-            }
-        }
+            // best_practices
+            new \SiteAudit\Check\BestPracticesFast404($registry),
+            new \SiteAudit\Check\BestPracticesFolderStructure($registry),
+            new \SiteAudit\Check\BestPracticesMultisite($registry),
+            new \SiteAudit\Check\BestPracticesSettings($registry),
+            new \SiteAudit\Check\BestPracticesServices($registry),
+            new \SiteAudit\Check\BestPracticesSites($registry),
+            new \SiteAudit\Check\BestPracticesSitesDefault($registry),
+            new \SiteAudit\Check\BestPracticesSitesSuperfluous($registry),
 
-        return [
-            'time' => time(),
-            'reports' => $reports,
+            // block
+            new \SiteAudit\Check\BlockEnabled($registry),
+            // TODO: Block Cache and Block CacheReport not ported to 8.x-3.x. No longer applicable to d8?
+
+            // cache
+            new \SiteAudit\Check\CacheBinsAll($registry),
+            new \SiteAudit\Check\CacheBinsDefault($registry),
+            new \SiteAudit\Check\CacheBinsUsed($registry),
+            new \SiteAudit\Check\CachePageExpire($registry),
+            new \SiteAudit\Check\CachePreprocessCSS($registry),
+            new \SiteAudit\Check\CachePreprocessJS($registry),
+
+            // cron
+            new \SiteAudit\Check\CronEnabled($registry),
+            new \SiteAudit\Check\CronLast($registry),
+
+            // database
+            new \SiteAudit\Check\DatabaseSize($registry),
+            new \SiteAudit\Check\DatabaseCollation($registry),
+            new \SiteAudit\Check\DatabaseEngine($registry),
+            new \SiteAudit\Check\DatabaseFragmentation($registry),
+            new \SiteAudit\Check\DatabaseRowCount($registry),
+
+            // extensions
+            new \SiteAudit\Check\ExtensionsCount($registry),
+            new \SiteAudit\Check\ExtensionsDev($registry),
+            new \SiteAudit\Check\ExtensionsDuplicate($registry),
+            new \SiteAudit\Check\ExtensionsUnrecommended($registry),
+
+            // security
+            new \SiteAudit\Check\SecurityMenuRouter($registry),
+
+            // status
+            new \SiteAudit\Check\StatusSystem($registry),
+
+            // user
+            new \SiteAudit\Check\UsersBlockedNumberOne($registry),
+            new \SiteAudit\Check\UsersCountAll($registry),
+            new \SiteAudit\Check\UsersCountBlocked($registry),
+            new \SiteAudit\Check\UsersRolesList($registry),
+            new \SiteAudit\Check\UsersWhoIsNumberOne($registry),
+
+            // views
+            new \SiteAudit\Check\ViewsCacheOutput($registry),
+            new \SiteAudit\Check\ViewsCacheResults($registry),
+            new \SiteAudit\Check\ViewsCount($registry),
+            new \SiteAudit\Check\ViewsEnabled($registry),
+
+            // watchdog
+            new \SiteAudit\Check\Watchdog404($registry),
+            new \SiteAudit\Check\WatchdogAge($registry),
+            new \SiteAudit\Check\WatchdogCount($registry),
+            new \SiteAudit\Check\WatchdogEnabled($registry),
+            new \SiteAudit\Check\WatchdogPhp($registry),
+            new \SiteAudit\Check\WatchdogSyslog($registry),
+
         ];
+
+        return $checks;
     }
 
     protected function interimReportsList()
     {
         return [
             'best_practices' => "Best practices",
+            'block' => "Block",
             'cache' => "Drupal's caching settings",
-            'extensions' => "Extensions",
             'cron' => "Cron",
             'database' => "Database",
-            'users' => "Users",
+            'extensions' => "Extensions",
             'front_end' => "Front End",
             'status' => "Status",
-            'watchdog' => "Watchdog database logs",
+            'security' => "Security",
+            'users' => "Users",
             'views' => "Views",
+            'watchdog' => "Watchdog database logs",
         ];
     }
 
@@ -213,62 +490,22 @@ class SiteAuditCommands extends DrushCommands
         return 'SiteAuditReport' . str_replace(' ', '', ucwords(str_replace('_', ' ', $reportId)));
     }
 
-    protected function interimInstantiateChecks($registry)
+    protected function interimBuildReports($checks)
     {
-        $checks = [
+        $reportsList = $this->interimReportsList();
 
-            // best_practices
-            new \SiteAudit\Check\BestPracticesFast404($registry),
-            new \SiteAudit\Check\BestPracticesFolderStructure($registry),
-            new \SiteAudit\Check\BestPracticesMultisite($registry),
-            new \SiteAudit\Check\BestPracticesSettings($registry),
-            new \SiteAudit\Check\BestPracticesServices($registry),
-            new \SiteAudit\Check\BestPracticesSites($registry),
-            new \SiteAudit\Check\BestPracticesSitesDefault($registry),
-            new \SiteAudit\Check\BestPracticesSitesSuperfluous($registry),
+        foreach ($reportsList as $reportId => $label) {
+            $key = $this->interimReportKey($reportId);
+            $reportChecks = $this->checksForReport($reportId, $checks);
+            if (!empty($reportChecks)) {
+                $reports[$key] = $this->interimReport($label, $reportChecks);
+            }
+        }
 
-            // extensions
-            new \SiteAudit\Check\ExtensionsCount($registry),
-            new \SiteAudit\Check\ExtensionsDev($registry),
-            new \SiteAudit\Check\ExtensionsDuplicate($registry),
-            new \SiteAudit\Check\ExtensionsUnrecommended($registry),
-
-            // status
-            new \SiteAudit\Check\StatusSystem($registry),
+        return [
+            'time' => time(),
+            'reports' => $reports,
         ];
-
-        return $checks;
-    }
-
-    protected function checksForReport($reportId, $checks)
-    {
-        $result = [];
-
-        foreach ($checks as $check) {
-            if ($reportId == $check->getReportId()) {
-                $result[] = $check;
-            }
-        }
-
-        return $result;
-    }
-
-    protected function filterSkippedChecks($checks, $skipped)
-    {
-        // Pantheon by default skips:
-        // insights,codebase,DatabaseSize,BlockCacheReport,DatabaseRowCount,content
-
-        if (!is_array($skipped)) {
-            $skipped = explode(',', $skipped);
-        }
-
-        foreach ($checks as $key => $check) {
-            if (strpos(get_class($check), $check) !== false) {
-                unset($checks[$key]);
-            }
-        }
-
-        return $checks;
     }
 
     /**
@@ -312,6 +549,37 @@ class SiteAuditCommands extends DrushCommands
                 "score" => $check->getScore(),
             ],
         ];
+    }
+
+    protected function filterSkippedChecks($checks, $skipped)
+    {
+        // Pantheon by default skips:
+        // insights,codebase,DatabaseSize,BlockCacheReport,DatabaseRowCount,content
+
+        if (!is_array($skipped)) {
+            $skipped = explode(',', $skipped);
+        }
+
+        foreach ($checks as $key => $check) {
+            if (strpos(get_class($check), $check) !== false) {
+                unset($checks[$key]);
+            }
+        }
+
+        return $checks;
+    }
+
+    protected function checksForReport($reportId, $checks)
+    {
+        $result = [];
+
+        foreach ($checks as $check) {
+            if ($reportId == $check->getReportId()) {
+                $result[] = $check;
+            }
+        }
+
+        return $result;
     }
 
     /**
