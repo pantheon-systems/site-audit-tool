@@ -1,6 +1,6 @@
 {
-    "name": "drush/example-drush-extension",
-    "description": "Example Drush site-wide extension",
+    "name": "pantheon-systems/site-audit-tool",
+    "description": "Drush global extension to run Site Audit checks on Drush 8 and 9",
     "type": "drupal-drush",
     "license": "GPL-2.0-or-later",
     "authors": [

@@ -83,13 +83,14 @@ class SiteAuditCommands extends DrushCommands
 
     /**
      * @command audit:best-practices
-     * @aliases audit-best-practices,abp
+     * @aliases audit_best_practices,abp
      * @field-labels
      *     label: Label
      *     description: Description
      *     result: Result
      *     action: Action
      *     score: Score
+     * @default-table-fields label,result
      * @return RowsOfFieldsWithMetadata
      *
      * @bootstrap full
@@ -116,6 +117,7 @@ class SiteAuditCommands extends DrushCommands
      *     result: Result
      *     action: Action
      *     score: Score
+     * @default-table-fields label,result
      * @return RowsOfFieldsWithMetadata
      *
      * @bootstrap full
@@ -133,8 +135,6 @@ class SiteAuditCommands extends DrushCommands
         return $this->singleReport('extensions', $options);
     }
 
-    // @todo check command name and aliases
-
     /**
      * @command audit:block
      * @aliases audit_block,ab
@@ -144,6 +144,7 @@ class SiteAuditCommands extends DrushCommands
      *     result: Result
      *     action: Action
      *     score: Score
+     * @default-table-fields label,result
      * @return RowsOfFieldsWithMetadata
      *
      * @bootstrap full
@@ -170,6 +171,7 @@ class SiteAuditCommands extends DrushCommands
      *     result: Result
      *     action: Action
      *     score: Score
+     * @default-table-fields label,result
      * @return RowsOfFieldsWithMetadata
      *
      * @bootstrap full
@@ -189,13 +191,14 @@ class SiteAuditCommands extends DrushCommands
 
     /**
      * @command audit:cron
-     * @aliases audit_cron
+     * @aliases audit_cron,acr
      * @field-labels
      *     label: Label
      *     description: Description
      *     result: Result
      *     action: Action
      *     score: Score
+     * @default-table-fields label,result
      * @return RowsOfFieldsWithMetadata
      *
      * @bootstrap full
@@ -215,13 +218,14 @@ class SiteAuditCommands extends DrushCommands
 
     /**
      * @command audit:database
-     * @aliases audit_database
+     * @aliases audit_database,ad
      * @field-labels
      *     label: Label
      *     description: Description
      *     result: Result
      *     action: Action
      *     score: Score
+     * @default-table-fields label,result
      * @return RowsOfFieldsWithMetadata
      *
      * @bootstrap full
@@ -241,13 +245,14 @@ class SiteAuditCommands extends DrushCommands
 
     /**
      * @command audit:security
-     * @aliases audit_security
+     * @aliases audit_security,asec
      * @field-labels
      *     label: Label
      *     description: Description
      *     result: Result
      *     action: Action
      *     score: Score
+     * @default-table-fields label,result
      * @return RowsOfFieldsWithMetadata
      *
      * @bootstrap full
@@ -267,13 +272,14 @@ class SiteAuditCommands extends DrushCommands
 
     /**
      * @command audit:users
-     * @aliases audit_users
+     * @aliases audit_users,au
      * @field-labels
      *     label: Label
      *     description: Description
      *     result: Result
      *     action: Action
      *     score: Score
+     * @default-table-fields label,result
      * @return RowsOfFieldsWithMetadata
      *
      * @bootstrap full
@@ -293,13 +299,14 @@ class SiteAuditCommands extends DrushCommands
 
     /**
      * @command audit:views
-     * @aliases audit_views
+     * @aliases audit_views,av
      * @field-labels
      *     label: Label
      *     description: Description
      *     result: Result
      *     action: Action
      *     score: Score
+     * @default-table-fields label,result
      * @return RowsOfFieldsWithMetadata
      *
      * @bootstrap full
@@ -319,13 +326,14 @@ class SiteAuditCommands extends DrushCommands
 
     /**
      * @command audit:watchdog
-     * @aliases audit_watchdog
+     * @aliases audit_watchdog,aw
      * @field-labels
      *     label: Label
      *     description: Description
      *     result: Result
      *     action: Action
      *     score: Score
+     * @default-table-fields label,result
      * @return RowsOfFieldsWithMetadata
      *
      * @bootstrap full
@@ -343,6 +351,16 @@ class SiteAuditCommands extends DrushCommands
         return $this->singleReport('watchdog', $options);
     }
 
+    /**
+     * Generate a single report for one of the individual report commands above.
+     *
+     * @param string $reportId
+     *   The id of the report to generate. @see interimReportsList
+     * @param array $options
+     *   The commandline options
+     * @return RowsOfFieldsWithMetadata
+     *   The generated report
+     */
     protected function singleReport($reportId, $options)
     {
         $checks = $this->interimInstantiateChecks($this->createRegistry($options));
@@ -351,16 +369,19 @@ class SiteAuditCommands extends DrushCommands
         // Temporary code to be thrown away
         $report = $this->interimReport($this->interimReportLabel($reportId), $reportChecks);
 
-        // Note that we could improve the table output with the annotation
-        //   @default-fields description,result,action
-        // This would also by default hide the remaining fields in json
-        // format, though, which would not be desirable.
-        // @todo: Add a separate 'default-fields' for human-readable output,
-        // or maybe always ignore it in unstructured output modes.
         return (new RowsOfFieldsWithMetadata($report))
             ->setDataKey('checks');
     }
 
+    /**
+     * Create the 'registry' object used in all checks
+     *
+     * @param array $options
+     *   The commandline options
+     *
+     * @return stdClass
+     *   The registry object
+     */
     protected function createRegistry($options = [])
     {
         $options += [
@@ -384,6 +405,68 @@ class SiteAuditCommands extends DrushCommands
         return $registry;
     }
 
+    /**
+     * Remove checks from the provided list of checks based on the value
+     * of the provided '$skipped' parameter
+     *
+     * @param SiteAuditCheckInterface[] $checks
+     *   The list of all checks
+     * @param string|array $skipped
+     *   The list of checks or check categories to skip
+     *
+     * @return SiteAuditCheckInterface[]
+     *   All checks that were not skipped
+     */
+    protected function filterSkippedChecks(SiteAuditCheckInterface $checks, $skipped)
+    {
+        // Pantheon by default skips:
+        // insights,codebase,DatabaseSize,BlockCacheReport,DatabaseRowCount,content
+
+        if (!is_array($skipped)) {
+            $skipped = explode(',', $skipped);
+        }
+
+        foreach ($checks as $key => $check) {
+            if (strpos(get_class($check), $check) !== false) {
+                unset($checks[$key]);
+            }
+        }
+
+        return $checks;
+    }
+
+    /**
+     * Return only those checks from the provided list that match the specified
+     * report id.
+     *
+     * @param string $reportId
+     * @param SiteAuditCheckInterface[] $checks
+     *
+     * @return SiteAuditCheckInterface[]
+     */
+    protected function checksForReport(string $reportId, array $checks)
+    {
+        $result = [];
+
+        foreach ($checks as $check) {
+            if ($reportId == $check->getReportId()) {
+                $result[] = $check;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Instantiates all available checks.
+     *
+     * Interim implementation. Ideally would be factored into another class.
+     *
+     * @param stdClass $registry
+     *   The registry used by all checks
+     *
+     * @return SiteAuditCheckInterface[]
+     */
     protected function interimInstantiateChecks($registry)
     {
         $checks = [
@@ -400,7 +483,6 @@ class SiteAuditCommands extends DrushCommands
 
             // block
             new \SiteAudit\Check\BlockEnabled($registry),
-            // TODO: Block Cache and Block CacheReport not ported to 8.x-3.x. No longer applicable to d8?
 
             // cache
             new \SiteAudit\Check\CacheBinsAll($registry),
@@ -459,6 +541,13 @@ class SiteAuditCommands extends DrushCommands
         return $checks;
     }
 
+    /**
+     * Return a list of all of the reports in an id => description
+     *
+     * Interim implementation. Ideally would be factored into another class.
+     *
+     * @return string[]
+     */
     protected function interimReportsList()
     {
         return [
@@ -477,6 +566,14 @@ class SiteAuditCommands extends DrushCommands
         ];
     }
 
+    /**
+     * Given a report id, return the report label
+     *
+     * Interim implementation. Ideally would be factored into another class.
+     *
+     * @param string $reportId
+     * @return string
+     */
     protected function interimReportLabel($reportId)
     {
         $reports = $this->interimReportsList();
@@ -484,12 +581,27 @@ class SiteAuditCommands extends DrushCommands
         return $reports[$reportId];
     }
 
+    /**
+     * Given a report id, return the legacy report key (used in the
+     * site audit json results).
+     *
+     * Interim implementation. Ideally would be factored into another class.
+     *
+     * @param string $reportId
+     * @return string
+     */
     protected function interimReportKey($reportId)
     {
         // Convert from snake_case to CamelCase and append to SiteAuditReport
         return 'SiteAuditReport' . str_replace(' ', '', ucwords(str_replace('_', ' ', $reportId)));
     }
 
+    /**
+     * Create master report that contains all provided reports with headers.
+     *
+     * @param SiteAuditCheckInterface[] $checks
+     * @return array
+     */
     protected function interimBuildReports($checks)
     {
         $reportsList = $this->interimReportsList();
@@ -509,7 +621,11 @@ class SiteAuditCommands extends DrushCommands
     }
 
     /**
-     * Temporary code to be thrown away
+     * Create a single report using the same structure used by the 7.x-1.x
+     * version of Site Audit
+     *
+     * @param SiteAuditCheckInterface[] $checks
+     * @return array
      */
     protected function interimReport($label, $checks)
     {
@@ -535,11 +651,14 @@ class SiteAuditCommands extends DrushCommands
     }
 
     /**
-     * Temporary code to be thrown away
+     * Get the result for just one check
+     *
+     * @param SiteAuditCheckInterface $check
+     * @return array
      */
     protected function interimReportResults(SiteAuditCheckInterface $check)
     {
-        $checkName = $this->getCheckName($check);
+        $checkName = $this->interimGetCheckName($check);
         return [
             $checkName => [
                 "label" => $check->getLabel(),
@@ -551,44 +670,17 @@ class SiteAuditCommands extends DrushCommands
         ];
     }
 
-    protected function filterSkippedChecks($checks, $skipped)
-    {
-        // Pantheon by default skips:
-        // insights,codebase,DatabaseSize,BlockCacheReport,DatabaseRowCount,content
-
-        if (!is_array($skipped)) {
-            $skipped = explode(',', $skipped);
-        }
-
-        foreach ($checks as $key => $check) {
-            if (strpos(get_class($check), $check) !== false) {
-                unset($checks[$key]);
-            }
-        }
-
-        return $checks;
-    }
-
-    protected function checksForReport($reportId, $checks)
-    {
-        $result = [];
-
-        foreach ($checks as $check) {
-            if ($reportId == $check->getReportId()) {
-                $result[] = $check;
-            }
-        }
-
-        return $result;
-    }
-
     /**
-     * Temporary code to be thrown away
+     * Convert the check to the legacy check name
+     *
+     * @param SiteAuditCheckInterface $check
+     * @return string
      */
-    protected function getCheckName(SiteAuditCheckInterface $check)
+    protected function interimGetCheckName(SiteAuditCheckInterface $check)
     {
         $full_class_name = get_class($check);
         return str_replace('\\', '', $full_class_name);
     }
 
 }
+

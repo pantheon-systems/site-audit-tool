@@ -1,7 +1,7 @@
 Experimental Site Audit Tool
 ============================
 
-[![Build Status](https://travis-ci.org/greg-1-anderson/site-audit-tool.svg?branch=master)](https://travis-ci.org/greg-1-anderson/site-audit-tool)
+[![Build Status](https://travis-ci.org/pantheon-systems/site-audit-tool.svg?branch=master)](https://travis-ci.org/pantheon-systems/site-audit-tool)
 
 This is an experimental Drush extension.
 
