@@ -52,3 +52,4 @@ In development:
 ```
 composer drush audit:best-practices
 ```
+This will run the given Drush command against a local test Drupal site, the "system under test". Run the tests once to install the Drupal site.

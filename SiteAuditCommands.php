@@ -444,7 +444,7 @@ class SiteAuditCommands extends DrushCommands
      *
      * @return SiteAuditCheckInterface[]
      */
-    protected function checksForReport(string $reportId, array $checks)
+    protected function checksForReport($reportId, array $checks)
     {
         $result = [];
 
