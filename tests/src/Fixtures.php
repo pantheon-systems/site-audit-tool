@@ -5,6 +5,7 @@ namespace SiteAudit;
 use Symfony\Component\Filesystem\Filesystem;
 
 use Drush\TestTraits\DrushTestTrait;
+use Webmozart\PathUtil\Path;
 
 /**
  * Convenience class for creating fixtures.
