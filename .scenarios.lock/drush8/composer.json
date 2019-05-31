@@ -28,6 +28,7 @@
         "drupal/core": "^8.7",
         "webflo/drupal-finder": "^1.1.0",
         "webmozart/path-util": "^2.3",
+        "symfony/filesystem": "^3.4.28",
         "zaporylie/composer-drupal-optimizations": "^1.0.2"
     },
     "minimum-stability": "dev",
@@ -49,7 +50,7 @@
             "../../tests/scripts/composer/ScriptHandler.php"
         ],
         "psr-4": {
-            "TestUtils\\": "../../tests/src/"
+            "SiteAudit\\": "../../tests/src/"
         }
     },
     "scripts": {
