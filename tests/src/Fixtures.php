@@ -41,7 +41,7 @@ class Fixtures
       copy('sut/web/sites/default/default.settings.php', 'sut/web/sites/default/settings.php');
 
       // Run site-install (Drupal makes settings.php unwritable)
-      $this->drush('site-install', [], ['db-url' => 'mysql://root@127.0.0.1/testsiteaudittooldatabase']);
+      $this->drush('site-install', ['--yes'], ['db-url' => 'mysql://root@127.0.0.1/testsiteaudittooldatabase']);
 
       $this->installed = true;
   }

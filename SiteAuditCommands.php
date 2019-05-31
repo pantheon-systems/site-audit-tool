@@ -417,7 +417,7 @@ class SiteAuditCommands extends DrushCommands
      * @return SiteAuditCheckInterface[]
      *   All checks that were not skipped
      */
-    protected function filterSkippedChecks(SiteAuditCheckInterface $checks, $skipped)
+    protected function filterSkippedChecks(array $checks, $skipped)
     {
         // Pantheon by default skips:
         // insights,codebase,DatabaseSize,BlockCacheReport,DatabaseRowCount,content
