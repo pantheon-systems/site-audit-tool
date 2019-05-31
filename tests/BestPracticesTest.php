@@ -1,28 +1,23 @@
 <?php
-namespace Drush\Commands\site_audit_tool;
+namespace SiteAudit;
 
 use PHPUnit\Framework\TestCase;
-use Drush\TestTraits\DrushTestTrait;
 
 /**
  * Best Practices tests
  */
 class BestPracticesTest extends TestCase
 {
-    use DrushTestTrait;
+    use FixturesTrait;
 
     public function setUp()
     {
-        // @todo: skip install if already installed.
-        // @todo: pull db credentials from phpunit.xml configuration
+        $this->fixtures()->createSut();
+    }
 
-        // Make settings.php writable again
-        chmod('sut/web/sites/default/', 0755);
-        @unlink('sut/web/sites/default/settings.php');
-        copy('sut/web/sites/default/default.settings.php', 'sut/web/sites/default/settings.php');
-
-        // Run site-install (Drupal makes settings.php unwritable)
-        $this->drush('site-install', [], ['db-url' => 'mysql://root@127.0.0.1/siteaudittooldb']);
+    public function tearDown()
+    {
+        $this->fixtures()->tearDown();
     }
 
     /**
@@ -31,7 +26,7 @@ class BestPracticesTest extends TestCase
      */
     public function testBestPractices()
     {
-        // Run 'best-practices' check on a fresh site
+        // Run 'best-practices' check on our test site
         $this->drush('audit:best-practices');
         $output = $this->getSimplifiedOutput();
         $this->assertContains('settings.php exists and is not a symbolic link', $output);
