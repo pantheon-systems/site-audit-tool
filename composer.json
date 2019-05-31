@@ -16,12 +16,12 @@
     ],
     "require": {
         "php": ">=5.6",
-        "drush/drush": "^8.2.2 || ^9.6.1",
         "consolidation/site-alias": "^3.0.0@stable",
         "consolidation/site-process": "^2.0.0@stable"
     },
     "require-dev": {
         "composer/installers": "^1.2",
+        "drush/drush": "^8.2.2 || ^9.6.1",
         "phpunit/phpunit": "^6.5",
         "g1a/composer-test-scenarios": "^3.0.2",
         "drupal-composer/drupal-scaffold": "^2.5",
@@ -45,22 +45,13 @@
         }
     },
     "autoload-dev": {
-        "classmap": [
-            "tests/scripts/composer/ScriptHandler.php"
-        ],
         "psr-4": {
           "SiteAudit\\": "tests/src/"
         }
     },
     "scripts": {
         "test": "phpunit --color=always",
-        "drush": "drush",
-        "post-install-cmd": [
-            "DrupalProject\\composer\\ScriptHandler::createRequiredFiles"
-        ],
-        "post-update-cmd": [
-            "DrupalProject\\composer\\ScriptHandler::createRequiredFiles"
-        ]
+        "drush": "drush"
     },
     "extra": {
         "installer-paths": {
@@ -73,7 +64,7 @@
         },
         "scenarios": {
             "drush8": {
-                "require": {
+                "require-dev": {
                     "drush/drush": "^8.2.2"
                 }
             },
