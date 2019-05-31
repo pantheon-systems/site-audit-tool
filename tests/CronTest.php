@@ -32,6 +32,7 @@ class CronTest extends TestCase
         $json = $this->getOutputFromJSON();
         $this->assertEquals('Cron is set to run every 180 minutes.', $json['checks']['SiteAuditCheckCronEnabled']['result']);
         $this->drush('config:set', ['automated_cron.settings', 'interval', 0]);
+        $this->drush('cron');
         $this->drush('audit:cron');
         $json = $this->getOutputFromJSON();
         $this->assertEquals('Drupal Cron frequency is set to never, but has been executed within the past 24 hours (either manually or using drush cron).', $json['checks']['SiteAuditCheckCronEnabled']['result']);

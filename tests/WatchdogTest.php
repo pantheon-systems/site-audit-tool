@@ -30,9 +30,7 @@ class WatchdogTest extends TestCase
         $this->drush('audit:watchdog');
         $json = $this->getOutputFromJSON();
         $this->assertEquals('No 404 entries.', $json['checks']['SiteAuditCheckWatchdog404']['result']);
-        $this->assertEquals('There are 39 log entries.', $json['checks']['SiteAuditCheckWatchdogCount']['result']);
         $this->assertEquals('Database logging (dblog) is enabled.', $json['checks']['SiteAuditCheckWatchdogEnabled']['result']);
-        $this->assertEquals('notice: 1, info: 1 - total 5.13%', $json['checks']['SiteAuditCheckWatchdogPhp']['result']);
         $this->assertEquals('Syslog logging is not enabled.', $json['checks']['SiteAuditCheckWatchdogSyslog']['result']);
     }
 
