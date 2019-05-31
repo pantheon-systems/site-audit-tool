@@ -99,7 +99,11 @@ class CronEnabled extends SiteAuditCheckBase {
   public function calculateScore() {
     // Determine when cron last ran.
     $this->registry->cron_last = \Drupal::state()->get('system.cron_last');
-    $this->registry->cron_safe_threshold = \Drupal::config('system.cron')->get('threshold.autorun');
+    // Usually we'd just fetch this with \Drupal::config('automated_cron.settings')->get('interval');
+    // However, Drush goes out of its way to hide the interval (make it appear to be '0') to avoid
+    // cron runs during Drush commands. We can still access the correct value via the raw data though.
+    $rawData = \Drupal::config('automated_cron.settings')->getRawData();
+    $this->registry->cron_safe_threshold = isset($rawData['interval']) ? $rawData['interval'] : 0;
 
     // Cron hasn't run in the past day.
     if ((time() - $this->registry->cron_last) > (24 * 60 * 60)) {
