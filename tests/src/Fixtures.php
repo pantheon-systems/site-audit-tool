@@ -72,7 +72,7 @@ class Fixtures
       require_once $drupalRoot . '/core/includes/install.inc';
       $settings['config_directories'] = [
         CONFIG_SYNC_DIRECTORY => (object) [
-          'value' => Path::makeRelative($drupalFinder->getComposerRoot() . '/config/sync', $drupalRoot),
+          'value' => Path::makeRelative('config/sync', $drupalRoot),
           'required' => TRUE,
         ],
       ];
