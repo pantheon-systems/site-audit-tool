@@ -83,8 +83,9 @@ class BestPracticesSites extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
-   $this->registry->multisite_enabled = file_exists(DRUPAL_ROOT . '/sites/sites.php');
-    if ($this->registry->multisite_enabled && is_link(DRUPAL_ROOT . '/sites/sites.php')) {
+    $path = DRUPAL_ROOT . '/sites/sites.php';
+    $this->registry->multisite_enabled = file_exists($path) || is_link($path);
+    if ($this->registry->multisite_enabled && is_link($path)) {
       return SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN;
     }
     return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;

@@ -84,6 +84,12 @@ class ViewsCount extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
+
+    $this->checkInvokeCalculateScore('views_enabled');
+    if (!$this->registry->views_enabled) {
+      return;
+    }
+
     $this->registry->views = array();
 
     $all_views = \Drupal::entityManager()->getListBuilder('view')->load();

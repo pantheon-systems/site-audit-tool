@@ -59,7 +59,7 @@ class BestPracticesSitesDefault extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function getResultPass() {
-    return $this->t('Fast 404 pages are enabled.');
+    return $this->t('sites/default exists.');
   }
 
   /**
