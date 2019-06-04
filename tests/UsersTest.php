@@ -5,6 +5,22 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Users tests
+ *
+ * SiteAuditCheckUsersBlockedNumberOne:
+ *  - pass: drush user:unblock admin
+ *  - fail: drush user:block admin
+ *
+ * SiteAuditCheckUsersCountAll:
+ *  - n/a: This check is informational only, and never fails
+ *
+ * SiteAuditCheckUsersCountBlocked:
+ *  - n/a: This check is informational only, and never fails
+ *
+ * SiteAuditCheckUsersRolesList:
+ *  - n/a: This check is informational only, and never fails
+ *
+ * SiteAuditCheckUsersWhoIsNumberOne:
+ *  - n/a: This check is informational only, and never fails
  */
 class UsersTest extends TestCase
 {

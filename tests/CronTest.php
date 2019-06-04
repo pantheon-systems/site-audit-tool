@@ -5,6 +5,10 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Cron tests
+ *
+ * SiteAuditCheckCronEnabled:
+ *  - pass: drush config:set automated_cron.settings interval 10800
+ *  - fail: drush config:set automated_cron.settings interval 0
  */
 class CronTest extends TestCase
 {

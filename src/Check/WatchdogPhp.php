@@ -91,6 +91,11 @@ class WatchdogPhp extends SiteAuditCheckBase {
     $this->registry->php_count_total = 0;
     $this->registry->percent_php = 0;
 
+    $this->checkInvokeCalculateScore('watchdog_enabled');
+    if (!$this->registry->watchdog_enabled) {
+      return;
+    }
+
     $query = db_select('watchdog');
     $query->addExpression('COUNT(*)', 'count');
     $query->addField('watchdog', 'severity');

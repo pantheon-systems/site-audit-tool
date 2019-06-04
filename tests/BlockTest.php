@@ -4,7 +4,11 @@ namespace SiteAudit;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Best Practices tests
+ * Block tests
+ *
+ * SiteAuditCheckBlockEnabled:
+ *  - pass: drush pm:enable block
+ *  - fail: drush pm:uninstall block
  */
 class BlockTest extends TestCase
 {

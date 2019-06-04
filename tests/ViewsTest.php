@@ -5,6 +5,21 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Views tests
+ *
+ * SiteAuditCheckViewsCacheOutput:
+ *  - n/a: Testing this check would require we modify views. Note also that
+ *    default Drupal install does not pass current check.
+ *
+ * SiteAuditCheckViewsCacheResults:
+ *  - n/a: Testing this check would require we modify views. Note also that
+ *    default Drupal install does not pass current check.
+ *
+ * SiteAuditCheckViewsCount:
+ *  - n/a: This check is informational only, and never fails
+ *
+ * SiteAuditCheckViewsEnabled:
+ *  - pass: drush pm:enable views
+ *  - fail: drush pm:uninstall views
  */
 class ViewsTest extends TestCase
 {
