@@ -68,7 +68,7 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
       $ret_val .= '<table class="table table-condensed">';
       $ret_val .= '<thead><tr><th>' . dt('Name') . '</th><th>' . dt('Paths') . '</th></thead>';
       $ret_val .= '<tbody>';
-      foreach ($this->registry['extensions_dupe'] as $name => $extension_infos) {
+      foreach ($this->registry->extensions_dupe as $name => $extension_infos) {
         $ret_val .= '<tr><td>' . $name . '</td>';
         $paths = array();
         foreach ($extension_infos as $extension_info) {
@@ -84,7 +84,7 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
       $ret_val .= '</table>';
     }
     else {
-      foreach ($this->registry['extensions_dupe'] as $name => $extension_infos) {
+      foreach ($this->registry->extensions_dupe as $name => $extension_infos) {
         $ret_val .= PHP_EOL;
         if (!drush_get_option('json')) {
           $ret_val .= str_repeat(' ', 6);
