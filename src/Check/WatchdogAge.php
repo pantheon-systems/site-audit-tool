@@ -85,6 +85,12 @@ class WatchdogAge extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
+    $this->checkInvokeCalculateScore('watchdog_enabled');
+    if (!$this->registry->watchdog_enabled) {
+      $this->ageNewest = 'n/a';
+      return;
+    }
+
     // Age of oldest entry.
     $query = db_select('watchdog');
     $query->addField('watchdog', 'timestamp');

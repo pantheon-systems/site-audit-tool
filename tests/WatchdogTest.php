@@ -5,6 +5,26 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Watchdog tests
+ *
+ * SiteAuditCheckWatchdog404:
+ *  - n/a: This check is informational only, and never fails
+ *
+ * SiteAuditCheckWatchdogAge:
+ *  - n/a: This check is informational only, and never fails
+ *
+ * SiteAuditCheckWatchdogCount:
+ *  - n/a: This check is informational only, and never fails
+ *
+ * SiteAuditCheckWatchdogEnabled:
+ *  - pass: drush pm:enable dblog
+ *  - warn: drush pm:uninstall dblog
+ *
+ * SiteAuditCheckWatchdogPhp:
+ *  - n/a: This check is informational only, and never fails
+ *
+ * SiteAuditCheckWatchdogSyslog:
+ *  - warn: drush pm:uninstall syslog
+ *  - fail: drush pm:enable syslog
  */
 class WatchdogTest extends TestCase
 {
@@ -27,7 +47,7 @@ class WatchdogTest extends TestCase
     public function testWatchdog()
     {
         // Run 'extensions' check on out test site
-        $this->drush('audit:watchdog');
+        $this->drush('audit:watchdog', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('No 404 entries.', $json['checks']['SiteAuditCheckWatchdog404']['result']);
         $this->assertEquals('Database logging (dblog) is enabled.', $json['checks']['SiteAuditCheckWatchdogEnabled']['result']);

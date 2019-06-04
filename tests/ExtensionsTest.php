@@ -4,7 +4,20 @@ namespace SiteAudit;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Best Practices tests
+ * Extensions tests
+ *
+ * SiteAuditCheckExtensionsCount:
+ *  - n/a: This check is informational only, and never fails
+ *
+ * SiteAuditCheckExtensionsDev:
+ *  - pass: drush pm:uninstall field_ui views_ui
+ *  - fail: drush pm:enable field_ui views_ui
+ *
+ * SiteAuditCheckExtensionsDuplicate:
+ *  - n/a: This check would require modifying the SUT codebase
+ *
+ * SiteAuditCheckExtensionsUnrecommended
+ *  - n/a: This check would require modifying the SUT codebase
  */
 class ExtensionsTest extends TestCase
 {
@@ -27,7 +40,7 @@ class ExtensionsTest extends TestCase
     public function testExtensions()
     {
         // Run 'extensions' check on out test site
-        $this->drush('audit:extensions');
+        $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('The following development modules(s) are currently enabled: field_ui, views_ui', $json['checks']['SiteAuditCheckExtensionsDev']['result']);
 
@@ -35,7 +48,7 @@ class ExtensionsTest extends TestCase
         $this->drush('pm:uninstall', ['field_ui', 'views_ui']);
 
         // Check to see if the 'extensions' dev modules check is now passing
-        $this->drush('audit:extensions');
+        $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('No enabled development extensions were detected; no action required.', $json['checks']['SiteAuditCheckExtensionsDev']['result']);
 

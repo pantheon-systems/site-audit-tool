@@ -5,6 +5,9 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Security tests
+ *
+ * SiteAuditCheckSecurityMenuRouter:
+ *  - n/a: This check would require modifying the SUT codebase
  */
 class SecurityTest extends TestCase
 {

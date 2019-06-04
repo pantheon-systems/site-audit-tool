@@ -97,6 +97,7 @@ class BestPracticesMultisite extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
+    $this->checkInvokeCalculateScore('best_practices_sites');
     $handle = opendir(DRUPAL_ROOT . '/sites/');
     $this->registry->multisites = array();
     while (FALSE !== ($entry = readdir($handle))) {

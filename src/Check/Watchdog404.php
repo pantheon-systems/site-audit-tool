@@ -87,6 +87,7 @@ class Watchdog404 extends SiteAuditCheckBase {
       $this->checkInvokeCalculateScore('watchdog_count');
     }
     if (!$this->registry->watchdog_enabled) {
+      $this->registry->count_404 = 'n/a';
       return;
     }
     $query = db_select('watchdog');

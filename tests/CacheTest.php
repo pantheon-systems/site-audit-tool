@@ -4,7 +4,28 @@ namespace SiteAudit;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Best Practices tests
+ * Cache tests
+ *
+ * SiteAuditCheckCacheBinsAll:
+ *  - n/a: This check is informational only, and never fails
+ *
+ * SiteAuditCheckCacheBinsDefault:
+ *  - n/a: This check is informational only, and never fails
+ *
+ * SiteAuditCheckCacheBinsUsed:
+ *  - n/a: This check is informational only, and never fails
+ *
+ * SiteAuditCheckCachePageExpire:
+ *  - pass: drush config:set system.performance cache.page.max_age 1000
+ *  - fail: drush config:set system.performance cache.page.max_age 0
+ *
+ * SiteAuditCheckCachePreprocessCSS:
+ *  - pass: composer drush config:set system.performance css.preprocess 1
+ *  - fail: composer drush config:set system.performance css.preprocess 0
+ *
+ * SiteAuditCheckCachePreprocessJS:
+ *  - pass: composer drush config:set system.performance js.preprocess 1
+ *  - fail: composer drush config:set system.performance js.preprocess 0
  */
 class CacheTest extends TestCase
 {
