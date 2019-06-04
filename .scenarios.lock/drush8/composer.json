@@ -26,7 +26,7 @@
         "g1a/composer-test-scenarios": "^3.0.2",
         "drupal-composer/drupal-scaffold": "^2.5",
         "drupal/core": "^8.7",
-        "drupal/memcache": "*",
+        "drupal/memcache": "^2",
         "webflo/drupal-finder": "^1.1.0",
         "webmozart/path-util": "^2.3",
         "symfony/filesystem": "^3.4.28",
