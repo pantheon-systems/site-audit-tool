@@ -17,7 +17,8 @@ use PHPUnit\Framework\TestCase;
  *  - n/a: This check would require modifying the SUT codebase
  *
  * SiteAuditCheckExtensionsUnrecommended
- *  - n/a: This check would require modifying the SUT codebase
+ *  - pass: drush pm:uninstall memcache
+ *  - fail: drush pm:enable memcache
  */
 class ExtensionsTest extends TestCase
 {
@@ -39,10 +40,15 @@ class ExtensionsTest extends TestCase
      */
     public function testExtensions()
     {
+        // Enable the development modules and disable memcache
+        $this->drush('pm:enable', ['field_ui', 'views_ui']);
+        $this->drush('pm:uninstall', ['memcache']);
+
         // Run 'extensions' check on out test site
         $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('The following development modules(s) are currently enabled: field_ui, views_ui', $json['checks']['SiteAuditCheckExtensionsDev']['result']);
+        $this->assertEquals('No unrecommended extensions were detected; no action required.', $json['checks']['SiteAuditCheckExtensionsUnrecommended']['result']);
 
         // Disable the development modules
         $this->drush('pm:uninstall', ['field_ui', 'views_ui']);
@@ -52,7 +58,16 @@ class ExtensionsTest extends TestCase
         $json = $this->getOutputFromJSON();
         $this->assertEquals('No enabled development extensions were detected; no action required.', $json['checks']['SiteAuditCheckExtensionsDev']['result']);
 
-        // Re-enable the development modules
+        // Enable the memcache module
+        $this->drush('pm:enable', ['memcache']);
+
+        // Check to see if this makes the extensions SiteAuditCheckExtensionsUnrecommended check fail
+        $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('The following unrecommended modules(s) currently exist in your codebase: memcache', $json['checks']['SiteAuditCheckExtensionsUnrecommended']['result']);
+
+        // Don't leave memcache installed. Turn back on field_ui and views_ui
+        $this->drush('pm:uninstall', ['memcache']);
         $this->drush('pm:enable', ['field_ui', 'views_ui']);
     }
 
