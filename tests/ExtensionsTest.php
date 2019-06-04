@@ -20,8 +20,8 @@ use Symfony\Component\Filesystem\Filesystem;
  *  - fail: copy a core module to contrib directory
  *
  * SiteAuditCheckExtensionsUnrecommended
- *  - pass: drush pm:uninstall memcache
- *  - fail: drush pm:enable memcache
+ *  - pass: drush pm:uninstall php
+ *  - fail: drush pm:enable php
  */
 class ExtensionsTest extends TestCase
 {
@@ -97,23 +97,23 @@ class ExtensionsTest extends TestCase
     public function testExtensionsUnrecommended()
     {
         // SiteAuditCheckExtensionsUnrecommended
-        // pass: drush pm:uninstall memcache
-        $this->drush('pm:uninstall', ['memcache']);
+        // pass: drush pm:uninstall php
+        $this->drush('pm:uninstall', ['php']);
 
         $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('No unrecommended extensions were detected; no action required.', $json['checks']['SiteAuditCheckExtensionsUnrecommended']['result']);
 
-        // fail: drush pm:enable memcache
-        $this->drush('pm:enable', ['memcache']);
+        // fail: drush pm:enable php
+        $this->drush('pm:enable', ['php']);
 
         // Check to see if this makes the extensions SiteAuditCheckExtensionsUnrecommended check fail
         $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
-        $this->assertEquals('The following unrecommended modules(s) currently exist in your codebase: memcache', $json['checks']['SiteAuditCheckExtensionsUnrecommended']['result']);
+        $this->assertEquals('The following unrecommended modules(s) currently exist in your codebase: php', $json['checks']['SiteAuditCheckExtensionsUnrecommended']['result']);
 
-        // Don't leave memcache installed.
-        $this->drush('pm:uninstall', ['memcache']);
+        // Don't leave php installed.
+        $this->drush('pm:uninstall', ['php']);
     }
 
 }
