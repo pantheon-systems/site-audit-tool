@@ -3,17 +3,14 @@
 namespace Drush\Commands\site_audit_tool;
 
 use Consolidation\AnnotatedCommand\CommandData;
+use Consolidation\OutputFormatters\StructuredData\PropertyList;
 use Consolidation\OutputFormatters\StructuredData\RowsOfFieldsWithMetadata;
 use Drush\Commands\DrushCommands;
 use Drush\Exceptions\UserAbortException;
+use SiteAudit\ChecksRegistry;
+use SiteAudit\SiteAuditCheckBase;
 use SiteAudit\SiteAuditCheckInterface;
 use Symfony\Component\Console\Input\InputInterface;
-
-// For testing
-use SiteAudit\SiteAuditCheckBase;
-use SiteAudit\Check\BestPracticesSettings;
-use SiteAudit\Check\BestPracticesFast404;
-use SiteAudit\ChecksRegistry;
 
 /**
  * Edit this file to reflect your organization's needs.
@@ -37,6 +34,24 @@ class SiteAuditCommands extends DrushCommands
             $loader->addPsr4('SiteAudit\\', __DIR__ . '/src');
             $loader->register();
         }
+    }
+
+    /**
+     * Show Site Audit version.
+     *
+     * @command audit:version
+     * @table-style compact
+     * @list-delimiter :
+     * @field-labels
+     *   audit-version: Site Audit Tool version
+     *
+     * @return \Consolidation\OutputFormatters\StructuredData\PropertyList
+     *
+     */
+    public function version($options = ['format' => 'table'])
+    {
+        $version = file_get_contents(__DIR__ . '/VERSION');
+        return new PropertyList(['audit-version' => $version]);
     }
 
     /**
