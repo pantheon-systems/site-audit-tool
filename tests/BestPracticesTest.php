@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
  *
  * SiteAuditCheckBestPracticesServices:
  *  - pass: sut/web/sites/default/services.yml exists
- *  - fail: sut/web/sites/default/services.yml
+ *  - fail: sut/web/sites/default/services.yml does not exist
  *
  * SiteAuditCheckBestPracticesSites:
  *  - pass: Remove sut/web/sites/sites.php or make sure it is not a symlink
@@ -88,13 +88,13 @@ class BestPracticesTest extends TestCase
         if (!file_exists('sut/web/modules/custom')) {
             mkdir('sut/web/modules/custom');
         }
-    
+
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('modules/contrib and modules/custom directories exist.', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
 
         //fail: remove 'custom' directory
-        rmdir('sut/web/modules/custom'); 
+        rmdir('sut/web/modules/custom');
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('modules/custom directory is not present!', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
@@ -126,7 +126,7 @@ class BestPracticesTest extends TestCase
 
         //reset
         rmdir($multi);
-        
+
     }
 
     public function testBestPracticesSettings()
@@ -139,7 +139,7 @@ class BestPracticesTest extends TestCase
         $this->assertEquals('settings.php exists and is not a symbolic link.', $json['checks']['SiteAuditCheckBestPracticesSettings']['result']);
 
         //fail: Cannot test this, because removing settings.php makes Drush unusable
-        
+
     }
 
     public function testBestPracticesServices()
@@ -147,14 +147,22 @@ class BestPracticesTest extends TestCase
         //SiteAuditCheckBestPracticesServices:
 
         //pass: sut/web/sites/default/services.yml exists
-        //inconvenient to test, cannot create and open this file becuase of permission denied errors
+        $services_path = 'sut/web/sites/default/services.yml';
+        $contents = <<< __EOT__
+parameters:
+  http.response.debug_cacheability_headers: true
+__EOT__;
+        chmod(dirname($services_path), 0777);
+        file_put_contents($services_path, $contents);
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('services.yml exists and is not a symbolic link.', $json['checks']['SiteAuditCheckBestPracticesServices']['result']);
 
         //fail: sut/web/sites/default/services.yml
-        //unlink('sut/web/sites/default/services.yml');
+        unlink($services_path);
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('services.yml does not exist! Copy the default.service.yml to services.yml and see https://www.drupal.org/documentation/install/settings-file for details.', $json['checks']['SiteAuditCheckBestPracticesServices']['result']);
-        
 
         //reset
         //no need to reset, default is no file
@@ -173,7 +181,7 @@ class BestPracticesTest extends TestCase
         if (file_exists('sut/web/sites/test.php')) {
            unlink('sut/web/sites/test.php');
         }
-        
+
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('sites.php does not exist.', $json['checks']['SiteAuditCheckBestPracticesSites']['result']);
@@ -199,7 +207,7 @@ class BestPracticesTest extends TestCase
         //reset: remove sites.php
         unlink($target);
         unlink($link_name);
-        
+
     }
 
     public function testBestPracticesSitesDefault()
@@ -225,7 +233,7 @@ class BestPracticesTest extends TestCase
             unlink('sut/web/sites/super.php');
         }
 
-       
+
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('No unnecessary files detected.', $json['checks']['SiteAuditCheckBestPracticesSitesSuperfluous']['result']);
@@ -240,7 +248,7 @@ class BestPracticesTest extends TestCase
 
         //reset
         unlink($superfluous);
-        
+
     }
 
 }
