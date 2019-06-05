@@ -46,12 +46,56 @@ class WatchdogTest extends TestCase
      */
     public function testWatchdog()
     {
-        // Run 'extensions' check on out test site
+        // Run 'watchdog' check on out test site
         $this->drush('audit:watchdog', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
+
+        // For the following tests, the result is nondeterministic, so we
+        // check only the description to determine that the check at least ran.
         $this->assertEquals('No 404 entries.', $json['checks']['SiteAuditCheckWatchdog404']['result']);
+        $this->assertEquals('Oldest and newest.', $json['checks']['SiteAuditCheckWatchdogAge']['description']);
+        $this->assertEquals('Number of dblog entries.', $json['checks']['SiteAuditCheckWatchdogCount']['description']);
+        $this->assertEquals('Count PHP notices, warnings and errors.', $json['checks']['SiteAuditCheckWatchdogPhp']['description']);
+
+    }
+
+    public function testWatchdogEnabled()
+    {
+        // SiteAuditCheckWatchdogEnabled:
+
+        // pass: drush pm:enable dblog
+        $this->drush('audit:watchdog', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
         $this->assertEquals('Database logging (dblog) is enabled.', $json['checks']['SiteAuditCheckWatchdogEnabled']['result']);
+
+        // warn: drush pm:uninstall dblog
+        $this->drush('pm:uninstall', ['dblog']);
+        $this->drush('audit:watchdog', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('Database logging (dblog) is not enabled; if the site is having problems, consider enabling it for debugging.', $json['checks']['SiteAuditCheckWatchdogEnabled']['result']);
+
+        // reset
+        $this->drush('pm:enable', ['dblog']);
+    }
+
+    public function testWatchdogSyslog()
+    {
+        // SiteAuditCheckWatchdogSyslog
+
+        // warn: drush pm:uninstall syslog
+        $this->drush('pm:uninstall', ['syslog']);
+        $this->drush('audit:watchdog', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
         $this->assertEquals('Syslog logging is not enabled.', $json['checks']['SiteAuditCheckWatchdogSyslog']['result']);
+
+        // fail: drush pm:enable syslog
+        $this->drush('pm:enable', ['syslog']);
+        $this->drush('audit:watchdog', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('Syslog logging is enabled!', $json['checks']['SiteAuditCheckWatchdogSyslog']['result']);
+
+        // reset
+        $this->drush('pm:uninstall', ['syslog']);
     }
 
 }

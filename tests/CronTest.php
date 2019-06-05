@@ -30,11 +30,14 @@ class CronTest extends TestCase
      */
     public function testCron()
     {
-        // Run 'extensions' check on out test site
+        //SiteAuditCheckCronEnabled:
+        //pass: drush config:set automated_cron.settings interval 10800
         $this->drush('config:set', ['automated_cron.settings', 'interval', 10800]);
         $this->drush('audit:cron');
         $json = $this->getOutputFromJSON();
         $this->assertEquals('Cron is set to run every 180 minutes.', $json['checks']['SiteAuditCheckCronEnabled']['result']);
+        
+        //fail: drush config:set automated_cron.settings interval 0
         $this->drush('config:set', ['automated_cron.settings', 'interval', 0]);
         $this->drush('cron');
         $this->drush('audit:cron');

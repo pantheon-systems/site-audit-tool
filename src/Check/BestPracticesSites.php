@@ -83,8 +83,13 @@ class BestPracticesSites extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
-   $this->registry->multisite_enabled = file_exists(DRUPAL_ROOT . '/sites/sites.php');
-    if ($this->registry->multisite_enabled && is_link(DRUPAL_ROOT . '/sites/sites.php')) {
+    $path = DRUPAL_ROOT . '/sites/sites.php';
+    // Note that 'file_exists' will return FALSE if the file exists, but is
+    // a symbolic link that points at a file that does not exist. In this
+    // instance, it is better to give the user the warning to not use symbolic
+    // links rather than act as if the file is not there at all.
+    $this->registry->multisite_enabled = file_exists($path) || is_link($path);
+    if ($this->registry->multisite_enabled && is_link($path)) {
       return SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN;
     }
     return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;

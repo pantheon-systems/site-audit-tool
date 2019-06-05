@@ -42,12 +42,37 @@ class ViewsTest extends TestCase
     public function testViews()
     {
         // Run 'extensions' check on out test site
+        $this->drush('pm:enable', ['views_ui']);
         $this->drush('audit:views');
         $json = $this->getOutputFromJSON();
         $this->assertEquals('The following Views are not caching rendered output: watchdog', $json['checks']['SiteAuditCheckViewsCacheOutput']['result']);
         $this->assertEquals('The following Views are not caching query results: watchdog', $json['checks']['SiteAuditCheckViewsCacheResults']['result']);
-        $this->assertEquals('There are 12 enabled views.', $json['checks']['SiteAuditCheckViewsCount']['result']);
+
+        // Result is nondeterministic, so we test only the description to
+        // simply confirm that the test at least ran.
+        $this->assertEquals('Number of enabled Views.', $json['checks']['SiteAuditCheckViewsCount']['description']);
+
+    }
+
+    public function testViewsEnabled()
+    {
+        // SiteAuditCheckViewsEnabled:
+
+        // pass: drush pm:enable views
+        $this->drush('pm:enable', ['views']);
+        $this->drush('audit:views');
+        $json = $this->getOutputFromJSON();
         $this->assertEquals('Views is enabled.', $json['checks']['SiteAuditCheckViewsEnabled']['result']);
+
+        // fail: drush pm:uninstall views
+        $this->drush('pm:uninstall', ['views']);
+        $this->drush('audit:views');
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('Views is not enabled.', $json['checks']['SiteAuditCheckViewsEnabled']['result']);
+
+        // reset. Uninstalling 'views' also uninstalls 'views_ui'. We want to
+        // leave the site in its default state after this test runs.
+        $this->drush('pm:enable', ['views', 'views_ui']);
     }
 
 }

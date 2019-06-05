@@ -3,6 +3,8 @@ namespace SiteAudit;
 
 use PHPUnit\Framework\TestCase;
 
+use Symfony\Component\Filesystem\Filesystem;
+
 /**
  * Extensions tests
  *
@@ -14,10 +16,12 @@ use PHPUnit\Framework\TestCase;
  *  - fail: drush pm:enable field_ui views_ui
  *
  * SiteAuditCheckExtensionsDuplicate:
- *  - n/a: This check would require modifying the SUT codebase
+ *  - pass: remove duplicate module
+ *  - fail: copy a core module to contrib directory
  *
  * SiteAuditCheckExtensionsUnrecommended
- *  - n/a: This check would require modifying the SUT codebase
+ *  - pass: drush pm:uninstall php
+ *  - fail: drush pm:enable php
  */
 class ExtensionsTest extends TestCase
 {
@@ -34,26 +38,82 @@ class ExtensionsTest extends TestCase
     }
 
     /**
-     * Test to see if an example command with a parameter can be called.
-     * @covers ExampleCommands::exampleParam
+     * Test the SiteAuditCheckExtensionsDev check
      */
-    public function testExtensions()
+    public function testExtensionsDev()
     {
-        // Run 'extensions' check on out test site
+        // SiteAuditCheckExtensionsDev
+        // fail: drush pm:enable field_ui views_ui
+        $this->drush('pm:enable', ['field_ui', 'views_ui']);
+
+        // pass: drush pm:uninstall field_ui views_ui
         $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('The following development modules(s) are currently enabled: field_ui, views_ui', $json['checks']['SiteAuditCheckExtensionsDev']['result']);
 
-        // Disable the development modules
+        // fail: drush pm:enable field_ui views_ui
         $this->drush('pm:uninstall', ['field_ui', 'views_ui']);
-
-        // Check to see if the 'extensions' dev modules check is now passing
         $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('No enabled development extensions were detected; no action required.', $json['checks']['SiteAuditCheckExtensionsDev']['result']);
 
-        // Re-enable the development modules
+        // Re-enable field_ui and views_ui
         $this->drush('pm:enable', ['field_ui', 'views_ui']);
+    }
+
+    /**
+     * Test the SiteAuditCheckExtensionsDuplicate check
+     */
+    public function testExtensionsDuplicate()
+    {
+        $fs = new Filesystem();
+        $original_module = 'sut/web/core/modules/user';
+        $duplicate_module = 'sut/web/modules/contrib/user';
+
+        // pass: remove duplicate module
+        $fs->remove($duplicate_module);
+
+        $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+
+        $this->assertEquals('No duplicate extensions were detected.', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
+
+        // fail: copy a core module to contrib directory
+        $fs->mirror($original_module, $duplicate_module);
+
+        $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+
+        $this->assertContains('The following duplicate extensions were found:', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
+        $this->assertContains('user', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
+
+        // Don't leave the duplicate module around
+        $fs->remove($duplicate_module);
+    }
+
+    /**
+     * Test the SiteAuditCheckExtensionsUnrecommended check
+     */
+    public function testExtensionsUnrecommended()
+    {
+        // SiteAuditCheckExtensionsUnrecommended
+        // pass: drush pm:uninstall php
+        $this->drush('pm:uninstall', ['php']);
+
+        $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('No unrecommended extensions were detected; no action required.', $json['checks']['SiteAuditCheckExtensionsUnrecommended']['result']);
+
+        // fail: drush pm:enable php
+        $this->drush('pm:enable', ['php']);
+
+        // Check to see if this makes the extensions SiteAuditCheckExtensionsUnrecommended check fail
+        $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('The following unrecommended modules(s) currently exist in your codebase: php', $json['checks']['SiteAuditCheckExtensionsUnrecommended']['result']);
+
+        // Don't leave php installed.
+        $this->drush('pm:uninstall', ['php']);
     }
 
 }

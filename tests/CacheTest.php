@@ -29,6 +29,8 @@ use PHPUnit\Framework\TestCase;
  */
 class CacheTest extends TestCase
 {
+    // Run 'cache' check on out test site
+
     use FixturesTrait;
 
     public function setUp()
@@ -45,26 +47,69 @@ class CacheTest extends TestCase
      * Test to see if an example command with a parameter can be called.
      * @covers ExampleCommands::exampleParam
      */
-    public function testCache()
+    public function testCachePageExpire()
     {
-        // Run 'cache' check on out test site
+        
+        //SiteAuditCheckCachePageExpire:
+        
+        //default: no expiration set
         $this->drush('audit:cache');
         $json = $this->getOutputFromJSON();
         $this->assertEquals('Expiration of cached pages not set!', $json['checks']['SiteAuditCheckCachePageExpire']['result']);
-        $this->assertEquals('CSS aggregation and compression is enabled.', $json['checks']['SiteAuditCheckCachePreprocessCSS']['result']);
-        $this->assertEquals('JavaScript aggregation is enabled.', $json['checks']['SiteAuditCheckCachePreprocessJS']['result']);
-
-        /*
-        // Set the page cache expiration
-        $this->drush('TODO');
-
-        // Check to see if the cache expiration check is now passing
+        
+        //pass: drush config:set system.performance cache.page.max_age 1000
+        $this->drush('config:set', ['system.performance', 'cache.page.max_age', 1000]);
         $this->drush('audit:cache');
         $json = $this->getOutputFromJSON();
+        $this->assertEquals('Expiration of cached pages is set to 17 min.', $json['checks']['SiteAuditCheckCachePageExpire']['result']);
 
-        // Clear the page cache expiration again
-        $this->drush('TODO');
-        */
+        //fail: drush config:set system.performance cache.page.max_age 0
+        $this->drush('config:set', ['system.performance', 'cache.page.max_age', 100]);
+        $this->drush('audit:cache');
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('Expiration of cached pages only set to 2 min.', $json['checks']['SiteAuditCheckCachePageExpire']['result']);
+
+        // reset
+        $this->drush('config:set', ['system.performance', 'cache.page.max_age', 100]);
+    }
+
+    public function testCachePreprocessCSS()
+    {
+        //SiteAuditCheckCachePreprocessCSS:
+        //pass: composer drush config:set system.performance css.preprocess 1
+        $this->drush('config:set', ['system.performance', 'css.preprocess', 1]);
+        $this->drush('audit:cache');
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('CSS aggregation and compression is enabled.', $json['checks']['SiteAuditCheckCachePreprocessCSS']['result']);
+
+        //fail: composer drush config:set system.performance css.preprocess 0
+        $this->drush('config:set', ['system.performance', 'css.preprocess', 0]);
+        $this->drush('audit:cache');
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('CSS aggregation and compression is not enabled!', $json['checks']['SiteAuditCheckCachePreprocessCSS']['result']);
+
+        //reset
+        $this->drush('config:set', ['system.performance', 'css.preprocess', 1]);
+        
+    }
+
+    public function testCachePreprocessJS()
+    {
+        //SiteAuditCheckCachePreprocessCSS:
+        //pass: composer drush config:set system.performance css.preprocess 1
+        $this->drush('config:set', ['system.performance', 'js.preprocess', 1]);
+        $this->drush('audit:cache');
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('JavaScript aggregation is enabled.', $json['checks']['SiteAuditCheckCachePreprocessJS']['result']);
+
+        //fail: composer drush config:set system.performance css.preprocess 0
+        $this->drush('config:set', ['system.performance', 'js.preprocess', 0]);
+        $this->drush('audit:cache');
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('JavaScript aggregation is not enabled!', $json['checks']['SiteAuditCheckCachePreprocessJS']['result']);
+
+        //reset
+        $this->drush('config:set', ['system.performance', 'js.preprocess', 1]);
     }
 
 }
