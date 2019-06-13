@@ -659,7 +659,7 @@ class SiteAuditCommands extends DrushCommands
         }
 
         if($max == 0) {
-            $percent = 0
+            $percent = 0;
         } else {
             $percent = ($score * 100) / $max;
         } 
