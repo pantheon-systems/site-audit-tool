@@ -658,7 +658,11 @@ class SiteAuditCommands extends DrushCommands
             $checkResults += $this->interimReportResults($check);
         }
 
-        $percent = ($score * 100) / $max;
+        if($max == 0) {
+            $percent = 0
+        } else {
+            $percent = ($score * 100) / $max;
+        } 
 
         return [
             "percent" => (int) $percent,
