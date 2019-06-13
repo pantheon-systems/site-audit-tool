@@ -62,6 +62,8 @@ class SiteAuditCommands extends DrushCommands
             'skip' => '',
         ])
     {
+        $this->init();
+
         $checks = $this->interimInstantiateChecks($this->createRegistry($options));
         $checks = $this->filterSkippedChecks($checks, $options['skip']);
 
