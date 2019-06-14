@@ -40,6 +40,7 @@ class SiteAuditCommands extends DrushCommands
      * Show Site Audit version.
      *
      * @command audit:version
+     * @aliases site-audit-version
      * @table-style compact
      * @list-delimiter :
      * @field-labels
