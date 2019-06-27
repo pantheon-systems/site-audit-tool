@@ -52,6 +52,9 @@
         }
     },
     "scripts": {
+        "release": [
+            "release VERSION"
+        ],
         "test": "phpunit --color=always",
         "drush": "drush"
     },
