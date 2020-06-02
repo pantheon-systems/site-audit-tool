@@ -1,5 +1,5 @@
 defaults: &defaults
-  working_directory: ~/behat-drush
+  working_directory: ~/site-audit-tool
   environment:
     TZ: "/usr/share/zoneinfo/America/Los_Angeles"
     TERM: dumb
@@ -50,6 +50,20 @@ jobs:
       - run: .scenarios.lock/install drupal9
       - run: composer test
 
+  test_56_drupal87:
+    <<: *defaults
+    docker:
+      - image: wodby/php:5.6
+        environment:
+          - MYSQL_HOST=127.0.0.1
+          - UNISH_DB_URL=mysql://root:@127.0.0.1
+      - image: circleci/mysql:5.7.24
+    steps:
+      - checkout
+      - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
+      - run: .scenarios.lock/install php56
+      - run: composer test
+
 workflows:
   version: 2
   example-drush-extension:
@@ -57,3 +71,5 @@ workflows:
       - test_72_drupal8
       - test_72_drush8
       - test_73_drupal9
+      - test_56_drupal87
+

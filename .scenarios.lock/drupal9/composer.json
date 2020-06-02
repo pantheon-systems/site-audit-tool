@@ -15,7 +15,7 @@
         }
     ],
     "require": {
-        "php": ">=7.0.8",
+        "php": ">=5.6",
         "consolidation/site-alias": "^3.0.1",
         "consolidation/site-process": "^2.1 | ^4"
     },
