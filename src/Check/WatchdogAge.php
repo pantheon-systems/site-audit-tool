@@ -4,6 +4,7 @@
  * Contains Drupal\site_audit\Plugin\SiteAuditCheck\WatchdogAge
  */
 namespace SiteAudit\Check;
+use Drupal\Core\Database\Database;
 
 use SiteAudit\SiteAuditCheckBase;
 
@@ -92,14 +93,14 @@ class WatchdogAge extends SiteAuditCheckBase {
     }
 
     // Age of oldest entry.
-    $query = db_select('watchdog');
+    $query = Database::getConnection()->select('watchdog');
     $query->addField('watchdog', 'timestamp');
     $query->orderBy('wid', 'ASC');
     $query->range(0, 1);
     $this->ageOldest = $query->execute()->fetchField();
 
     // Age of newest entry.
-    $query = db_select('watchdog');
+    $query = Database::getConnection()->select('watchdog');
     $query->addField('watchdog', 'timestamp');
     $query->orderBy('wid', 'DESC');
     $query->range(0, 1);
