@@ -7,6 +7,7 @@
 namespace SiteAudit\Check;
 
 use SiteAudit\SiteAuditCheckBase;
+use Drupal\Core\Database\Database;
 
 /**
  * Provides the UsersBlockedNumberOne Check.
@@ -78,7 +79,7 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
-    $query = db_select('users_field_data', 'ufd');
+    $query = Database::getConnection()->select('users_field_data', 'ufd');
     $query->addField('ufd', 'status');
     $query->condition('uid', 1);
 

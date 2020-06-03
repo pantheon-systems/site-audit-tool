@@ -7,6 +7,7 @@
 namespace SiteAudit\Check;
 
 use SiteAudit\SiteAuditCheckBase;
+use Drupal\Core\Database\Database;
 
 /**
  * Provides the UsersRolesList Check.
@@ -76,7 +77,7 @@ class UsersRolesList extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
-    $query = db_select('user__roles');
+    $query = Database::getConnection()->select('user__roles');
     $query->addExpression('COUNT(entity_id)', 'count');
     $query->addfield('user__roles', 'roles_target_id', 'name');
     $query->groupBy('name');

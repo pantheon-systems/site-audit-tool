@@ -7,6 +7,7 @@
 namespace SiteAudit\Check;
 
 use SiteAudit\SiteAuditCheckBase;
+use Drupal\Core\Database\Database;
 
 /**
  * Provides the Database size check.
@@ -78,7 +79,7 @@ class DatabaseSize extends SiteAuditCheckBase {
   public function calculateScore() {
     $connection = \Drupal\Core\Database\Database::getConnection();
     try {
-      $query = db_select('information_schema.TABLES', 'ist');
+      $query = Database::getConnection()->select('information_schema.TABLES', 'ist');
       $query->addExpression('SUM(ist.data_length + ist.index_length)');
       $query->condition('ist.table_schema', $connection->getConnectionOptions()['database']);
       $query->groupBy('ist.table_schema');

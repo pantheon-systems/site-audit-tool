@@ -8,6 +8,7 @@ namespace SiteAudit\Check;
 
 use SiteAudit\SiteAuditCheckBase;
 use Drupal\Core\Logger\RfcLogLevel;
+use Drupal\Core\Database\Database;
 
 /**
  * Provides the WatchdogPhp Check.
@@ -96,7 +97,7 @@ class WatchdogPhp extends SiteAuditCheckBase {
       return;
     }
 
-    $query = db_select('watchdog');
+    $query = Database::getConnection()->select('watchdog');
     $query->addExpression('COUNT(*)', 'count');
     $query->addField('watchdog', 'severity');
     $query->groupBy('severity');

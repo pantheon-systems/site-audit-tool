@@ -7,6 +7,7 @@
 namespace SiteAudit\Check;
 
 use SiteAudit\SiteAuditCheckBase;
+use Drupal\Core\Database\Database;
 
 /**
  * Provides the UsersCountAll Check.
@@ -74,7 +75,7 @@ class UsersCountAll extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
-    $query = db_select('users');
+    $query = Database::getConnection()->select('users');
     $query->addExpression('COUNT(*)', 'count');
     $query->condition('uid', 0, '<>');
 

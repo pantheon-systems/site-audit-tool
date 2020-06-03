@@ -1,6 +1,6 @@
 /.gitattributes         export-ignore
 /.scenarios.lock        export-ignore
-/.travis.yml            export-ignore
+/.circleci              export-ignore
 /sut                    export-ignore
 /tests                  export-ignore
 /phpunit.xml.dist       export-ignore

@@ -7,6 +7,7 @@
 namespace SiteAudit\Check;
 
 use SiteAudit\SiteAuditCheckBase;
+use Drupal\Core\Database\Database;
 
 /**
  * Provides the Database Fragmentation check.
@@ -77,7 +78,7 @@ class DatabaseFragmentation extends SiteAuditCheckBase {
    */
   public function calculateScore() {
     $connection = \Drupal\Core\Database\Database::getConnection();
-    $query = db_select('information_schema.TABLES', 'ist');
+    $query = Database::getConnection()->select('information_schema.TABLES', 'ist');
     $query->fields('ist', array('TABLE_NAME'));
     $query->addExpression('ROUND(DATA_LENGTH / 1024 / 1024)', 'data_length');
     $query->addExpression('ROUND(INDEX_LENGTH / 1024 / 1024)', 'index_length');

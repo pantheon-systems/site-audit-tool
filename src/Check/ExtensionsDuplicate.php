@@ -86,7 +86,9 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
     else {
       foreach ($this->registry->extensions_dupe as $name => $extension_infos) {
         $ret_val .= PHP_EOL;
-        if (!drush_get_option('json')) {
+        // @todo: We need to inject a "json mode" option into the check
+        // classes, since the global `drush_get_option` is no longer available.
+        if (true /* !drush_get_option('json') */) {
           $ret_val .= str_repeat(' ', 6);
         }
         $ret_val .= $name . PHP_EOL;

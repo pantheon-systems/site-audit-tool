@@ -20,13 +20,14 @@
         "consolidation/site-process": "^2.1 | ^4"
     },
     "require-dev": {
+        "drupal/core-recommended": "~8.6.0",
+        "drupal/core": "~8.6.0",
         "drush/drush": "^8.3.3",
+        "phpunit/phpunit": "^4.8.36",
         "composer/installers": "^1.2",
         "drupal/core-composer-scaffold": "^8.8.1",
-        "drupal/core-recommended": "^8.8",
         "pantheon-systems/drupal-integrations": "^8",
         "g1a/composer-test-scenarios": "^3.0.2",
-        "phpunit/phpunit": "^6.5",
         "drupal/php": "^1",
         "webflo/drupal-finder": "^1.1.0",
         "webmozart/path-util": "^2.3",
@@ -37,7 +38,7 @@
     "prefer-stable": true,
     "config": {
         "platform": {
-            "php": "7.0.8"
+            "php": "5.6"
         },
         "sort-packages": true,
         "vendor-dir": "../../vendor"
@@ -79,21 +80,6 @@
             "../../drush/Commands/{$name}": [
                 "type:drupal-drush"
             ]
-        },
-        "drupal-scaffold": {
-            "allowed-packages": [
-                "pantheon-systems/drupal-integrations"
-            ],
-            "locations": {
-                "web-root": "../../sut/web"
-            },
-            "file-mapping": {
-                "[project-root]/.editorconfig": false,
-                "[project-root]/.gitattributes": false
-            }
-        },
-        "branch-alias": {
-            "dev-master": "2.x-dev"
         }
     }
 }

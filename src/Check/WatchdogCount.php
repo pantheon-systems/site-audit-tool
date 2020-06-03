@@ -7,6 +7,7 @@
 namespace SiteAudit\Check;
 
 use SiteAudit\SiteAuditCheckBase;
+use Drupal\Core\Database\Database;
 
 /**
  * Provides the WatchdogCount Check.
@@ -83,7 +84,7 @@ class WatchdogCount extends SiteAuditCheckBase {
     if (!$this->registry->watchdog_enabled) {
       return;
     }
-    $query = db_select('watchdog');
+    $query = Database::getConnection()->select('watchdog');
     $query->addExpression('COUNT(wid)', 'count');
 
     $this->registry->count_entries = $query->execute()->fetchField();
