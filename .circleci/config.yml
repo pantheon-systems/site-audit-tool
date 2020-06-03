@@ -62,6 +62,7 @@ jobs:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
       - run: .scenarios.lock/install php56
+      - run: composer drupal:scaffold
       - run: composer test
 
 workflows:
