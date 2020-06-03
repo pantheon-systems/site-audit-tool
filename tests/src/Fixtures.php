@@ -38,7 +38,7 @@ class Fixtures
       // Make settings.php writable again
       chmod('sut/web/sites/default/', 0755);
       @unlink('sut/web/sites/default/settings.php');
-      copy('sut/web/sites/default/default.settings.php', 'sut/web/sites/default/settings.php');
+      file_put_contents('sut/web/sites/default/settings.php', '<?php' . PHP_EOL);
 
       // Run site-install (Drupal makes settings.php unwritable)
       $this->drush('site-install', ['--yes'], ['db-url' => 'mysql://root@127.0.0.1/testsiteaudittooldatabase']);
