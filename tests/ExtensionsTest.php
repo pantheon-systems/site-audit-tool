@@ -96,6 +96,13 @@ class ExtensionsTest extends TestCase
      */
     public function testExtensionsUnrecommended()
     {
+        $this->drush('status', ['Drupal version'], ['format' => 'json']);
+        $data = $this->getOutputFromJSON();
+        $drupal_version = $data['drupal-version'];
+        if ($drupal_version[0] != '8') {
+            $this->markTestSkipped("php extension is not compatible with Drupal $drupal_version");
+        }
+
         // SiteAuditCheckExtensionsUnrecommended
         // pass: drush pm:uninstall php
         $this->drush('pm:uninstall', ['php']);
