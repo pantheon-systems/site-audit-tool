@@ -232,7 +232,7 @@ abstract class SiteAuditCheckBase implements SiteAuditCheckInterface {
     if ($this->registry->html) {
       return $this->simpleHtmlList($list, $listType);
     }
-
+    $ret_val = '';
     foreach ($list as $value) {
       $ret_val .= '- ' . $value . PHP_EOL;
     }
