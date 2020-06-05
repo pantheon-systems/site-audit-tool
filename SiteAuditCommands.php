@@ -18,17 +18,16 @@ use Symfony\Component\Console\Input\InputInterface;
 class SiteAuditCommands extends DrushCommands
 {
     /**
-     * We don't use @hook init here, because Drush 8 does not call it.
-     * Instead, we call our init method explicity from the beginning of
-     * every command method.
+     * We don't use @hook init here, because Drush 8 does not call it. Instead,
+     * we call our init method explicity early in every command method.
      */
     public function init()
     {
-        // It doesn't hurt to have a redundant class loader for our namespace.
-        // This is used for global installs, and is not used for site-local.
-        $loader = new \Composer\Autoload\ClassLoader();
-        $loader->addPsr4('SiteAudit\\', __DIR__ . '/src');
-        $loader->register();
+        if (!class_exists('\SiteAudit\SiteAuditCheckBase')) {
+            $loader = new \Composer\Autoload\ClassLoader();
+            $loader->addPsr4('SiteAudit\\', __DIR__ . '/src');
+            $loader->register();
+        }
     }
 
     /**
