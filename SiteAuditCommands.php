@@ -18,18 +18,12 @@ use Symfony\Component\Console\Input\InputInterface;
 class SiteAuditCommands extends DrushCommands
 {
     /**
-     * @hook init
-     *
-     * Autoload our files if they are not already loaded.
-     * Drush should do this as a service for global commands based
-     * off of the information in composer.json. At the moment,
-     * though, it does not.
-     *
-     * n.b. this hook runs when any command in this file is executed.
+     * We don't use @hook init here, because Drush 8 does not call it. Instead,
+     * we call our init method explicity early in every command method.
      */
     public function init()
     {
-        if (!class_exists(SiteAuditCheckBase::class)) {
+        if (!class_exists('\SiteAudit\SiteAuditCheckBase')) {
             $loader = new \Composer\Autoload\ClassLoader();
             $loader->addPsr4('SiteAudit\\', __DIR__ . '/src');
             $loader->register();
@@ -381,6 +375,7 @@ class SiteAuditCommands extends DrushCommands
      */
     protected function singleReport($reportId, $options)
     {
+        $this->init();
         $checks = $this->interimInstantiateChecks($this->createRegistry($options));
         $reportChecks = $this->checksForReport($reportId, $checks);
 
@@ -443,9 +438,14 @@ class SiteAuditCommands extends DrushCommands
         if (!is_array($skipped)) {
             $skipped = explode(',', $skipped);
         }
+        $skipped = array_map(
+            function ($item) {
+                return str_replace('SiteAuditCheck', '', $item);
+            }, $skipped
+        );
 
         foreach ($checks as $key => $check) {
-            if (strpos(get_class($check), $check) !== false) {
+            if (in_array((new \ReflectionClass($check))->getShortName(), $skipped)) {
                 unset($checks[$key]);
             }
         }
@@ -663,7 +663,7 @@ class SiteAuditCommands extends DrushCommands
             $percent = 0;
         } else {
             $percent = ($score * 100) / $max;
-        } 
+        }
 
         return [
             "percent" => (int) $percent,
