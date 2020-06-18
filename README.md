@@ -14,6 +14,13 @@ See the [#3052993](https://www.drupal.org/project/site_audit/issues/3052993) in 
 Usage
 -----
 
+Ideally, this Drush command will become a dependency of the Site Audit module; if that happens, it will be available once the Site Audit module is installed into a Composer-managed site.
+
+You may also install this module to any location that Drush searches for global or site-local commands. It does not need its vendor directory.
+
+Development
+-----------
+
 In development, clone this repository, then set up the System Under Test (sut) via:
 ```
 composer install
@@ -40,7 +47,7 @@ Then install this project to `~/path/to/drush-extensions/Commands/site-audit-too
 Running Tests
 -------------
 
-Set up for 'development' as described in usage section. Then, run:
+Set up for 'development' as described in "Development" section. Then, run:
 ```
 composer test
 ```
