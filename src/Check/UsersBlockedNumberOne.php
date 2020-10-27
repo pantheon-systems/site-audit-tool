@@ -46,7 +46,7 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function getResultFail() {
-    return $this->t('UID #1 is blocked!');
+    return $this->t('UID #1 is not blocked!');
   }
 
   /**
@@ -58,7 +58,7 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function getResultPass() {
-    return $this->t('UID #1 not blocked.');
+    return $this->t('UID #1 is blocked.');
   }
 
   /**
@@ -71,7 +71,7 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
    */
   public function getAction() {
     if ($this->score != SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS) {
-      return $this->t('Unblock UID #1');
+      return $this->t('Block UID #1');
     }
   }
 
@@ -84,9 +84,9 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
     $query->condition('uid', 1);
 
     if (!$query->execute()->fetchField()) {
-      return SiteAuditCheckBase::AUDIT_CHECK_SCORE_FAIL;
+      return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
     }
-    return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
+    return SiteAuditCheckBase::AUDIT_CHECK_SCORE_FAIL;
   }
 
 }
