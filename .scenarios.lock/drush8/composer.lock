@@ -249,25 +249,25 @@
         },
         {
             "name": "consolidation/annotated-command",
-            "version": "2.12.0",
+            "version": "2.12.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/consolidation/annotated-command.git",
-                "reference": "512a2e54c98f3af377589de76c43b24652bcb789"
+                "reference": "0ee361762df2274f360c085e3239784a53f850b5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/consolidation/annotated-command/zipball/512a2e54c98f3af377589de76c43b24652bcb789",
-                "reference": "512a2e54c98f3af377589de76c43b24652bcb789",
+                "url": "https://api.github.com/repos/consolidation/annotated-command/zipball/0ee361762df2274f360c085e3239784a53f850b5",
+                "reference": "0ee361762df2274f360c085e3239784a53f850b5",
                 "shasum": ""
             },
             "require": {
-                "consolidation/output-formatters": "^3.4",
+                "consolidation/output-formatters": "^3.5.1",
                 "php": ">=5.4.5",
                 "psr/log": "^1",
                 "symfony/console": "^2.8|^3|^4",
                 "symfony/event-dispatcher": "^2.5|^3|^4",
-                "symfony/finder": "^2.5|^3|^4"
+                "symfony/finder": "^2.5|^3|^4|^5"
             },
             "require-dev": {
                 "g1a/composer-test-scenarios": "^3",
@@ -278,6 +278,16 @@
             "type": "library",
             "extra": {
                 "scenarios": {
+                    "finder5": {
+                        "require": {
+                            "symfony/finder": "^5"
+                        },
+                        "config": {
+                            "platform": {
+                                "php": "7.2.5"
+                            }
+                        }
+                    },
                     "symfony4": {
                         "require": {
                             "symfony/console": "^4.0"
@@ -341,27 +351,27 @@
                 }
             ],
             "description": "Initialize Symfony Console commands from annotated command class methods.",
-            "time": "2019-03-08T16:55:03+00:00"
+            "time": "2020-10-11T04:30:03+00:00"
         },
         {
             "name": "consolidation/output-formatters",
-            "version": "3.5.0",
+            "version": "3.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/consolidation/output-formatters.git",
-                "reference": "99ec998ffb697e0eada5aacf81feebfb13023605"
+                "reference": "0d38f13051ef05c223a2bb8e962d668e24785196"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/consolidation/output-formatters/zipball/99ec998ffb697e0eada5aacf81feebfb13023605",
-                "reference": "99ec998ffb697e0eada5aacf81feebfb13023605",
+                "url": "https://api.github.com/repos/consolidation/output-formatters/zipball/0d38f13051ef05c223a2bb8e962d668e24785196",
+                "reference": "0d38f13051ef05c223a2bb8e962d668e24785196",
                 "shasum": ""
             },
             "require": {
                 "dflydev/dot-access-data": "^1.1.0",
                 "php": ">=5.4.0",
                 "symfony/console": "^2.8|^3|^4",
-                "symfony/finder": "^2.5|^3|^4"
+                "symfony/finder": "^2.5|^3|^4|^5"
             },
             "require-dev": {
                 "g1a/composer-test-scenarios": "^3",
@@ -377,6 +387,16 @@
             "type": "library",
             "extra": {
                 "scenarios": {
+                    "finder5": {
+                        "require": {
+                            "symfony/finder": "^5"
+                        },
+                        "config": {
+                            "platform": {
+                                "php": "7.2.5"
+                            }
+                        }
+                    },
                     "symfony4": {
                         "require": {
                             "symfony/console": "^4.0"
@@ -442,7 +462,7 @@
                 }
             ],
             "description": "Format text by applying transformations provided by plug-in formatters.",
-            "time": "2019-05-30T23:16:01+00:00"
+            "time": "2020-10-11T04:15:32+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
@@ -997,16 +1017,16 @@
         },
         {
             "name": "drupal/core",
-            "version": "8.9.1",
+            "version": "8.9.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/drupal/core.git",
-                "reference": "e8ee964c562870381876e85d3f5eaaf8c8ecc9ee"
+                "reference": "ded1be08c23f19211f9a2514a72e7defb1204efc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/drupal/core/zipball/e8ee964c562870381876e85d3f5eaaf8c8ecc9ee",
-                "reference": "e8ee964c562870381876e85d3f5eaaf8c8ecc9ee",
+                "url": "https://api.github.com/repos/drupal/core/zipball/ded1be08c23f19211f9a2514a72e7defb1204efc",
+                "reference": "ded1be08c23f19211f9a2514a72e7defb1204efc",
                 "shasum": ""
             },
             "require": {
@@ -1224,20 +1244,20 @@
                 "GPL-2.0-or-later"
             ],
             "description": "Drupal is an open source content management platform powering millions of websites and applications.",
-            "time": "2020-06-17T17:57:48+00:00"
+            "time": "2020-10-07T19:37:20+00:00"
         },
         {
             "name": "drupal/core-composer-scaffold",
-            "version": "8.9.1",
+            "version": "8.9.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/drupal/core-composer-scaffold.git",
-                "reference": "07cdfe2799789fc0c2d0e3e1ba64cb5e2a973ece"
+                "reference": "c902d07cb49ef73777e2b33a39e54c2861a8c81d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/drupal/core-composer-scaffold/zipball/07cdfe2799789fc0c2d0e3e1ba64cb5e2a973ece",
-                "reference": "07cdfe2799789fc0c2d0e3e1ba64cb5e2a973ece",
+                "url": "https://api.github.com/repos/drupal/core-composer-scaffold/zipball/c902d07cb49ef73777e2b33a39e54c2861a8c81d",
+                "reference": "c902d07cb49ef73777e2b33a39e54c2861a8c81d",
                 "shasum": ""
             },
             "require": {
@@ -1271,20 +1291,20 @@
             "keywords": [
                 "drupal"
             ],
-            "time": "2020-05-29T11:36:27+00:00"
+            "time": "2020-08-07T22:30:30+00:00"
         },
         {
             "name": "drupal/core-recommended",
-            "version": "8.9.1",
+            "version": "8.9.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/drupal/core-recommended.git",
-                "reference": "41042f9eaa35b027e6b2c42fa03edcb85da54a06"
+                "reference": "7895ddd703101bdec91fb6ae58381036a9768e1f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/drupal/core-recommended/zipball/41042f9eaa35b027e6b2c42fa03edcb85da54a06",
-                "reference": "41042f9eaa35b027e6b2c42fa03edcb85da54a06",
+                "url": "https://api.github.com/repos/drupal/core-recommended/zipball/7895ddd703101bdec91fb6ae58381036a9768e1f",
+                "reference": "7895ddd703101bdec91fb6ae58381036a9768e1f",
                 "shasum": ""
             },
             "require": {
@@ -1296,7 +1316,7 @@
                 "doctrine/common": "v2.7.3",
                 "doctrine/inflector": "v1.2.0",
                 "doctrine/lexer": "1.0.2",
-                "drupal/core": "8.9.1",
+                "drupal/core": "8.9.7",
                 "easyrdf/easyrdf": "0.9.1",
                 "egulias/email-validator": "2.1.17",
                 "guzzlehttp/guzzle": "6.5.4",
@@ -1325,7 +1345,7 @@
                 "symfony/dependency-injection": "v3.4.41",
                 "symfony/event-dispatcher": "v3.4.41",
                 "symfony/http-foundation": "v3.4.41",
-                "symfony/http-kernel": "v3.4.41",
+                "symfony/http-kernel": "v3.4.44",
                 "symfony/polyfill-ctype": "v1.17.0",
                 "symfony/polyfill-iconv": "v1.17.0",
                 "symfony/polyfill-intl-idn": "v1.17.0",
@@ -1353,33 +1373,30 @@
                 "GPL-2.0-or-later"
             ],
             "description": "Locked core dependencies; require this project INSTEAD OF drupal/core.",
-            "time": "2020-06-17T17:57:48+00:00"
+            "time": "2020-10-07T19:37:20+00:00"
         },
         {
             "name": "drupal/php",
-            "version": "1.0.0",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://git.drupalcode.org/project/php.git",
-                "reference": "8.x-1.0"
+                "reference": "8.x-1.1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://ftp.drupal.org/files/projects/php-8.x-1.0.zip",
-                "reference": "8.x-1.0",
-                "shasum": "e5d505af52c31e24b2f8bd307aa3e78ef486a52c"
+                "url": "https://ftp.drupal.org/files/projects/php-8.x-1.1.zip",
+                "reference": "8.x-1.1",
+                "shasum": "a65fa24e86a60114084afaac15170296d637a700"
             },
             "require": {
-                "drupal/core": "~8.0"
+                "drupal/core": "^8 || ^9"
             },
             "type": "drupal-module",
             "extra": {
-                "branch-alias": {
-                    "dev-1.x": "1.x-dev"
-                },
                 "drupal": {
-                    "version": "8.x-1.0",
-                    "datestamp": "1529156625",
+                    "version": "8.x-1.1",
+                    "datestamp": "1602147049",
                     "security-coverage": {
                         "status": "revoked",
                         "message": "Project has been unsupported by the Drupal Security Team"
@@ -1388,16 +1405,20 @@
             },
             "notification-url": "https://packages.drupal.org/8/downloads",
             "license": [
-                "GPL-2.0+"
+                "GPL-2.0-or-later"
             ],
             "authors": [
                 {
-                    "name": "hass",
-                    "homepage": "https://www.drupal.org/u/hass"
+                    "name": "David_Rothstein",
+                    "homepage": "https://www.drupal.org/user/124982"
                 },
                 {
-                    "name": "See other contributors",
-                    "homepage": "https://www.drupal.org/node/1633456/committers"
+                    "name": "Gábor Hojtsy",
+                    "homepage": "https://www.drupal.org/user/4166"
+                },
+                {
+                    "name": "RobLoach",
+                    "homepage": "https://www.drupal.org/user/61114"
                 },
                 {
                     "name": "catch",
@@ -1431,22 +1452,21 @@
             "description": "Allows embedded PHP code/snippets to be evaluated. Enabling this can cause security and performance issues as it allows users to execute PHP code on your site.",
             "homepage": "https://www.drupal.org/project/php",
             "support": {
-                "source": "http://git.drupal.org/project/php.git",
-                "issues": "https://www.drupal.org/project/issues/php"
+                "source": "https://git.drupalcode.org/project/php"
             }
         },
         {
             "name": "drush/drush",
-            "version": "8.3.5",
+            "version": "8.4.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/drush-ops/drush.git",
-                "reference": "24e317b182155c9cd551e772b45ebce1fe7a2b17"
+                "reference": "29ab4fc41e6b516abc34b8dc477b3039fb5c0e96"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/drush-ops/drush/zipball/24e317b182155c9cd551e772b45ebce1fe7a2b17",
-                "reference": "24e317b182155c9cd551e772b45ebce1fe7a2b17",
+                "url": "https://api.github.com/repos/drush-ops/drush/zipball/29ab4fc41e6b516abc34b8dc477b3039fb5c0e96",
+                "reference": "29ab4fc41e6b516abc34b8dc477b3039fb5c0e96",
                 "shasum": ""
             },
             "require": {
@@ -1492,8 +1512,8 @@
             },
             "autoload": {
                 "psr-0": {
-                    "Drush": "lib/",
-                    "Consolidation": "lib/"
+                    "Drush\\": "lib/",
+                    "Consolidation\\": "lib/"
                 },
                 "psr-4": {
                     "Drush\\": "src/"
@@ -1547,7 +1567,13 @@
             ],
             "description": "Drush is a command line shell and scripting interface for Drupal, a veritable Swiss Army knife designed to make life easier for those of us who spend some of our working hours hacking away at the command prompt.",
             "homepage": "http://www.drush.org",
-            "time": "2020-05-30T01:54:49+00:00"
+            "funding": [
+                {
+                    "url": "https://github.com/weitzman",
+                    "type": "github"
+                }
+            ],
+            "time": "2020-10-01T00:23:28+00:00"
         },
         {
             "name": "easyrdf/easyrdf",
@@ -1671,27 +1697,27 @@
         },
         {
             "name": "g1a/composer-test-scenarios",
-            "version": "3.1.1",
+            "version": "3.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/g1a/composer-test-scenarios.git",
-                "reference": "4386e1ee0668c80a1d8cbf3077739af0df79f98b"
+                "reference": "e7394206d845fd593d325440507fb940bef8cb62"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/g1a/composer-test-scenarios/zipball/4386e1ee0668c80a1d8cbf3077739af0df79f98b",
-                "reference": "4386e1ee0668c80a1d8cbf3077739af0df79f98b",
+                "url": "https://api.github.com/repos/g1a/composer-test-scenarios/zipball/e7394206d845fd593d325440507fb940bef8cb62",
+                "reference": "e7394206d845fd593d325440507fb940bef8cb62",
                 "shasum": ""
             },
             "require": {
-                "composer-plugin-api": "^1.0.0",
+                "composer-plugin-api": "^1.0.0 || ^2.0.0",
                 "php": ">=5.4"
             },
             "require-dev": {
-                "composer/composer": "^1.7",
+                "composer/composer": "^1.10.6 || ^2.0@rc",
                 "php-coveralls/php-coveralls": "^1.0",
                 "phpunit/phpunit": "^4.8.36|^6",
-                "squizlabs/php_codesniffer": "^2.8"
+                "squizlabs/php_codesniffer": "^3.5"
             },
             "bin": [
                 "scripts/dependency-licenses"
@@ -1700,7 +1726,7 @@
             "extra": {
                 "class": "ComposerTestScenarios\\Plugin",
                 "branch-alias": {
-                    "dev-master": "3.x-dev"
+                    "dev-main": "3.x-dev"
                 }
             },
             "autoload": {
@@ -1719,7 +1745,7 @@
                 }
             ],
             "description": "Useful scripts for testing multiple sets of Composer dependencies.",
-            "time": "2020-05-28T21:35:51+00:00"
+            "time": "2020-09-28T20:54:35+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -2315,16 +2341,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v4.5.0",
+            "version": "v4.10.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "53c2753d756f5adb586dca79c2ec0e2654dd9463"
+                "reference": "658f1be311a230e0907f5dfe0213742aff0596de"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/53c2753d756f5adb586dca79c2ec0e2654dd9463",
-                "reference": "53c2753d756f5adb586dca79c2ec0e2654dd9463",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/658f1be311a230e0907f5dfe0213742aff0596de",
+                "reference": "658f1be311a230e0907f5dfe0213742aff0596de",
                 "shasum": ""
             },
             "require": {
@@ -2332,8 +2358,8 @@
                 "php": ">=7.0"
             },
             "require-dev": {
-                "ircmaxell/php-yacc": "0.0.5",
-                "phpunit/phpunit": "^6.5 || ^7.0 || ^8.0"
+                "ircmaxell/php-yacc": "^0.0.7",
+                "phpunit/phpunit": "^6.5 || ^7.0 || ^8.0 || ^9.0"
             },
             "bin": [
                 "bin/php-parse"
@@ -2341,7 +2367,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "4.3-dev"
+                    "dev-master": "4.9-dev"
                 }
             },
             "autoload": {
@@ -2363,7 +2389,7 @@
                 "parser",
                 "php"
             ],
-            "time": "2020-06-03T07:24:19+00:00"
+            "time": "2020-09-26T10:30:38+00:00"
         },
         {
             "name": "pantheon-systems/drupal-integrations",
@@ -3279,6 +3305,7 @@
             "keywords": [
                 "tokenizer"
             ],
+            "abandoned": true,
             "time": "2017-11-27T05:48:46+00:00"
         },
         {
@@ -4670,16 +4697,16 @@
         },
         {
             "name": "symfony/filesystem",
-            "version": "v3.4.42",
+            "version": "v3.4.45",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/filesystem.git",
-                "reference": "0f625d0cb1e59c8c4ba61abb170125175218ff10"
+                "reference": "495646f13d051cc5a8f77a68b68313dc854080aa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/filesystem/zipball/0f625d0cb1e59c8c4ba61abb170125175218ff10",
-                "reference": "0f625d0cb1e59c8c4ba61abb170125175218ff10",
+                "url": "https://api.github.com/repos/symfony/filesystem/zipball/495646f13d051cc5a8f77a68b68313dc854080aa",
+                "reference": "495646f13d051cc5a8f77a68b68313dc854080aa",
                 "shasum": ""
             },
             "require": {
@@ -4716,20 +4743,34 @@
             ],
             "description": "Symfony Filesystem Component",
             "homepage": "https://symfony.com",
-            "time": "2020-05-30T17:48:24+00:00"
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2020-09-02T16:06:40+00:00"
         },
         {
             "name": "symfony/finder",
-            "version": "v3.4.42",
+            "version": "v3.4.45",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/finder.git",
-                "reference": "5ec813ccafa8164ef21757e8c725d3a57da59200"
+                "reference": "52140652ed31cee3dabd0c481b5577201fa769b4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/finder/zipball/5ec813ccafa8164ef21757e8c725d3a57da59200",
-                "reference": "5ec813ccafa8164ef21757e8c725d3a57da59200",
+                "url": "https://api.github.com/repos/symfony/finder/zipball/52140652ed31cee3dabd0c481b5577201fa769b4",
+                "reference": "52140652ed31cee3dabd0c481b5577201fa769b4",
                 "shasum": ""
             },
             "require": {
@@ -4765,7 +4806,21 @@
             ],
             "description": "Symfony Finder Component",
             "homepage": "https://symfony.com",
-            "time": "2020-02-14T07:34:21+00:00"
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2020-09-02T16:06:40+00:00"
         },
         {
             "name": "symfony/http-foundation",
@@ -4823,16 +4878,16 @@
         },
         {
             "name": "symfony/http-kernel",
-            "version": "v3.4.41",
+            "version": "v3.4.44",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/http-kernel.git",
-                "reference": "e4e4ed6c008c983645b4eee6b67d8f258cde54df"
+                "reference": "27dcaa8c6b18c75df9f37badeb4d3564ffaa1326"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/http-kernel/zipball/e4e4ed6c008c983645b4eee6b67d8f258cde54df",
-                "reference": "e4e4ed6c008c983645b4eee6b67d8f258cde54df",
+                "url": "https://api.github.com/repos/symfony/http-kernel/zipball/27dcaa8c6b18c75df9f37badeb4d3564ffaa1326",
+                "reference": "27dcaa8c6b18c75df9f37badeb4d3564ffaa1326",
                 "shasum": ""
             },
             "require": {
@@ -4909,7 +4964,21 @@
             ],
             "description": "Symfony HttpKernel Component",
             "homepage": "https://symfony.com",
-            "time": "2020-05-31T05:14:17+00:00"
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2020-08-31T05:53:42+00:00"
         },
         {
             "name": "symfony/polyfill-ctype",
@@ -5796,16 +5865,16 @@
         },
         {
             "name": "symfony/var-dumper",
-            "version": "v3.4.42",
+            "version": "v3.4.45",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-dumper.git",
-                "reference": "7a947d1b5e81583759a3a927f1761b95bddc5f1b"
+                "reference": "df8fe9c1c5dc3eb968db32ffa6b699d89fee2606"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/7a947d1b5e81583759a3a927f1761b95bddc5f1b",
-                "reference": "7a947d1b5e81583759a3a927f1761b95bddc5f1b",
+                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/df8fe9c1c5dc3eb968db32ffa6b699d89fee2606",
+                "reference": "df8fe9c1c5dc3eb968db32ffa6b699d89fee2606",
                 "shasum": ""
             },
             "require": {
@@ -5861,7 +5930,21 @@
                 "debug",
                 "dump"
             ],
-            "time": "2020-05-23T12:00:17+00:00"
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2020-09-18T08:10:16+00:00"
         },
         {
             "name": "symfony/yaml",
@@ -6078,16 +6161,16 @@
         },
         {
             "name": "webflo/drupal-finder",
-            "version": "1.2.0",
+            "version": "1.2.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webflo/drupal-finder.git",
-                "reference": "123e248e14ee8dd3fbe89fb5a733a6cf91f5820e"
+                "reference": "c8e5dbe65caef285fec8057a4c718a0d4138d1ee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webflo/drupal-finder/zipball/123e248e14ee8dd3fbe89fb5a733a6cf91f5820e",
-                "reference": "123e248e14ee8dd3fbe89fb5a733a6cf91f5820e",
+                "url": "https://api.github.com/repos/webflo/drupal-finder/zipball/c8e5dbe65caef285fec8057a4c718a0d4138d1ee",
+                "reference": "c8e5dbe65caef285fec8057a4c718a0d4138d1ee",
                 "shasum": ""
             },
             "require": {
@@ -6105,7 +6188,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "GPL-2.0+"
+                "GPL-2.0-or-later"
             ],
             "authors": [
                 {
@@ -6114,24 +6197,24 @@
                 }
             ],
             "description": "Helper class to locate a Drupal installation from a given path.",
-            "time": "2019-08-02T08:06:18+00:00"
+            "time": "2020-10-27T09:42:17+00:00"
         },
         {
             "name": "webmozart/assert",
-            "version": "1.9.0",
+            "version": "1.9.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webmozart/assert.git",
-                "reference": "9dc4f203e36f2b486149058bade43c851dd97451"
+                "reference": "bafc69caeb4d49c39fd0779086c03a3738cbb389"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webmozart/assert/zipball/9dc4f203e36f2b486149058bade43c851dd97451",
-                "reference": "9dc4f203e36f2b486149058bade43c851dd97451",
+                "url": "https://api.github.com/repos/webmozart/assert/zipball/bafc69caeb4d49c39fd0779086c03a3738cbb389",
+                "reference": "bafc69caeb4d49c39fd0779086c03a3738cbb389",
                 "shasum": ""
             },
             "require": {
-                "php": "^5.3.3 || ^7.0",
+                "php": "^5.3.3 || ^7.0 || ^8.0",
                 "symfony/polyfill-ctype": "^1.8"
             },
             "conflict": {
@@ -6163,7 +6246,7 @@
                 "check",
                 "validate"
             ],
-            "time": "2020-06-16T10:16:42+00:00"
+            "time": "2020-07-08T17:02:28+00:00"
         },
         {
             "name": "webmozart/path-util",
@@ -6213,20 +6296,20 @@
         },
         {
             "name": "zaporylie/composer-drupal-optimizations",
-            "version": "1.1.1",
+            "version": "1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/zaporylie/composer-drupal-optimizations.git",
-                "reference": "fb231d92adc862a2c9276bccbc90f684816dc75d"
+                "reference": "a7f409a765164fd13ac0bd00e19109165c51b369"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/zaporylie/composer-drupal-optimizations/zipball/fb231d92adc862a2c9276bccbc90f684816dc75d",
-                "reference": "fb231d92adc862a2c9276bccbc90f684816dc75d",
+                "url": "https://api.github.com/repos/zaporylie/composer-drupal-optimizations/zipball/a7f409a765164fd13ac0bd00e19109165c51b369",
+                "reference": "a7f409a765164fd13ac0bd00e19109165c51b369",
                 "shasum": ""
             },
             "require": {
-                "composer-plugin-api": "^1.1"
+                "composer-plugin-api": "^1.1 || ^2.0"
             },
             "require-dev": {
                 "composer/composer": "^1.6",
@@ -6252,7 +6335,7 @@
                 }
             ],
             "description": "Composer plugin to improve composer performance for Drupal projects",
-            "time": "2019-10-02T17:01:11+00:00"
+            "time": "2020-10-22T13:26:00+00:00"
         }
     ],
     "aliases": [],
@@ -6266,5 +6349,6 @@
     "platform-dev": [],
     "platform-overrides": {
         "php": "7.0.8"
-    }
+    },
+    "plugin-api-version": "1.1.0"
 }
