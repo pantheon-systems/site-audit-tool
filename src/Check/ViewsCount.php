@@ -88,8 +88,10 @@ class ViewsCount extends SiteAuditCheckBase {
 
     $this->registry->views = [];
 
-    foreach (Views::getEnabledViews() as $view) {
-      $this->registry->views[] = $view;
+    if (\Drupal::moduleHandler()->moduleExists('views')) {
+      foreach (Views::getEnabledViews() as $view) {
+        $this->registry->views[] = $view;
+      }
     }
 
     if (empty($this->registry->views)) {
