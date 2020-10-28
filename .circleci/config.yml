@@ -19,6 +19,7 @@ jobs:
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
+      - run: composer require composer/composer:^1.10
       - run: composer install -n
       - run: composer test
 
@@ -33,6 +34,7 @@ jobs:
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
+      - run: composer require composer/composer:^1.10
       - run: .scenarios.lock/install drush8
       - run: composer test
 
@@ -47,6 +49,7 @@ jobs:
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
+      - run: composer require composer/composer:^1.10
       - run: .scenarios.lock/install drupal9
       - run: composer test
 
