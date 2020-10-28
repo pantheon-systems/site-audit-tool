@@ -103,13 +103,12 @@
             },
             "php56": {
                 "remove-dev": [
-                    "drupal/core-composer-scaffold",
                     "drupal/core-recommended",
                     "pantheon-systems/drupal-integrations"
                 ],
                 "require-dev": {
                     "phpunit/phpunit": "^5",
-                    "drupal-composer/drupal-scaffold": "^2.5",
+                    "drupal/core-composer-scaffold": "^8.8.1",
                     "drupal/core": "~8.6.0"
                 },
                 "config": {
