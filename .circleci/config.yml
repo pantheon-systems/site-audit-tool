@@ -61,9 +61,17 @@ jobs:
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
+
+      # We need Composer 1.x in order to run tests on PHP 5.6,
+      # and this needs to be installed manually.
+      - run: php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+      - run: php -r "if (hash_file('sha384', 'composer-setup.php') === 'c31c1e292ad7be5f49291169c0ac8f683499edddcfd4e42232982d0fd193004208a58ff6f353fde0012d35fdd72bc394') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+      - run: php composer-setup.php --version=1.10.16
+      - run: php -r "unlink('composer-setup.php');"
+
       - run: .scenarios.lock/install php56
-      - run: composer drupal:scaffold
-      - run: composer test
+      - run: php composer.phar drupal:scaffold
+      - run: php composer.phar composer test
 
 workflows:
   version: 2
