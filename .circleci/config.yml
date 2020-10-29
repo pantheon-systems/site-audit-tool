@@ -71,7 +71,7 @@ jobs:
 
       - run: .scenarios.lock/install php56
       - run: php composer.phar drupal:scaffold
-      - run: php composer.phar composer test
+      - run: php composer.phar test
 
 workflows:
   version: 2
