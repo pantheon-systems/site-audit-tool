@@ -65,7 +65,7 @@ class UsersTest extends TestCase
         $this->drush('audit:users');
         $json = $this->getOutputFromJSON();
         $this->assertEquals('There is one user.', $json['checks']['SiteAuditCheckUsersCountAll']['result']);
-        $this->assertEquals('There are 2 blocked users.', $json['checks']['SiteAuditCheckUsersCountBlocked']['result']);
+        $this->assertEquals('There is 1 blocked user.', $json['checks']['SiteAuditCheckUsersCountBlocked']['result']);
         $this->assertEquals('administrator: 1', $json['checks']['SiteAuditCheckUsersRolesList']['result']);
         $this->assertEquals('UID #1: admin, email: admin@example.com', $json['checks']['SiteAuditCheckUsersWhoIsNumberOne']['result']);
     }

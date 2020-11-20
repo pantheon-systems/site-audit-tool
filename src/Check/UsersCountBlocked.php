@@ -82,6 +82,7 @@ class UsersCountBlocked extends SiteAuditCheckBase {
   public function calculateScore() {
     $query = Database::getConnection()->select('users_field_data', 'ufd');
     $query->addExpression('COUNT(*)', 'count');
+    $query->condition('uid', 0, '>');
     $query->condition('status', 0);
 
     $this->registry->count_users_blocked = $query->execute()->fetchField();
