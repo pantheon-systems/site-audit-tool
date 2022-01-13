@@ -7,6 +7,7 @@
 namespace SiteAudit\Check;
 
 use SiteAudit\SiteAuditCheckBase;
+use SiteAudit\Util\RenderHelper;
 
 /**
  * Provides the StatusSystem Check.
@@ -113,7 +114,7 @@ class StatusSystem extends SiteAuditCheckBase {
       else {
         $item = strip_tags($requirement['title']) . ': ' . $severity;
         if (isset($requirement['value']) && $requirement['value']) {
-          $item .= ' - ' . strip_tags($requirement['value']);
+          $item .= ' - {{{ ' . RenderHelper::render($requirement['value']) . ' }}} ';
         }
       }
       $items[] = $item;
