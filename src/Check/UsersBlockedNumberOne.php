@@ -46,7 +46,7 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function getResultFail() {
-    return $this->t('UID #1 is not blocked!');
+    return $this->t('UID #1 should be blocked, but is not.');
   }
 
   /**
@@ -58,7 +58,7 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function getResultPass() {
-    return $this->t('UID #1 is blocked.');
+    return $this->t('UID #1 is blocked, as recommended.');
   }
 
   /**

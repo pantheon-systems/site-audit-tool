@@ -48,13 +48,13 @@ class UsersTest extends TestCase
         $this->drush('user:block', ['admin']);
         $this->drush('audit:users');
         $json = $this->getOutputFromJSON();
-        $this->assertEquals('UID #1 is blocked.', $json['checks']['SiteAuditCheckUsersBlockedNumberOne']['result']);
+        $this->assertEquals('UID #1 is blocked, as recommended.', $json['checks']['SiteAuditCheckUsersBlockedNumberOne']['result']);
 
         //fail: drush user:unblock admin
         $this->drush('user:unblock', ['admin']);
         $this->drush('audit:users');
         $json = $this->getOutputFromJSON();
-        $this->assertEquals('UID #1 is not blocked!', $json['checks']['SiteAuditCheckUsersBlockedNumberOne']['result']);
+        $this->assertEquals('UID #1 should be blocked, but is not.', $json['checks']['SiteAuditCheckUsersBlockedNumberOne']['result']);
 
         //reset
         $this->drush('user:block', ['admin']);
