@@ -7,6 +7,7 @@
 namespace SiteAudit\Check;
 
 use SiteAudit\SiteAuditCheckBase;
+use SiteAudit\Util\RenderHelper;
 
 /**
  * Provides the StatusSystem Check.
@@ -107,13 +108,13 @@ class StatusSystem extends SiteAuditCheckBase {
         );
         // @todo: previously this only stripped tags in json mode
         foreach ($item as $key => $value) {
-          $item[$key] = strip_tags($value);
+          $item[$key] = RenderHelper::render($value);
         }
       }
       else {
-        $item = strip_tags($requirement['title']) . ': ' . $severity;
+        $item = RenderHelper::render($requirement['title']) . ': ' . $severity;
         if (isset($requirement['value']) && $requirement['value']) {
-          $item .= ' - ' . strip_tags($requirement['value']);
+          $item .= ' - ' . RenderHelper::render($requirement['value']);
         }
       }
       $items[] = $item;
