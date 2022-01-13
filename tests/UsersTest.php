@@ -7,8 +7,8 @@ use PHPUnit\Framework\TestCase;
  * Users tests
  *
  * SiteAuditCheckUsersBlockedNumberOne:
- *  - pass: drush user:unblock admin
- *  - fail: drush user:block admin
+ *  - pass: drush user:block admin
+ *  - fail: drush user:unblock admin
  *
  * SiteAuditCheckUsersCountAll:
  *  - n/a: This check is informational only, and never fails
@@ -44,20 +44,20 @@ class UsersTest extends TestCase
     public function testUsersBlockedNumberOne()
     {
         //SiteAuditCheckUsersBlockedNumberOne:
-        //pass: drush user:unblock admin
-        $this->drush('user:unblock', ['admin']);
-        $this->drush('audit:users');
-        $json = $this->getOutputFromJSON();
-        $this->assertEquals('UID #1 not blocked.', $json['checks']['SiteAuditCheckUsersBlockedNumberOne']['result']);
-
-        //fail: drush user:block admin
+        //pass: drush user:block admin
         $this->drush('user:block', ['admin']);
         $this->drush('audit:users');
         $json = $this->getOutputFromJSON();
-        $this->assertEquals('UID #1 is blocked!', $json['checks']['SiteAuditCheckUsersBlockedNumberOne']['result']);
+        $this->assertEquals('UID #1 is blocked, as recommended.', $json['checks']['SiteAuditCheckUsersBlockedNumberOne']['result']);
+
+        //fail: drush user:unblock admin
+        $this->drush('user:unblock', ['admin']);
+        $this->drush('audit:users');
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('UID #1 should be blocked, but is not.', $json['checks']['SiteAuditCheckUsersBlockedNumberOne']['result']);
 
         //reset
-        $this->drush('user:unblock', ['admin']);
+        $this->drush('user:block', ['admin']);
     }
     public function testUsers()
     {
