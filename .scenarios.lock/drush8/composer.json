@@ -37,6 +37,11 @@
             "php": "7.0.8"
         },
         "sort-packages": true,
+        "allow-plugins": {
+            "composer/installers": true,
+            "drupal/core-composer-scaffold": true,
+            "g1a/composer-test-scenarios": true
+        },
         "vendor-dir": "../../vendor"
     },
     "autoload": {
