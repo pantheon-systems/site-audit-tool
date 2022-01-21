@@ -50,6 +50,35 @@ jobs:
       - run: .scenarios.lock/install drupal9
       - run: composer test
 
+  test_80_drupal9:
+    <<: *defaults
+    docker:
+      - image: wodby/php:8.0
+        environment:
+          - MYSQL_HOST=127.0.0.1
+          - UNISH_DB_URL=mysql://root:@127.0.0.1
+      - image: circleci/mysql:5.7.24
+    steps:
+      - checkout
+      - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
+      - run: .scenarios.lock/install drupal9
+      - run: composer test
+
+  test_81_drupal9:
+    <<: *defaults
+    docker:
+      - image: wodby/php:8.1
+        environment:
+          - MYSQL_HOST=127.0.0.1
+          - UNISH_DB_URL=mysql://root:@127.0.0.1
+      - image: circleci/mysql:5.7.24
+    steps:
+      - checkout
+      - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
+      - run: .scenarios.lock/install drupal9
+      - run: composer test
+
+
   test_56_drupal87:
     <<: *defaults
     docker:
@@ -69,8 +98,10 @@ workflows:
   version: 2
   example-drush-extension:
     jobs:
+      - test_81_drupal9
+      - test_80_drupal9
+      - test_73_drupal9
       - test_72_drupal8
       - test_72_drush8
-      - test_73_drupal9
       - test_56_drupal87
 
