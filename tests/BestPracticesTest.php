@@ -43,12 +43,12 @@ class BestPracticesTest extends TestCase
     // Run 'best-practices' check on our test site
     use FixturesTrait;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->fixtures()->createSut();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->fixtures()->tearDown();
     }

@@ -15,12 +15,12 @@ class BlockTest extends TestCase
     // Run 'extensions' check on out test site
     use FixturesTrait;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->fixtures()->createSut();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->fixtures()->tearDown();
     }

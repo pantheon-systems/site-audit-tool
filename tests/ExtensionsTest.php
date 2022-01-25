@@ -27,12 +27,12 @@ class ExtensionsTest extends TestCase
 {
     use FixturesTrait;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->fixtures()->createSut();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->fixtures()->tearDown();
     }
