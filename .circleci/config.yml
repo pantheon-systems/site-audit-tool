@@ -33,7 +33,7 @@ jobs:
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
-      - run: .scenarios.lock/install drush8
+      - run: .scenarios.lock/install drush8 lowest
       - run: composer test
 
   test_73_drupal9:
@@ -90,7 +90,7 @@ jobs:
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
-      - run: .scenarios.lock/install php56
+      - run: .scenarios.lock/install php56 lowest
       - run: composer drupal:scaffold
       - run: composer test
 
