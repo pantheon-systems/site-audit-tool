@@ -47,7 +47,7 @@ jobs:
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
-      - run: .scenarios.lock/install drupal9
+      - run: .scenarios.lock/install drupal9 lowest
       - run: composer test
 
   test_80_drupal9:
