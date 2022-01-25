@@ -80,6 +80,10 @@ class ExtensionsTest extends TestCase
 
         // fail: copy a core module to contrib directory
         $fs->mirror($original_module, $duplicate_module);
+        // Add missing core_version_requirement to avoid drush to crash.
+        $contents = file_get_contents('sut/web/modules/contrib/user/user.info.yml');
+        $contents .= "\ncore_version_requirement: ^8 || ^9";
+        file_put_contents('sut/web/modules/contrib/user/user.info.yml', $contents);
 
         $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
