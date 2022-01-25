@@ -25,7 +25,7 @@
         "drush/drush": "^8.3.3",
         "g1a/composer-test-scenarios": "^3.0.2",
         "pantheon-systems/drupal-integrations": "^8",
-        "phpunit/phpunit": "^9",
+        "phpunit/phpunit": "^8",
         "symfony/filesystem": "^3.4.28",
         "webflo/drupal-finder": "^1.1.0",
         "webmozart/path-util": "^2.3",
@@ -38,7 +38,9 @@
         "allow-plugins": {
             "composer/installers": true,
             "drupal/core-composer-scaffold": true,
-            "g1a/composer-test-scenarios": true
+            "g1a/composer-test-scenarios": true,
+            "drupal-composer/drupal-scaffold": true,
+            "zaporylie/composer-drupal-optimizations": true
         },
         "vendor-dir": "../../vendor"
     },
