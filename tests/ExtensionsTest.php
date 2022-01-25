@@ -88,8 +88,8 @@ class ExtensionsTest extends TestCase
         $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
 
-        $this->assertContains('The following duplicate extensions were found:', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
-        $this->assertContains('user', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
+        $this->assertStringContainsString('The following duplicate extensions were found:', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
+        $this->assertStringContainsString('user', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
 
         // Don't leave the duplicate module around
         $fs->remove($duplicate_module);

@@ -74,7 +74,7 @@ class BestPracticesTest extends TestCase
         $json = $this->getOutputFromJSON();
         $this->assertEquals('Fast 404 pages are not enabled for any path.', $json['checks']['SiteAuditCheckBestPracticesFast404']['result']);
         //$output = $this->getSimplifiedOutput();
-        //$this->assertContains('Fast 404 pages are not enabled', $output);
+        //$this->assertStringContainsString('Fast 404 pages are not enabled', $output);
 
         //reset
         $this->drush('config:set', ['system.performance', 'fast_404.enabled', 1]);
