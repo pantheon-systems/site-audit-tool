@@ -26,7 +26,7 @@
         "drush/drush": "^10.4.0 || ^11.x-dev",
         "g1a/composer-test-scenarios": "^3.0.2",
         "pantheon-systems/drupal-integrations": "^9",
-        "phpunit/phpunit": "^6.5 || ^9",
+        "phpunit/phpunit": "^9",
         "symfony/filesystem": "^3.4.28 || ^4.4",
         "webflo/drupal-finder": "^1.1.0",
         "webmozart/path-util": "^2.3",
