@@ -109,7 +109,6 @@
                     "pantheon-systems/drupal-integrations"
                 ],
                 "require-dev": {
-                    "phpunit/phpunit": "^5",
                     "drupal-composer/drupal-scaffold": "^2.5",
                     "drupal/core": "~8.6.0"
                 },
