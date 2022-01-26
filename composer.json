@@ -22,7 +22,7 @@
         "drupal/core-composer-scaffold": "^8.8.1",
         "drupal/core-recommended": "^8.8",
         "drupal/php": "^1",
-        "drush/drush": "^8.3.3 || 10.4.0 || 11.x-dev",
+        "drush/drush": "10.4.0 || 11.x-dev",
         "g1a/composer-test-scenarios": "^3.0.2",
         "pantheon-systems/drupal-integrations": "^8",
         "symfony/filesystem": "^3.4.28",
