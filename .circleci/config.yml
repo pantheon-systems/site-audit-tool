@@ -33,7 +33,7 @@ jobs:
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
-      - run: .scenarios.lock/install drush8 lowest
+      - run: .scenarios.lock/install drush8
       - run: composer test
 
   test_73_drupal9:
