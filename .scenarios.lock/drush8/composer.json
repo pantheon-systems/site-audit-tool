@@ -18,11 +18,11 @@
         "php": ">=5.6"
     },
     "require-dev": {
+        "drush/drush": "^8.3.3",
         "composer/installers": "^1.2",
         "drupal/core-composer-scaffold": "^8.8.1",
         "drupal/core-recommended": "^8.8",
         "drupal/php": "^1",
-        "drush/drush": "^8.3.3",
         "g1a/composer-test-scenarios": "^3.0.2",
         "pantheon-systems/drupal-integrations": "^8",
         "symfony/filesystem": "^3.4.28",
@@ -33,13 +33,14 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "config": {
+        "platform": {
+            "php": "7.0.8"
+        },
         "sort-packages": true,
         "allow-plugins": {
             "composer/installers": true,
             "drupal/core-composer-scaffold": true,
-            "g1a/composer-test-scenarios": true,
-            "drupal-composer/drupal-scaffold": true,
-            "zaporylie/composer-drupal-optimizations": true
+            "g1a/composer-test-scenarios": true
         },
         "vendor-dir": "../../vendor"
     },
