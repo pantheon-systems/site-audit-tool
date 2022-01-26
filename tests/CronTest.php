@@ -1,7 +1,7 @@
 <?php
 namespace SiteAudit;
 
-use PHPUnit\Framework\TestCase;
+use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
  * Cron tests
@@ -14,12 +14,12 @@ class CronTest extends TestCase
 {
     use FixturesTrait;
 
-    public function setUp(): void
+    protected function set_up()
     {
         $this->fixtures()->createSut();
     }
 
-    public function tearDown(): void
+    protected function tear_down()
     {
         $this->fixtures()->tearDown();
     }

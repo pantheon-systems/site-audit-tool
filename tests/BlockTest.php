@@ -1,7 +1,7 @@
 <?php
 namespace SiteAudit;
 
-use PHPUnit\Framework\TestCase;
+use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
  * Block tests
@@ -15,12 +15,12 @@ class BlockTest extends TestCase
     // Run 'extensions' check on out test site
     use FixturesTrait;
 
-    public function setUp(): void
+    protected function set_up()
     {
         $this->fixtures()->createSut();
     }
 
-    public function tearDown(): void
+    protected function tear_down()
     {
         $this->fixtures()->tearDown();
     }

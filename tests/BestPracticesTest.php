@@ -1,7 +1,7 @@
 <?php
 namespace SiteAudit;
 
-use PHPUnit\Framework\TestCase;
+use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
  * Best Practices tests
@@ -43,12 +43,12 @@ class BestPracticesTest extends TestCase
     // Run 'best-practices' check on our test site
     use FixturesTrait;
 
-    public function setUp(): void
+    protected function set_up()
     {
         $this->fixtures()->createSut();
     }
 
-    public function tearDown(): void
+    protected function tear_down()
     {
         $this->fixtures()->tearDown();
     }
