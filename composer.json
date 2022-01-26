@@ -96,11 +96,6 @@
                     "drupal/core": "^9@rc",
                     "drupal/core-composer-scaffold": "^9@rc",
                     "pantheon-systems/drupal-integrations": "^9"
-                },
-                "config": {
-                    "platform": {
-                        "php": "7.3"
-                    }
                 }
             },
             "php56": {
