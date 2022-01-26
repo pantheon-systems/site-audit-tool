@@ -24,7 +24,7 @@
         "drupal/php": "^1",
         "drush/drush": "^8.3.3 || ^10.2.2",
         "g1a/composer-test-scenarios": "^3.0.2",
-        "phpunit/phpunit": "^8",
+        "phpunit/phpunit": "^5",
         "symfony/filesystem": "^3.4.28",
         "webflo/drupal-finder": "^1.1.0",
         "webmozart/path-util": "^2.3",
