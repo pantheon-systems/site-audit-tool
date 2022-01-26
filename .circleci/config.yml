@@ -8,10 +8,10 @@ defaults: &defaults
 
 version: 2.1
 jobs:
-  test_72_drupal8:
+  test_73_drupal8:
     <<: *defaults
     docker:
-      - image: wodby/php:7.2
+      - image: wodby/php:7.3
         environment:
           - MYSQL_HOST=127.0.0.1
           - UNISH_DB_URL=mysql://root:@127.0.0.1
@@ -90,7 +90,7 @@ jobs:
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
-      - run: .scenarios.lock/install php56 lowest
+      - run: .scenarios.lock/install php56
       - run: composer drupal:scaffold
       - run: composer test
 
@@ -101,7 +101,7 @@ workflows:
       - test_81_drupal9
       - test_80_drupal9
       - test_73_drupal9
-      - test_72_drupal8
+      - test_73_drupal8
       - test_72_drush8
       - test_56_drupal87
 
