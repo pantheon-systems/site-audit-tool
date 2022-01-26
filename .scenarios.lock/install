@@ -3,6 +3,12 @@
 SCENARIO=$1
 DEPENDENCIES=${2-install}
 
+COMPOSER='composer'
+
+if [ "$SCENARIO" == "php56" ] ; then
+  COMPOSER="php -d memory_limit=-1 `which composer`"
+fi
+
 # Convert the aliases 'highest', 'lowest' and 'lock' to
 # the corresponding composer update command to run.
 case $DEPENDENCIES in
@@ -47,15 +53,15 @@ echo
 
 set -ex
 
-composer -n validate --working-dir=$dir --no-check-all --ansi
+$COMPOSER -n validate --working-dir=$dir --no-check-all --ansi
 
 if [ ! -z "$UPDATE_COMMAND" ] ; then
-  composer -n --working-dir=$dir ${UPDATE_COMMAND} --prefer-dist --no-scripts
+  $COMPOSER -n --working-dir=$dir ${UPDATE_COMMAND} --prefer-dist --no-scripts
 fi
-composer -n --working-dir=$dir install --prefer-dist
+$COMPOSER -n --working-dir=$dir install --prefer-dist
 
 # If called from a CI context, print out some extra information about
 # what we just installed.
 if [[ -n "$CI" ]] ; then
-  composer -n --working-dir=$dir info
+  $COMPOSER -n --working-dir=$dir info
 fi
