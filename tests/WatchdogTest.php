@@ -1,7 +1,7 @@
 <?php
 namespace SiteAudit;
 
-use PHPUnit\Framework\TestCase;
+use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
  * Watchdog tests
@@ -30,12 +30,12 @@ class WatchdogTest extends TestCase
 {
     use FixturesTrait;
 
-    public function setUp()
+    protected function set_up()
     {
         $this->fixtures()->createSut();
     }
 
-    public function tearDown()
+    protected function tear_down()
     {
         $this->fixtures()->tearDown();
     }

@@ -1,7 +1,7 @@
 <?php
 namespace SiteAudit;
 
-use PHPUnit\Framework\TestCase;
+use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -27,12 +27,12 @@ class ExtensionsTest extends TestCase
 {
     use FixturesTrait;
 
-    public function setUp()
+    protected function set_up()
     {
         $this->fixtures()->createSut();
     }
 
-    public function tearDown()
+    protected function tear_down()
     {
         $this->fixtures()->tearDown();
     }
@@ -80,12 +80,16 @@ class ExtensionsTest extends TestCase
 
         // fail: copy a core module to contrib directory
         $fs->mirror($original_module, $duplicate_module);
+        // Add missing core_version_requirement to avoid drush to crash.
+        $contents = file_get_contents('sut/web/modules/contrib/user/user.info.yml');
+        $contents .= "\ncore_version_requirement: ^8 || ^9";
+        file_put_contents('sut/web/modules/contrib/user/user.info.yml', $contents);
 
         $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
 
-        $this->assertContains('The following duplicate extensions were found:', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
-        $this->assertContains('user', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
+        $this->assertStringContainsString('The following duplicate extensions were found:', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
+        $this->assertStringContainsString('user', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
 
         // Don't leave the duplicate module around
         $fs->remove($duplicate_module);

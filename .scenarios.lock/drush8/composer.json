@@ -22,13 +22,13 @@
         "composer/installers": "^1.2",
         "drupal/core-composer-scaffold": "^8.8.1",
         "drupal/core-recommended": "^8.8",
-        "pantheon-systems/drupal-integrations": "^8",
-        "g1a/composer-test-scenarios": "^3.0.2",
-        "phpunit/phpunit": "^6.5",
         "drupal/php": "^1",
+        "g1a/composer-test-scenarios": "^3.0.2",
+        "pantheon-systems/drupal-integrations": "^8",
+        "symfony/filesystem": "^3.4.28",
         "webflo/drupal-finder": "^1.1.0",
         "webmozart/path-util": "^2.3",
-        "symfony/filesystem": "^3.4.28"
+        "yoast/phpunit-polyfills": "^1.0"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -37,6 +37,11 @@
             "php": "7.0.8"
         },
         "sort-packages": true,
+        "allow-plugins": {
+            "composer/installers": true,
+            "drupal/core-composer-scaffold": true,
+            "g1a/composer-test-scenarios": true
+        },
         "vendor-dir": "../../vendor"
     },
     "autoload": {

@@ -1,7 +1,7 @@
 <?php
 namespace SiteAudit;
 
-use PHPUnit\Framework\TestCase;
+use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
  * Best Practices tests
@@ -43,12 +43,12 @@ class BestPracticesTest extends TestCase
     // Run 'best-practices' check on our test site
     use FixturesTrait;
 
-    public function setUp()
+    protected function set_up()
     {
         $this->fixtures()->createSut();
     }
 
-    public function tearDown()
+    protected function tear_down()
     {
         $this->fixtures()->tearDown();
     }
@@ -74,7 +74,7 @@ class BestPracticesTest extends TestCase
         $json = $this->getOutputFromJSON();
         $this->assertEquals('Fast 404 pages are not enabled for any path.', $json['checks']['SiteAuditCheckBestPracticesFast404']['result']);
         //$output = $this->getSimplifiedOutput();
-        //$this->assertContains('Fast 404 pages are not enabled', $output);
+        //$this->assertStringContainsString('Fast 404 pages are not enabled', $output);
 
         //reset
         $this->drush('config:set', ['system.performance', 'fast_404.enabled', 1]);
