@@ -15,7 +15,7 @@ jobs:
         environment:
           - MYSQL_HOST=127.0.0.1
           - UNISH_DB_URL=mysql://root:@127.0.0.1
-      - image: circleci/mysql:5.7.24
+      - image: cimg/mysql:5.7.36
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
@@ -29,7 +29,7 @@ jobs:
         environment:
           - MYSQL_HOST=127.0.0.1
           - UNISH_DB_URL=mysql://root:@127.0.0.1
-      - image: circleci/mysql:5.7.24
+      - image: cimg/mysql:5.7.36
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
@@ -43,7 +43,7 @@ jobs:
         environment:
           - MYSQL_HOST=127.0.0.1
           - UNISH_DB_URL=mysql://root:@127.0.0.1
-      - image: circleci/mysql:5.7.24
+      - image: cimg/mysql:5.7.36
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
@@ -57,7 +57,7 @@ jobs:
         environment:
           - MYSQL_HOST=127.0.0.1
           - UNISH_DB_URL=mysql://root:@127.0.0.1
-      - image: circleci/mysql:5.7.24
+      - image: cimg/mysql:5.7.36
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
@@ -71,7 +71,7 @@ jobs:
         environment:
           - MYSQL_HOST=127.0.0.1
           - UNISH_DB_URL=mysql://root:@127.0.0.1
-      - image: circleci/mysql:5.7.24
+      - image: cimg/mysql:5.7.36
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
@@ -86,7 +86,7 @@ jobs:
         environment:
           - MYSQL_HOST=127.0.0.1
           - UNISH_DB_URL=mysql://root:@127.0.0.1
-      - image: circleci/mysql:5.7.24
+      - image: cimg/mysql:5.7.36
     steps:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
