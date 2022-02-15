@@ -75,6 +75,23 @@ class SiteAuditCommands extends DrushCommands
         $this->init();
 
         $checks = $this->interimInstantiateChecks($this->createRegistry($options));
+
+        $settings_excludes = \Drupal::config('site_audit')->get('opt_out');
+
+        if(!empty($settings_excludes)) {
+          $settings_excludes = array_keys($settings_excludes);
+
+          if (is_array($options['skip'])) {
+            $options['skip'] += $settings_excludes;
+          }
+          elseif($options['skip'] == '') {
+            $options['skip'] = implode(",", $settings_excludes);
+          }
+          else {
+            $options['skip'] = $options['skip']  . "," . implode(",", $settings_excludes);
+          }
+        }
+
         $checks = $this->filterSkippedChecks($checks, $options['skip']);
 
         $result = $this->interimBuildReports($checks);
