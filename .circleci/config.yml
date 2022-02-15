@@ -5,6 +5,7 @@ defaults: &defaults
     TERM: dumb
     PHPUNIT_ARGS: ""
     PHP_SENDMAIL_PATH: /dev/null
+    DOCKERIZE_VERSION: v0.6.1
 
 version: 2.1
 jobs:
@@ -20,14 +21,8 @@ jobs:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
       - run: composer install -n
-      - run:
-        name: install dockerize
-        command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-        environment:
-          DOCKERIZE_VERSION: v0.6.1
-      - run:
-        name: Wait for db
-        command: dockerize -wait tcp://localhost:3306 -timeout 1m
+      - run: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+      - run: dockerize -wait tcp://localhost:3306 -timeout 1m
       - run: composer test
 
   test_72_drush8:
@@ -42,14 +37,8 @@ jobs:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
       - run: .scenarios.lock/install drush8
-      - run:
-        name: install dockerize
-        command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-        environment:
-          DOCKERIZE_VERSION: v0.6.1
-      - run:
-        name: Wait for db
-        command: dockerize -wait tcp://localhost:3306 -timeout 1m
+      - run: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+      - run: dockerize -wait tcp://localhost:3306 -timeout 1m
       - run: composer test
 
   test_73_drupal9:
@@ -64,14 +53,8 @@ jobs:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
       - run: .scenarios.lock/install drupal9 lowest
-      - run:
-        name: install dockerize
-        command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-        environment:
-          DOCKERIZE_VERSION: v0.6.1
-      - run:
-        name: Wait for db
-        command: dockerize -wait tcp://localhost:3306 -timeout 1m
+      - run: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+      - run: dockerize -wait tcp://localhost:3306 -timeout 1m
       - run: composer test
 
   test_80_drupal9:
@@ -86,14 +69,8 @@ jobs:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
       - run: .scenarios.lock/install drupal9
-      - run:
-        name: install dockerize
-        command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-        environment:
-          DOCKERIZE_VERSION: v0.6.1
-      - run:
-        name: Wait for db
-        command: dockerize -wait tcp://localhost:3306 -timeout 1m
+      - run: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+      - run: dockerize -wait tcp://localhost:3306 -timeout 1m
       - run: composer test
 
   test_81_drupal9:
@@ -108,14 +85,8 @@ jobs:
       - checkout
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
       - run: .scenarios.lock/install drupal9
-      - run:
-        name: install dockerize
-        command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-        environment:
-          DOCKERIZE_VERSION: v0.6.1
-      - run:
-        name: Wait for db
-        command: dockerize -wait tcp://localhost:3306 -timeout 1m
+      - run: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+      - run: dockerize -wait tcp://localhost:3306 -timeout 1m
       - run: composer test
 
 
@@ -132,14 +103,8 @@ jobs:
       - run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
       - run: .scenarios.lock/install php56
       - run: composer drupal:scaffold
-      - run:
-        name: install dockerize
-        command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-        environment:
-          DOCKERIZE_VERSION: v0.6.1
-      - run:
-        name: Wait for db
-        command: dockerize -wait tcp://localhost:3306 -timeout 1m
+      - run: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+      - run: dockerize -wait tcp://localhost:3306 -timeout 1m
       - run: composer test
 
 workflows:
