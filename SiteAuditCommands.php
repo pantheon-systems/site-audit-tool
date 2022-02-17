@@ -69,7 +69,7 @@ class SiteAuditCommands extends DrushCommands
             'json' => false,
             'detail' => false,
             'vendor' => '',
-            'skip' => '',
+            'skip' => [],
         ])
     {
         $this->init();
@@ -77,22 +77,14 @@ class SiteAuditCommands extends DrushCommands
         $checks = $this->interimInstantiateChecks($this->createRegistry($options));
 
         $settings_excludes = \Drupal::config('site_audit')->get('opt_out');
+        $skipped = !is_array($options['skip']) ? explode(',', $options['skip']) : $options['skip'];
 
         if(!empty($settings_excludes)) {
-          $settings_excludes = array_keys($settings_excludes);
-
-          if (is_array($options['skip'])) {
-            $options['skip'] += $settings_excludes;
-          }
-          elseif($options['skip'] == '') {
-            $options['skip'] = implode(",", $settings_excludes);
-          }
-          else {
-            $options['skip'] = $options['skip']  . "," . implode(",", $settings_excludes);
-          }
+            $settings_excludes = array_keys($settings_excludes);
+            $skipped += $settings_excludes;
         }
 
-        $checks = $this->filterSkippedChecks($checks, $options['skip']);
+        $checks = $this->filterSkippedChecks($checks, $skipped);
 
         $result = $this->interimBuildReports($checks);
 
@@ -441,20 +433,17 @@ class SiteAuditCommands extends DrushCommands
      *
      * @param SiteAuditCheckInterface[] $checks
      *   The list of all checks
-     * @param string|array $skipped
+     * @param array $skipped
      *   The list of checks or check categories to skip
      *
      * @return SiteAuditCheckInterface[]
      *   All checks that were not skipped
      */
-    protected function filterSkippedChecks(array $checks, $skipped)
+    protected function filterSkippedChecks(array $checks, array $skipped)
     {
         // Pantheon by default skips:
         // insights,codebase,DatabaseSize,BlockCacheReport,DatabaseRowCount,content
 
-        if (!is_array($skipped)) {
-            $skipped = explode(',', $skipped);
-        }
         $skipped = array_map(
             function ($item) {
                 return str_replace('SiteAuditCheck', '', $item);
