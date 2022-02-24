@@ -687,10 +687,12 @@ class SiteAuditCommands extends DrushCommands
     protected function interimReportResults(SiteAuditCheckInterface $check)
     {
         $checkName = $this->interimGetCheckName($check);
+        $var = \Drupal::config('site_audit')->get('opt_out');
+        $description = $check->getLabel() == "syslog status" ? $var : $check->getDescription();
         return [
             $checkName => [
                 "label" => $check->getLabel(),
-                "description" => $check->getDescription(),
+                "description" => $description,
                 "result" => $check->getResult(),
                 "action" => $check->renderAction(),
                 "score" => $check->getScore(),
