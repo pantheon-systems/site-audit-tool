@@ -79,7 +79,7 @@ abstract class SiteAuditCheckBase implements SiteAuditCheckInterface {
     $this->registry = $registry;
     $this->options = $options;
 
-    if (is_array($opt_out)) {
+    if (is_array($opt_out) && !empty($opt_out)) {
       $classname = (new \ReflectionClass($this))->getShortName();
       $this->optOut = in_array($classname, $opt_out);
     }

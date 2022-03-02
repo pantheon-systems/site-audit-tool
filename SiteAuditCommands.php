@@ -460,7 +460,7 @@ class SiteAuditCommands extends DrushCommands
      *
      * @return SiteAuditCheckInterface[]
      */
-    protected function interimInstantiateChecks($registry, $excludes)
+    protected function interimInstantiateChecks($registry, $excludes = [])
     {
         $checks = [
 
