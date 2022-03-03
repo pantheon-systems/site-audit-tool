@@ -72,14 +72,19 @@ abstract class SiteAuditCheckBase implements SiteAuditCheckInterface {
    *   Aggregates data from each individual check.
    * @param array $options
    *   Options.
-   * @param bool $opt_out
-   *   If set, will not perform checks.
+   * @param mixed $opt_out
+   *   Array of all skipped tests, or true if this test should be skipped.
    */
   public function __construct($registry, $options = [], $opt_out = false) {
     $this->registry = $registry;
     $this->options = $options;
-    $this->optOut = $opt_out;
-    if ($opt_out) {
+
+    if (is_array($opt_out) && !empty($opt_out)) {
+      $classname = (new \ReflectionClass($this))->getShortName();
+      $this->optOut = in_array($classname, $opt_out);
+    }
+
+    if ($this->optOut) {
       $this->score = SiteAuditCheckBase::AUDIT_CHECK_SCORE_INFO;
     }
     $static = FALSE;
@@ -93,7 +98,7 @@ abstract class SiteAuditCheckBase implements SiteAuditCheckInterface {
    */
   public function getResult() {
     if ($this->optOut) {
-      return t('Opted-out in site configuration.');
+      return t('Opted-out in site configuration or settings.php file.');
     }
     switch ($this->score) {
       case SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS:

@@ -69,13 +69,21 @@ class SiteAuditCommands extends DrushCommands
             'json' => false,
             'detail' => false,
             'vendor' => '',
-            'skip' => '',
+            'skip' => [],
         ])
     {
         $this->init();
 
-        $checks = $this->interimInstantiateChecks($this->createRegistry($options));
-        $checks = $this->filterSkippedChecks($checks, $options['skip']);
+        $settings_excludes = \Drupal::config('site_audit')->get('opt_out');
+
+        $skipped = !is_array($options['skip']) ? explode(',', $options['skip']) : $options['skip'];
+
+        if(!empty($settings_excludes)) {
+            $settings_excludes = array_keys($settings_excludes);
+            $skipped += $settings_excludes;
+        }
+
+        $checks = $this->interimInstantiateChecks($this->createRegistry($options), $skipped);
 
         $result = $this->interimBuildReports($checks);
 
@@ -419,41 +427,6 @@ class SiteAuditCommands extends DrushCommands
     }
 
     /**
-     * Remove checks from the provided list of checks based on the value
-     * of the provided '$skipped' parameter
-     *
-     * @param SiteAuditCheckInterface[] $checks
-     *   The list of all checks
-     * @param string|array $skipped
-     *   The list of checks or check categories to skip
-     *
-     * @return SiteAuditCheckInterface[]
-     *   All checks that were not skipped
-     */
-    protected function filterSkippedChecks(array $checks, $skipped)
-    {
-        // Pantheon by default skips:
-        // insights,codebase,DatabaseSize,BlockCacheReport,DatabaseRowCount,content
-
-        if (!is_array($skipped)) {
-            $skipped = explode(',', $skipped);
-        }
-        $skipped = array_map(
-            function ($item) {
-                return str_replace('SiteAuditCheck', '', $item);
-            }, $skipped
-        );
-
-        foreach ($checks as $key => $check) {
-            if (in_array((new \ReflectionClass($check))->getShortName(), $skipped)) {
-                unset($checks[$key]);
-            }
-        }
-
-        return $checks;
-    }
-
-    /**
      * Return only those checks from the provided list that match the specified
      * report id.
      *
@@ -482,77 +455,79 @@ class SiteAuditCommands extends DrushCommands
      *
      * @param stdClass $registry
      *   The registry used by all checks
+     * @param array $excludes
+     *   Array of all tests which should be excluded.
      *
      * @return SiteAuditCheckInterface[]
      */
-    protected function interimInstantiateChecks($registry)
+    protected function interimInstantiateChecks($registry, $excludes = [])
     {
         $checks = [
 
             // best_practices
-            new \SiteAudit\Check\BestPracticesFast404($registry),
-            new \SiteAudit\Check\BestPracticesFolderStructure($registry),
-            new \SiteAudit\Check\BestPracticesMultisite($registry),
-            new \SiteAudit\Check\BestPracticesSettings($registry),
-            new \SiteAudit\Check\BestPracticesServices($registry),
-            new \SiteAudit\Check\BestPracticesSites($registry),
-            new \SiteAudit\Check\BestPracticesSitesDefault($registry),
-            new \SiteAudit\Check\BestPracticesSitesSuperfluous($registry),
+            new \SiteAudit\Check\BestPracticesFast404($registry, [], $excludes),
+            new \SiteAudit\Check\BestPracticesFolderStructure($registry, [], $excludes),
+            new \SiteAudit\Check\BestPracticesMultisite($registry, [], $excludes),
+            new \SiteAudit\Check\BestPracticesSettings($registry, [], $excludes),
+            new \SiteAudit\Check\BestPracticesServices($registry, [], $excludes),
+            new \SiteAudit\Check\BestPracticesSites($registry, [], $excludes),
+            new \SiteAudit\Check\BestPracticesSitesDefault($registry, [], $excludes),
+            new \SiteAudit\Check\BestPracticesSitesSuperfluous($registry, [], $excludes),
 
             // block
-            new \SiteAudit\Check\BlockEnabled($registry),
+            new \SiteAudit\Check\BlockEnabled($registry, [], $excludes),
 
             // cache
-            new \SiteAudit\Check\CacheBinsAll($registry),
-            new \SiteAudit\Check\CacheBinsDefault($registry),
-            new \SiteAudit\Check\CacheBinsUsed($registry),
-            new \SiteAudit\Check\CachePageExpire($registry),
-            new \SiteAudit\Check\CachePreprocessCSS($registry),
-            new \SiteAudit\Check\CachePreprocessJS($registry),
+            new \SiteAudit\Check\CacheBinsAll($registry, [], $excludes),
+            new \SiteAudit\Check\CacheBinsDefault($registry, [], $excludes),
+            new \SiteAudit\Check\CacheBinsUsed($registry, [], $excludes),
+            new \SiteAudit\Check\CachePageExpire($registry, [], $excludes),
+            new \SiteAudit\Check\CachePreprocessCSS($registry, [], $excludes),
+            new \SiteAudit\Check\CachePreprocessJS($registry, [], $excludes),
 
             // cron
-            new \SiteAudit\Check\CronEnabled($registry),
-            new \SiteAudit\Check\CronLast($registry),
+            new \SiteAudit\Check\CronEnabled($registry, [], $excludes),
+            new \SiteAudit\Check\CronLast($registry, [], $excludes),
 
             // database
-            new \SiteAudit\Check\DatabaseSize($registry),
-            new \SiteAudit\Check\DatabaseCollation($registry),
-            new \SiteAudit\Check\DatabaseEngine($registry),
-            new \SiteAudit\Check\DatabaseFragmentation($registry),
-            new \SiteAudit\Check\DatabaseRowCount($registry),
+            new \SiteAudit\Check\DatabaseSize($registry, [], $excludes),
+            new \SiteAudit\Check\DatabaseCollation($registry, [], $excludes),
+            new \SiteAudit\Check\DatabaseEngine($registry, [], $excludes),
+            new \SiteAudit\Check\DatabaseFragmentation($registry, [], $excludes),
+            new \SiteAudit\Check\DatabaseRowCount($registry, [], $excludes),
 
             // extensions
-            new \SiteAudit\Check\ExtensionsCount($registry),
-            new \SiteAudit\Check\ExtensionsDev($registry),
-            new \SiteAudit\Check\ExtensionsDuplicate($registry),
-            new \SiteAudit\Check\ExtensionsUnrecommended($registry),
+            new \SiteAudit\Check\ExtensionsCount($registry, [], $excludes),
+            new \SiteAudit\Check\ExtensionsDev($registry, [], $excludes),
+            new \SiteAudit\Check\ExtensionsDuplicate($registry, [], $excludes),
+            new \SiteAudit\Check\ExtensionsUnrecommended($registry, [], $excludes),
 
             // security
-            new \SiteAudit\Check\SecurityMenuRouter($registry),
+            new \SiteAudit\Check\SecurityMenuRouter($registry, [], $excludes),
 
             // status
-            new \SiteAudit\Check\StatusSystem($registry),
+            new \SiteAudit\Check\StatusSystem($registry, [], $excludes),
 
             // user
-            new \SiteAudit\Check\UsersBlockedNumberOne($registry),
-            new \SiteAudit\Check\UsersCountAll($registry),
-            new \SiteAudit\Check\UsersCountBlocked($registry),
-            new \SiteAudit\Check\UsersRolesList($registry),
-            new \SiteAudit\Check\UsersWhoIsNumberOne($registry),
+            new \SiteAudit\Check\UsersBlockedNumberOne($registry, [], $excludes),
+            new \SiteAudit\Check\UsersCountAll($registry, [], $excludes),
+            new \SiteAudit\Check\UsersCountBlocked($registry, [], $excludes),
+            new \SiteAudit\Check\UsersRolesList($registry, [], $excludes),
+            new \SiteAudit\Check\UsersWhoIsNumberOne($registry, [], $excludes),
 
             // views
-            new \SiteAudit\Check\ViewsCacheOutput($registry),
-            new \SiteAudit\Check\ViewsCacheResults($registry),
-            new \SiteAudit\Check\ViewsCount($registry),
-            new \SiteAudit\Check\ViewsEnabled($registry),
+            new \SiteAudit\Check\ViewsCacheOutput($registry, [], $excludes),
+            new \SiteAudit\Check\ViewsCacheResults($registry, [], $excludes),
+            new \SiteAudit\Check\ViewsCount($registry, [], $excludes),
+            new \SiteAudit\Check\ViewsEnabled($registry, [], $excludes),
 
             // watchdog
-            new \SiteAudit\Check\Watchdog404($registry),
-            new \SiteAudit\Check\WatchdogAge($registry),
-            new \SiteAudit\Check\WatchdogCount($registry),
-            new \SiteAudit\Check\WatchdogEnabled($registry),
-            new \SiteAudit\Check\WatchdogPhp($registry),
-            new \SiteAudit\Check\WatchdogSyslog($registry),
+            new \SiteAudit\Check\Watchdog404($registry, [], $excludes),
+            new \SiteAudit\Check\WatchdogAge($registry, [], $excludes),
+            new \SiteAudit\Check\WatchdogCount($registry, [], $excludes),
+            new \SiteAudit\Check\WatchdogEnabled($registry, [], $excludes),
+            new \SiteAudit\Check\WatchdogPhp($registry, [], $excludes),
+            new \SiteAudit\Check\WatchdogSyslog($registry, [], $excludes),
 
         ];
 
@@ -680,6 +655,7 @@ class SiteAuditCommands extends DrushCommands
      */
     protected function interimReportResults(SiteAuditCheckInterface $check)
     {
+      print_r($check->skipped);
         $checkName = $this->interimGetCheckName($check);
         return [
             $checkName => [
