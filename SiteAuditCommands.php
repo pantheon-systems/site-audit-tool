@@ -80,7 +80,7 @@ class SiteAuditCommands extends DrushCommands
 
         if(!empty($settings_excludes)) {
             $settings_excludes = array_keys($settings_excludes);
-            $skipped += $settings_excludes;
+            $skipped = array_merge($settings_excludes, $skipped);
         }
 
         $checks = $this->interimInstantiateChecks($this->createRegistry($options), $skipped);
@@ -655,7 +655,6 @@ class SiteAuditCommands extends DrushCommands
      */
     protected function interimReportResults(SiteAuditCheckInterface $check)
     {
-      print_r($check->skipped);
         $checkName = $this->interimGetCheckName($check);
         return [
             $checkName => [
