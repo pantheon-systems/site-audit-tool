@@ -85,6 +85,8 @@ abstract class SiteAuditCheckBase implements SiteAuditCheckInterface {
     }
     else {
       $settings_excludes = \Drupal::config('site_audit')->get('opt_out');
+      // @todo REMOVE ME.
+      error_log(var_export($settings_excludes, TRUE));
       $classname = (new \ReflectionClass($this))->getShortName();
       if (!empty($settings_excludes[$classname])) {
         $this->optOut = true;
