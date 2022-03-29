@@ -74,17 +74,8 @@ class SiteAuditCommands extends DrushCommands
     {
         $this->init();
 
-        $settings_excludes = \Drupal::config('site_audit')->get('opt_out');
-
         $skipped = !is_array($options['skip']) ? explode(',', $options['skip']) : $options['skip'];
-
-        if(!empty($settings_excludes)) {
-            $settings_excludes = array_keys($settings_excludes);
-            $skipped += $settings_excludes;
-        }
-
         $checks = $this->interimInstantiateChecks($this->createRegistry($options), $skipped);
-
         $result = $this->interimBuildReports($checks);
 
         // Hack: avoid using the output format when `--json` is specified.
@@ -655,7 +646,6 @@ class SiteAuditCommands extends DrushCommands
      */
     protected function interimReportResults(SiteAuditCheckInterface $check)
     {
-      print_r($check->skipped);
         $checkName = $this->interimGetCheckName($check);
         return [
             $checkName => [
