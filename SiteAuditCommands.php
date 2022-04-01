@@ -74,7 +74,23 @@ class SiteAuditCommands extends DrushCommands
     {
         $this->init();
 
-        $skipped = !is_array($options['skip']) ? explode(',', $options['skip']) : $options['skip'];
+        $settings_excludes = \Drupal::config('site_audit')->get('opt_out');
+
+        // The skip parameter is almost always an array, even when the single
+        // value is a list of options.
+        if (is_array($options['skip']) && count($options['skip']) == 1) {
+          $skipped = explode(',', $options['skip'][0]);
+        }
+        elseif (is_string($options['skip'])) {
+          $skipped = explode(',', $options['skip']);
+        }
+
+        if (!empty($settings_excludes)) {
+          $settings_excludes = array_keys($settings_excludes);
+          $skipped = array_merge($settings_excludes, $skipped);
+        }
+
+        print_r($skipped);
         $checks = $this->interimInstantiateChecks($this->createRegistry($options), $skipped);
         $result = $this->interimBuildReports($checks);
 
@@ -375,7 +391,8 @@ class SiteAuditCommands extends DrushCommands
     protected function singleReport($reportId, $options)
     {
         $this->init();
-        $checks = $this->interimInstantiateChecks($this->createRegistry($options));
+        $settings_excludes = \Drupal::config('site_audit')->get('opt_out');
+        $checks = $this->interimInstantiateChecks($this->createRegistry($options), $settings_excludes);
         $reportChecks = $this->checksForReport($reportId, $checks);
 
         // Temporary code to be thrown away

@@ -72,24 +72,23 @@ abstract class SiteAuditCheckBase implements SiteAuditCheckInterface {
    *   Aggregates data from each individual check.
    * @param array $options
    *   Options.
-   * @param bool $opt_out
-   *   True if this test should be skipped.
+   * @param mixed $opt_out
+   *   Array of all skipped tests, or true if this test should be skipped.
    */
   public function __construct($registry, $options = [], $opt_out = false) {
     $this->registry = $registry;
     $this->options = $options;
 
-    if ($opt_out == true) {
+    if ($opt_out === true) {
       $this->optOut = true;
-      $this->score = SiteAuditCheckBase::AUDIT_CHECK_SCORE_INFO;
     }
-    else {
-      $settings_excludes = \Drupal::config('site_audit')->get('opt_out');
+    elseif (is_array($opt_out) && !empty($opt_out)) {
       $classname = (new \ReflectionClass($this))->getShortName();
-      if (!empty($settings_excludes[$classname])) {
-        $this->optOut = true;
-        $this->score = SiteAuditCheckBase::AUDIT_CHECK_SCORE_INFO;
-      }
+      $this->optOut = in_array($classname, $opt_out);
+    }
+
+    if ($this->optOut) {
+      $this->score = SiteAuditCheckBase::AUDIT_CHECK_SCORE_INFO;
     }
     $static = FALSE;
 
