@@ -90,7 +90,6 @@ class SiteAuditCommands extends DrushCommands
           $skipped = array_merge($settings_excludes, $skipped);
         }
 
-        print_r($skipped);
         $checks = $this->interimInstantiateChecks($this->createRegistry($options), $skipped);
         $result = $this->interimBuildReports($checks);
 
