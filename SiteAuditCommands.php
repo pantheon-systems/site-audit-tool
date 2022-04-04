@@ -75,6 +75,7 @@ class SiteAuditCommands extends DrushCommands
         $this->init();
 
         $settings_excludes = \Drupal::config('site_audit')->get('opt_out');
+        $skipped = [];
 
         // The skip parameter is almost always an array, even when the single
         // value is a list of options.
