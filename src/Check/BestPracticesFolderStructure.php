@@ -110,4 +110,27 @@ class BestPracticesFolderStructure extends SiteAuditCheckBase {
     return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
   }
 
+  /**
+   * Returns the valid subdirectory name if found.
+   *
+   * @param array $subDirs
+   * @param array $validDirNames
+   *
+   * @return string|false
+   */
+  private function getValidDirName($subDirs, $validDirNames)
+  {
+    $filteredSubDirs = array_filter($subDirs, function($subDir) use ($validDirNames) {
+      $subDirName = basename($subDir);
+
+      return in_array($subDirName, $validDirNames, true);
+    });
+
+    if (!$filteredSubDirs)  {
+      return false;
+    }
+
+    return basename(reset($filteredSubDirs));
+  }
+
 }
