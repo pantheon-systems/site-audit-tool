@@ -69,47 +69,33 @@ class BestPracticesFolderStructure extends SiteAuditCheckBase {
   /**
    * {@inheritdoc}.
    */
-  public function getResultInfo() {}
+  public function getResultInfo() {
+    return $this->infoMessage;
+  }
 
   /**
    * {@inheritdoc}.
    */
   public function getResultPass() {
-    return $this->t('modules/contrib and modules/custom directories exist.');
+    return $this->passMessage;
   }
 
   /**
    * {@inheritdoc}.
    */
   public function getResultWarn() {
-    if (!$this->registry->contrib && !$this->registry->custom) {
-      return $this->t('Neither modules/contrib nor modules/custom directories are present!');
-    }
-    if (!$this->registry->contrib) {
-      return $this->t('modules/contrib directory is not present!');
-    }
-    if (!$this->registry->custom) {
-      return $this->t('modules/custom directory is not present!');
-    }
+    return $this->warningMessage;
   }
 
   /**
    * {@inheritdoc}.
    */
   public function getAction() {
-    $message = '';
-    if ($this->score == SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN) {
-      if (!$this->registry->contrib && !$this->registry->custom) {
-        $message .= $this->t('Put all the contrib modules inside the ./modules/contrib directory and custom modules inside the ./modules/custom directory.');
-      }
-      elseif (!$this->registry->contrib) {
-        $message .= $this->t('Put all the contrib modules inside the ./modules/contrib directory.');
-      }
-      elseif (!$this->registry->custom) {
-        $message .= $this->t('Put all the custom modules inside the ./modules/custom directory.');
-      }
-      return $message . ' ' . $this->t('Moving modules may cause errors, so refer to https://www.drupal.org/node/183681 for information on how to best proceed.');
+    if (!$this->actionMessage) {
+      return null;
     }
+
+    return $this->actionMessage . ' ' . $this->t('Moving modules may cause errors, so refer to https://www.drupal.org/node/183681 for information on how to best proceed.');
   }
 
   /**
