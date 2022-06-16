@@ -14,6 +14,26 @@ use SiteAudit\SiteAuditCheckBase;
 class BestPracticesFolderStructure extends SiteAuditCheckBase {
 
   /**
+   * @var string
+   */
+  private $infoMessage;
+
+  /**
+   * @var string
+   */
+  private $passMessage;
+
+  /**
+   * @var string
+   */
+  private $warningMessage;
+
+  /**
+   * @var string
+   */
+  private $actionMessage;
+
+  /**
    * {@inheritdoc}.
    */
   public function getId() {
