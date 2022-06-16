@@ -47,7 +47,7 @@ abstract class SiteAuditCheckBase implements SiteAuditCheckInterface {
   /**
    * Use for passing data between checks within a report.
    *
-   * @var array
+   * @var \stdClass
    */
   protected $registry;
 
