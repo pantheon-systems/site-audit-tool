@@ -52,6 +52,14 @@ class BestPracticesTest extends TestCase
     protected function tear_down()
     {
         $this->fixtures()->tearDown();
+
+        $filesystem = new Filesystem();
+        if (!$filesystem->exists('sut/web/modules_backup')) {
+            return;
+        }
+
+        $filesystem->remove('sut/web/modules');
+        $filesystem->rename('sut/web/modules_backup', 'sut/web/modules');
     }
 
     /**
