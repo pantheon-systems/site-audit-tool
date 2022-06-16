@@ -1,6 +1,7 @@
 <?php
 namespace SiteAudit;
 
+use Symfony\Component\Filesystem\Filesystem;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
@@ -82,26 +83,89 @@ class BestPracticesTest extends TestCase
 
     public function testBestPracticesFolderStructure()
     {
-        //SiteAuditCheckBestPracticesFolderStructure:
+        $filesystem = new Filesystem();
+        $filesystem->rename('sut/web/modules', 'sut/web/modules_backup');
+        $filesystem->remove('sut/web/modules');
 
-        //pass: create 'custom' directories in modules directory (in sut/web/modules)
-        if (!file_exists('sut/web/modules/custom')) {
-            mkdir('sut/web/modules/custom');
-        }
+        // No "/modules" directory.
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('Contrib and custom modules not found.', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
 
+        // Empty "/modules" directory.
+        $filesystem->mkdir('sut/web/modules');
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('Contrib and custom modules not found.', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
+
+        // Only a single invalid subdirectory.
+        $filesystem->mkdir('sut/web/modules/invalid_subdir');
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('Either modules/contrib or modules/custom directories are not present!', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
+        $filesystem->remove('sut/web/modules/invalid_subdir');
+
+        // Only a single valid subdirectory: "contrib".
+        $filesystem->mkdir('sut/web/modules/contrib');
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('modules/contrib directory exist.', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
+        $filesystem->remove('sut/web/modules/contrib');
+
+        // Only a single valid subdirectory: "composer".
+        $filesystem->mkdir('sut/web/modules/composer');
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('modules/composer directory exist.', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
+        $filesystem->remove('sut/web/modules/composer');
+
+        // Only a single valid subdirectory: "custom".
+        $filesystem->mkdir('sut/web/modules/custom');
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('modules/custom directory exist.', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
+        $filesystem->remove('sut/web/modules/custom');
+
+        // An invalid subdirectory and a valid one.
+        $filesystem->mkdir('sut/web/modules/invalid_subdir');
+
+        $filesystem->mkdir('sut/web/modules/custom');
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('modules/contrib directory is not present!', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
+        $filesystem->remove('sut/web/modules/custom');
+
+        $filesystem->mkdir('sut/web/modules/contrib');
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('modules/custom directory is not present!', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
+        $filesystem->remove('sut/web/modules/contrib');
+
+        $filesystem->mkdir('sut/web/modules/composer');
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('modules/custom directory is not present!', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
+        $filesystem->remove('sut/web/modules/composer');
+
+        // Two invalid subdirectories.
+        $filesystem->mkdir('sut/web/modules/invalid_subdir2');
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $json = $this->getOutputFromJSON();
+        $this->assertEquals('Neither modules/contrib nor modules/custom directories are present!', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
+
+        // Valid "contrib" and "custom" subdirectories.
+        $filesystem->mkdir('sut/web/modules/contrib');
+        $filesystem->mkdir('sut/web/modules/custom');
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('modules/contrib and modules/custom directories exist.', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
 
-        //fail: remove 'custom' directory
-        rmdir('sut/web/modules/custom');
+        // Valid "composer" and "custom" subdirectories.
+        $filesystem->remove('sut/web/modules/contrib');
+        $filesystem->mkdir('sut/web/modules/composer');
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
-        $this->assertEquals('modules/custom directory is not present!', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
-
-        //reset
-        //no need to reset, default is no custom directory
-
+        $this->assertEquals('modules/composer and modules/custom directories exist.', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
     }
 
     public function testBestPracticesMultisite()
