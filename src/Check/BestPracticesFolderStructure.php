@@ -102,9 +102,37 @@ class BestPracticesFolderStructure extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
-    $this->registry->contrib = is_dir(DRUPAL_ROOT . '/modules/contrib');
-    $this->registry->custom = is_dir(DRUPAL_ROOT . '/modules/custom');
-    if (!$this->registry->contrib || !$this->registry->custom) {
+    $modulesDir = DRUPAL_ROOT . '/modules';
+    if (!is_dir($modulesDir)) {
+      $this->infoMessage = $this->t('Contrib and custom modules not found.');
+
+      return SiteAuditCheckBase::AUDIT_CHECK_SCORE_INFO;
+    }
+
+    $subDirs = glob($modulesDir . '/*', GLOB_ONLYDIR);
+    if (!$subDirs) {
+      // No subdirectories inside "modules/" directory found.
+      $this->infoMessage = $this->t('Contrib and custom modules not found.');
+
+      return SiteAuditCheckBase::AUDIT_CHECK_SCORE_INFO;
+    }
+
+    $validContribModulesDir = $this->getValidDirName($subDirs, array('contrib', 'composer'));
+    $validCustomModulesDir = $this->getValidDirName($subDirs, array('custom'));
+    if (1 === count($subDirs)) {
+      // Only one subdirectory inside "modules/" directory found.
+      if ($validContribModulesDir || $validCustomModulesDir) {
+        $this->passMessage = $this->t(
+          'modules/@subdir directory exist.',
+          array('@subdir' => basename($subDirs[0]))
+        );
+
+        return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
+      }
+
+      $this->warningMessage = $this->t('Either modules/contrib or modules/custom directories are not present!');
+      $this->actionMessage = $this->t('Put all the contrib modules inside the ./modules/contrib directory or the custom modules inside the ./modules/custom directory.');
+
       return SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN;
     }
     return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
