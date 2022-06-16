@@ -135,6 +135,34 @@ class BestPracticesFolderStructure extends SiteAuditCheckBase {
 
       return SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN;
     }
+
+    // Two or more subdirectories inside "modules/" directory found.
+    if (!$validContribModulesDir && !$validCustomModulesDir) {
+      $this->warningMessage = $this->t('Neither modules/contrib nor modules/custom directories are present!');
+      $this->actionMessage = $this->t('Put all the contrib modules inside the ./modules/contrib directory and custom modules inside the ./modules/custom directory.');
+
+      return SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN;
+    }
+
+    if (!$validContribModulesDir) {
+      $this->warningMessage = $this->t('modules/contrib directory is not present!');
+      $this->actionMessage = $this->t('Put all the contrib modules inside the ./modules/contrib directory.');
+
+      return SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN;
+    }
+
+    if (!$validCustomModulesDir) {
+      $this->warningMessage = $this->t('modules/custom directory is not present!');
+      $this->actionMessage = $this->t('Put all the custom modules inside the ./modules/custom directory.');
+
+      return SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN;
+    }
+
+    $this->passMessage = $this->t(
+      'modules/@contrib_subdir and modules/@custom_subdir directories exist.',
+      array('@contrib_subdir' => $validContribModulesDir, '@custom_subdir' => $validCustomModulesDir)
+    );
+
     return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
   }
 
