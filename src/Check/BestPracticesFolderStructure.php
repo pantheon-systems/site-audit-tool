@@ -102,7 +102,10 @@ class BestPracticesFolderStructure extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
-    $subDirs = glob(DRUPAL_ROOT . '/modules/*', GLOB_ONLYDIR);
+    $subDirs = glob(
+        sprintf('%s/modules/*', DRUPAL_ROOT),
+        GLOB_ONLYDIR
+    );
     if (!$subDirs) {
       // No subdirectories inside "modules/" directory found.
       $this->infoMessage = $this->t('Contrib and custom modules not found.');
