@@ -70,15 +70,12 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
       $ret_val .= '<tbody>';
       foreach ($this->registry->extensions_dupe as $name => $extension_infos) {
         $ret_val .= '<tr><td>' . $name . '</td>';
-        $paths = array();
+        $extension_list = array();
         foreach ($extension_infos as $extension_info) {
           $extension = $extension_info['path'];
-          if ($extension_info['version']) {
-            $extension .= ' (' . $extension_info['version'] . ')';
-          }
-          $paths[] = $extension;
+          $extension_list[] = $extension;
         }
-        $ret_val .= '<td>' . implode('<br/>', $paths) . '</td></tr>';
+        $ret_val .= '<td>' . implode('<br/>', $extension_list) . '</td></tr>';
       }
       $ret_val .= '</tbody>';
       $ret_val .= '</table>';
@@ -96,9 +93,6 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
         foreach ($extension_infos as $extension_info) {
           $extension_list .= str_repeat(' ', 8);
           $extension_list .= $extension_info['path'];
-          if ($extension_info['version']) {
-            $extension_list .= ' (' . $extension_info['version'] . ')';
-          }
           $extension_list .= PHP_EOL;
         }
         $ret_val .= rtrim($extension_list);
