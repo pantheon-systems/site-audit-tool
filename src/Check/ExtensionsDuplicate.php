@@ -72,8 +72,7 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
         $ret_val .= '<tr><td>' . $name . '</td>';
         $extension_list = array();
         foreach ($extension_infos as $extension_info) {
-          $extension = $extension_info['path'];
-          $extension_list[] = $extension;
+          $extension_list[] = $extension_info['label'];
         }
         $ret_val .= '<td>' . implode('<br/>', $extension_list) . '</td></tr>';
       }
@@ -92,7 +91,7 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
         $extension_list = '';
         foreach ($extension_infos as $extension_info) {
           $extension_list .= str_repeat(' ', 8);
-          $extension_list .= $extension_info['path'];
+          $extension_list .= $extension_info['label'];
           $extension_list .= PHP_EOL;
         }
         $ret_val .= rtrim($extension_list);
@@ -136,6 +135,7 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
         $this->registry->extensions_dupe[$name] = array();
       }
       $path = substr($path, strlen($drupal_root) + 1);
+      $label = $path;
       $version = '';
       $info = file($drupal_root . '/' . $path);
       foreach ($info as $line) {
@@ -143,11 +143,12 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
           $version_split = explode(':', $line);
           if (isset($version_split[1])) {
             $version .= trim(str_replace("'", '', $version_split[1]));
-            $path = $path . ' (' . $version . ')';
+            $label = $path . ' (' . $version . ')';
           }
         }
       }
       $this->registry->extensions_dupe[$name][] = array(
+        'label' => $label,
         'path' => $path,
         'version' => $version,
       );
