@@ -156,7 +156,7 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
       );
     }
 
-    $this->filterOutInfoFiles();
+    $this->filterOutResult();
 
     // Review the detected extensions.
     $moduleHandler = \Drupal::service('module_handler');
@@ -222,15 +222,12 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
    * Filters out $this->registry->extensions_dupe items with no duplicates or
    * with invalid *.info.yml file scheme.
    */
-  private function filterOutInfoFiles() {
+  private function filterOutResult() {
     $drupal_root = DRUPAL_ROOT;
-    foreach ($this->registry->extensions_dupe as $extension => $instances) {
-      if (count($instances) === 1) {
-        // No duplicates for an extension.
-        unset($this->registry->extensions_dupe[$extension]);
-        continue;
-      }
 
+    $this->removeNonDuplicates();
+
+    foreach ($this->registry->extensions_dupe as $extension => $instances) {
       foreach ($instances as $index => $instance) {
         $info_file = file_get_contents($drupal_root . '/' . $instance['path']);
         if (false === $info_file) {
@@ -240,15 +237,21 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
         // Validate *.info.yml to have "name:" and "type:" properties.
         if (!preg_match('/name:.+type:/s', $info_file)) {
           unset($this->registry->extensions_dupe[$extension][$index]);
-          unset($instances[$index]);
         }
       }
-
-      if (count($instances) === 1) {
-        // No duplicates for an extension since $instances was reduced down to
-        // one element only.
-        unset($this->registry->extensions_dupe[$extension]);
-      }
     }
+
+    $this->removeNonDuplicates();
+  }
+
+  /**
+   * Removes non duplicates from $this->registry->extensions_dupe array.
+   */
+  private function removeNonDuplicates() {
+    $this->registry->extensions_dupe = array_filter(
+      $this->registry->extensions_dupe,
+      function ($instances) {
+        return count($instances) > 1;
+      });
   }
 }
