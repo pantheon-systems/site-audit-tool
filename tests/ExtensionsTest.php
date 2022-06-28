@@ -27,9 +27,16 @@ class ExtensionsTest extends TestCase
 {
     use FixturesTrait;
 
+    /**
+     * @var \Symfony\Component\Filesystem\Filesystem
+     */
+    private $filesystem;
+
     protected function set_up()
     {
         $this->fixtures()->createSut();
+
+        $this->filesystem = new Filesystem();
     }
 
     protected function tear_down()
