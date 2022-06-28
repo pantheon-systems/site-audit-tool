@@ -46,6 +46,8 @@ class ExtensionsTest extends TestCase
 
     /**
      * Test the SiteAuditCheckExtensionsDev check
+     *
+     * @throws \Exception
      */
     public function testExtensionsDev()
     {
@@ -70,6 +72,8 @@ class ExtensionsTest extends TestCase
 
     /**
      * Test the SiteAuditCheckExtensionsDuplicate check
+     *
+     * @throws \Exception
      */
     public function testExtensionsDuplicate()
     {
@@ -104,6 +108,8 @@ class ExtensionsTest extends TestCase
 
     /**
      * Test the SiteAuditCheckExtensionsUnrecommended check
+     *
+     * @throws \Exception
      */
     public function testExtensionsUnrecommended()
     {
