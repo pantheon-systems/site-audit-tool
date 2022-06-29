@@ -107,11 +107,16 @@ class ExtensionsTest extends TestCase
         $this->assertStringContainsString("user\n", $result);
         $this->assertStringContainsString('user.info.yml', $result);
 
-        $this->assertStringContainsString('The following duplicate extensions were found:', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
-        $this->assertStringContainsString('user', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
-
-        // Don't leave the duplicate module around
-        $fs->remove($duplicate_module);
+        // Copy contrib module with "version" property populated.
+        $original_module = 'sut/web/modules/contrib/php';
+        $duplicate_module = $extension_duplicates_path . '/php';
+        $this->filesystem->mirror($original_module, $duplicate_module);
+        $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
+        $result = $this->getOutputFromJSON()['checks']['SiteAuditCheckExtensionsDuplicate']['result'];
+        $this->assertStringContainsString('The following duplicate extensions were found:', $result);
+        $this->assertStringContainsString("php\n", $result);
+        $this->assertStringContainsString('php.info.yml', $result);
+        $this->assertMatchesRegularExpression('/php\.info\.yml\s\(\d\.x-\d\.\d\)/', $result);
     }
 
     /**
