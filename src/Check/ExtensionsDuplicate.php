@@ -135,9 +135,13 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
         $this->registry->extensions_dupe[$name] = array();
       }
       $path = substr($path, strlen($drupal_root) + 1);
+      $info = file($drupal_root . '/' . $path);
+      if (!$info) {
+        continue;
+      }
+
       $label = $path;
       $version = '';
-      $info = file($drupal_root . '/' . $path);
       foreach ($info as $line) {
         if (0 !== strpos($line, 'version:')) {
           continue;
