@@ -80,27 +80,32 @@ class ExtensionsTest extends TestCase
      */
     public function testExtensionsDuplicate()
     {
-        $fs = new Filesystem();
-        $original_module = 'sut/web/core/modules/user';
-        $duplicate_module = 'sut/web/modules/contrib/user';
-
-        // pass: remove duplicate module
-        $fs->remove($duplicate_module);
-
         $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
-        $json = $this->getOutputFromJSON();
+        $result = $this->getOutputFromJSON()['checks']['SiteAuditCheckExtensionsDuplicate']['result'];
+        $this->assertEquals('No duplicate extensions were detected.', $result);
 
-        $this->assertEquals('No duplicate extensions were detected.', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
+        // Create a false duplicate.
+        $extension_duplicates_path = 'sut/web/extension_duplicates';
+        $this->filesystem->mkdir($extension_duplicates_path);
+        $false_module_info_file = $extension_duplicates_path . '/user.info.yml';
+        file_put_contents($false_module_info_file, 'not a valid *.info.yml file');
+        $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
+        $result = $this->getOutputFromJSON()['checks']['SiteAuditCheckExtensionsDuplicate']['result'];
+        $this->assertEquals('No duplicate extensions were detected.', $result);
 
         // fail: copy a core module to contrib directory
-        $fs->mirror($original_module, $duplicate_module);
+        $original_module = 'sut/web/core/modules/user';
+        $duplicate_module = 'sut/web/modules/contrib/user';
+        $this->filesystem->mirror($original_module, $duplicate_module);
         // Add missing core_version_requirement to avoid drush to crash.
         $contents = file_get_contents('sut/web/modules/contrib/user/user.info.yml');
         $contents .= "\ncore_version_requirement: ^8 || ^9";
         file_put_contents('sut/web/modules/contrib/user/user.info.yml', $contents);
-
         $this->drush('audit:extensions', [], ['vendor' => 'pantheon']);
-        $json = $this->getOutputFromJSON();
+        $result = $this->getOutputFromJSON()['checks']['SiteAuditCheckExtensionsDuplicate']['result'];
+        $this->assertStringContainsString('The following duplicate extensions were found:', $result);
+        $this->assertStringContainsString("user\n", $result);
+        $this->assertStringContainsString('user.info.yml', $result);
 
         $this->assertStringContainsString('The following duplicate extensions were found:', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
         $this->assertStringContainsString('user', $json['checks']['SiteAuditCheckExtensionsDuplicate']['result']);
