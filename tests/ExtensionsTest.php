@@ -42,6 +42,9 @@ class ExtensionsTest extends TestCase
     protected function tear_down()
     {
         $this->fixtures()->tearDown();
+
+        $this->filesystem->remove('sut/web/modules/contrib/user');
+        $this->filesystem->remove('sut/web/extension_duplicates');
     }
 
     /**
