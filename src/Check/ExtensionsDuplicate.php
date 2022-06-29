@@ -131,16 +131,13 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
       ))) {
         continue;
       }
-      if (!isset($this->registry->extensions_dupe[$name])) {
-        $this->registry->extensions_dupe[$name] = array();
-      }
-      $path = substr($path, strlen($drupal_root) + 1);
-      $info = file($drupal_root . '/' . $path);
+      $path_relative = substr($path, strlen($drupal_root) + 1);
+      $info = file($drupal_root . '/' . $path_relative);
       if (!$info) {
         continue;
       }
 
-      $label = $path;
+      $label = $path_relative;
       $version = '';
       foreach ($info as $line) {
         if (0 !== strpos($line, 'version:')) {
@@ -149,13 +146,13 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
 
         $version_split = explode(':', $line);
         $version = trim(str_replace("'", '', $version_split[1]));
-        $label = $path . ' (' . $version . ')';
+        $label = $path_relative . ' (' . $version . ')';
         break;
       }
 
       $this->registry->extensions_dupe[$name][] = array(
         'label' => $label,
-        'path' => $path,
+        'path' => $path_relative,
         'version' => $version,
       );
     }
