@@ -170,12 +170,13 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
           $test_extensions++;
           continue;
         }
+
         if (strpos($instance['path'], 'profiles/') === 0) {
           $paths_in_profile++;
+          continue;
         }
-        else {
-          $non_profile_index = $index;
-        }
+
+        $non_profile_index = $index;
       }
       // If every path is within an installation profile
       // or is a test extension, ignore.
