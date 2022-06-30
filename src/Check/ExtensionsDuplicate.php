@@ -70,15 +70,11 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
       $ret_val .= '<tbody>';
       foreach ($this->registry->extensions_dupe as $name => $extension_infos) {
         $ret_val .= '<tr><td>' . $name . '</td>';
-        $paths = array();
+        $extension_list = array();
         foreach ($extension_infos as $extension_info) {
-          $extension = $extension_info['path'];
-          if ($extension_info['version']) {
-            $extension .= ' (' . $extension_info['version'] . ')';
-          }
-          $paths[] = $extension;
+          $extension_list[] = $extension_info['label'];
         }
-        $ret_val .= '<td>' . implode('<br/>', $paths) . '</td></tr>';
+        $ret_val .= '<td>' . implode('<br/>', $extension_list) . '</td></tr>';
       }
       $ret_val .= '</tbody>';
       $ret_val .= '</table>';
@@ -95,10 +91,7 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
         $extension_list = '';
         foreach ($extension_infos as $extension_info) {
           $extension_list .= str_repeat(' ', 8);
-          $extension_list .= $extension_info['path'];
-          if ($extension_info['version']) {
-            $extension_list .= ' (' . $extension_info['version'] . ')';
-          }
+          $extension_list .= $extension_info['label'];
           $extension_list .= PHP_EOL;
         }
         $ret_val .= rtrim($extension_list);
@@ -138,36 +131,37 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
       ))) {
         continue;
       }
-      if (!isset($this->registry->extensions_dupe[$name])) {
-        $this->registry->extensions_dupe[$name] = array();
+      $path_relative = substr($path, strlen($drupal_root) + 1);
+      $info = file($drupal_root . '/' . $path_relative);
+      if (!$info) {
+        continue;
       }
-      $path = substr($path, strlen($drupal_root) + 1);
+
+      $label = $path_relative;
       $version = '';
-      $info = file($drupal_root . '/' . $path);
       foreach ($info as $line) {
-        if (strpos($line, 'version') === 0) {
-          $version_split = explode(':', $line);
-          if (isset($version_split[1])) {
-            $version .= trim(str_replace("'", '', $version_split[1]));
-            $path = $path . ' (' . $version . ')';
-          }
+        if (0 !== strpos($line, 'version:')) {
+          continue;
         }
+
+        $version_split = explode(':', $line);
+        $version = trim(str_replace("'", '', $version_split[1]));
+        $label = $path_relative . ' (' . $version . ')';
+        break;
       }
+
       $this->registry->extensions_dupe[$name][] = array(
-        'path' => $path,
+        'label' => $label,
+        'path' => $path_relative,
         'version' => $version,
       );
     }
 
+    $this->filterOutResult();
+
     // Review the detected extensions.
     $moduleHandler = \Drupal::service('module_handler');
     foreach ($this->registry->extensions_dupe as $extension => $instances) {
-      // No duplicates.
-      if (count($instances) == 1) {
-        unset($this->registry->extensions_dupe[$extension]);
-        continue;
-      }
-
       $paths_in_profile = 0;
       $non_profile_index = 0;
       $test_extensions = 0;
@@ -177,12 +171,13 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
           $test_extensions++;
           continue;
         }
+
         if (strpos($instance['path'], 'profiles/') === 0) {
           $paths_in_profile++;
+          continue;
         }
-        else {
-          $non_profile_index = $index;
-        }
+
+        $non_profile_index = $index;
       }
       // If every path is within an installation profile
       // or is a test extension, ignore.
@@ -223,5 +218,42 @@ class ExtensionsDuplicate extends SiteAuditCheckBase {
       return SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN;
     }
     return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
+  }
+
+  /**
+   * Filters out $this->registry->extensions_dupe items with no duplicates or
+   * with invalid *.info.yml file scheme.
+   */
+  private function filterOutResult() {
+    $drupal_root = DRUPAL_ROOT;
+
+    $this->removeNonDuplicates();
+
+    foreach ($this->registry->extensions_dupe as $extension => $instances) {
+      foreach ($instances as $index => $instance) {
+        $info_file = file_get_contents($drupal_root . '/' . $instance['path']);
+        if (false === $info_file) {
+          continue;
+        }
+
+        // Validate *.info.yml to have "name:" and "type:" properties.
+        if (!preg_match('/name:.+type:/s', $info_file)) {
+          unset($this->registry->extensions_dupe[$extension][$index]);
+        }
+      }
+    }
+
+    $this->removeNonDuplicates();
+  }
+
+  /**
+   * Removes non duplicates from $this->registry->extensions_dupe array.
+   */
+  private function removeNonDuplicates() {
+    $this->registry->extensions_dupe = array_filter(
+      $this->registry->extensions_dupe,
+      function ($instances) {
+        return count($instances) > 1;
+      });
   }
 }
