@@ -335,6 +335,16 @@ __EOT__;
         $result = $this->getOutputFromJSON()['checks']['SiteAuditCheckBestPracticesSitesSuperfluous']['result'];
         $this->assertEquals('The following extra files were detected: super.php', $result);
         $this->filesystem->remove($superfluous);
+
+        $sites_php_file = 'sut/web/sites/sites.php';
+        file_put_contents($sites_php_file, "<?php \n //empty file");
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $result = $this->getOutputFromJSON()['checks']['SiteAuditCheckBestPracticesSitesSuperfluous']['result'];
+        $this->assertEquals('The following extra files were detected: sites.php', $result);
+        $this->drush('audit:best-practices');
+        $result = $this->getOutputFromJSON()['checks']['SiteAuditCheckBestPracticesSitesSuperfluous']['result'];
+        $this->assertEquals('No unnecessary files detected.', $result);
+        $this->filesystem->remove($sites_php_file);
     }
 
 }
