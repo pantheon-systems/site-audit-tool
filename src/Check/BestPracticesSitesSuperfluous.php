@@ -70,7 +70,7 @@ class BestPracticesSitesSuperfluous extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function getAction() {
-    if ($this->score === SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN) {
+    if ($this->score === self::AUDIT_CHECK_SCORE_WARN) {
       return $this->t('Unless you have an explicit need for it, don\'t store anything other than settings here.');
     }
   }
