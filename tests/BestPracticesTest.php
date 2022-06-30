@@ -345,6 +345,12 @@ __EOT__;
         $result = $this->getOutputFromJSON()['checks']['SiteAuditCheckBestPracticesSitesSuperfluous']['result'];
         $this->assertEquals('No unnecessary files detected.', $result);
         $this->filesystem->remove($sites_php_file);
+
+        $gitignore_file = 'sut/web/sites/.gitignore';
+        file_put_contents($gitignore_file, '# A test .gitignore file');
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $result = $this->getOutputFromJSON()['checks']['SiteAuditCheckBestPracticesSitesSuperfluous']['result'];
+        $this->assertEquals('No unnecessary files detected.', $result);
     }
 
 }
