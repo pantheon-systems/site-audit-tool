@@ -31,7 +31,7 @@ class BestPracticesSitesSuperfluous extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function getDescription() {
-    return $this->t("Detect unnecessary files.");
+    return $this->t('Detect unnecessary files.');
   }
 
   /**
