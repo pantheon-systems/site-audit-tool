@@ -1,6 +1,8 @@
 <?php
+
 namespace SiteAudit;
 
+use Symfony\Component\Filesystem\Filesystem;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
@@ -43,14 +45,27 @@ class BestPracticesTest extends TestCase
     // Run 'best-practices' check on our test site
     use FixturesTrait;
 
+    /**
+     * @var \Symfony\Component\Filesystem\Filesystem
+     */
+    private $filesystem;
+
     protected function set_up()
     {
         $this->fixtures()->createSut();
+        $this->filesystem = new Filesystem();
     }
 
     protected function tear_down()
     {
         $this->fixtures()->tearDown();
+
+        if (!$this->filesystem->exists('sut/web/modules_backup')) {
+            return;
+        }
+
+        $this->filesystem->remove('sut/web/modules');
+        $this->filesystem->rename('sut/web/modules_backup', 'sut/web/modules');
     }
 
     /**
@@ -80,28 +95,101 @@ class BestPracticesTest extends TestCase
         $this->drush('config:set', ['system.performance', 'fast_404.enabled', 1]);
     }
 
+    /**
+     * @throws \Exception
+     * @group folder_structure
+     */
     public function testBestPracticesFolderStructure()
     {
-        //SiteAuditCheckBestPracticesFolderStructure:
+        $this->filesystem = new Filesystem();
+        $this->filesystem->rename('sut/web/modules', 'sut/web/modules_backup');
+        $this->filesystem->remove('sut/web/modules');
 
-        //pass: create 'custom' directories in modules directory (in sut/web/modules)
-        if (!file_exists('sut/web/modules/custom')) {
-            mkdir('sut/web/modules/custom');
+        // No "/modules" directory.
+        $this->assertFolderStructure('Contrib and custom modules not found.');
+
+        // Empty "/modules" directory.
+        $this->filesystem->mkdir('sut/web/modules');
+        $this->assertFolderStructure('Contrib and custom modules not found.');
+
+        // Only a single invalid subdirectory.
+        $this->assertFolderStructure(
+            'Either modules/contrib or modules/custom directories are not present!',
+            array('invalid_subdir')
+        );
+
+        // Only a single valid subdirectory: "contrib".
+        $this->assertFolderStructure(
+            'modules/contrib directory exist.',
+            array('contrib')
+        );
+
+        // Only a single valid subdirectory: "composer".
+        $this->assertFolderStructure(
+            'modules/composer directory exist.',
+            array('composer')
+        );
+
+        // Only a single valid subdirectory: "custom".
+        $this->assertFolderStructure(
+            'modules/custom directory exist.',
+            array('custom')
+        );
+
+        // An invalid subdirectory and a valid one.
+        $this->assertFolderStructure(
+            'modules/contrib directory is not present!',
+            array('invalid_subdir', 'custom')
+        );
+        $this->assertFolderStructure(
+            'modules/custom directory is not present!',
+            array('invalid_subdir', 'contrib')
+        );
+        $this->assertFolderStructure(
+            'modules/custom directory is not present!',
+            array('invalid_subdir', 'composer')
+        );
+
+        // Two invalid subdirectories.
+        $this->assertFolderStructure(
+            'Neither modules/contrib nor modules/custom directories are present!',
+            array('invalid_subdir1', 'invalid_subdir2')
+        );
+
+        // Valid "contrib" and "custom" subdirectories.
+        $this->assertFolderStructure(
+            'modules/contrib and modules/custom directories exist.',
+            array('contrib', 'custom')
+        );
+
+        // Valid "composer" and "custom" subdirectories.
+        $this->assertFolderStructure(
+            'modules/composer and modules/custom directories exist.',
+            array('composer', 'custom')
+        );
+    }
+
+    /**
+     * Asserts "SiteAuditCheckBestPracticesFolderStructure" result.
+     *
+     * @param string $expectedOutput
+     * @param array $subDirsToCreate
+     *
+     * @throws \Exception
+     */
+    private function assertFolderStructure($expectedOutput, $subDirsToCreate = array())
+    {
+        foreach ($subDirsToCreate as $subDir) {
+            $this->filesystem->mkdir('sut/web/modules/' . $subDir);
         }
 
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
-        $this->assertEquals('modules/contrib and modules/custom directories exist.', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
+        $this->assertEquals($expectedOutput, $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
 
-        //fail: remove 'custom' directory
-        rmdir('sut/web/modules/custom');
-        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
-        $json = $this->getOutputFromJSON();
-        $this->assertEquals('modules/custom directory is not present!', $json['checks']['SiteAuditCheckBestPracticesFolderStructure']['result']);
-
-        //reset
-        //no need to reset, default is no custom directory
-
+        foreach ($subDirsToCreate as $subDir) {
+            $this->filesystem->remove('sut/web/modules/' . $subDir);
+        }
     }
 
     public function testBestPracticesMultisite()
@@ -175,11 +263,11 @@ __EOT__;
 
         //pass: Remove sut/web/sites/sites.php or make sure it is not a symlink
         if (file_exists('sut/web/sites/sites.php')) {
-           unlink('sut/web/sites/sites.php');
+            unlink('sut/web/sites/sites.php');
         }
 
         if (file_exists('sut/web/sites/test.php')) {
-           unlink('sut/web/sites/test.php');
+            unlink('sut/web/sites/test.php');
         }
 
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
