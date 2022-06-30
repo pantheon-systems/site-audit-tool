@@ -60,12 +60,21 @@ class BestPracticesTest extends TestCase
     {
         $this->fixtures()->tearDown();
 
-        if (!$this->filesystem->exists('sut/web/modules_backup')) {
-            return;
+        if ($this->filesystem->exists('sut/web/modules_backup')) {
+          $this->filesystem->remove('sut/web/modules');
+          $this->filesystem->rename('sut/web/modules_backup', 'sut/web/modules');
         }
 
-        $this->filesystem->remove('sut/web/modules');
-        $this->filesystem->rename('sut/web/modules_backup', 'sut/web/modules');
+        $this->filesystem->remove(
+          array(
+            'sut/web/modules/custom',
+            'sut/web/sites/multi',
+            'sut/web/sites/test.php',
+            'sut/web/sites/super.php',
+            'sut/web/sites/sites.php',
+            'sut/web/sites/.gitignore',
+          )
+        );
     }
 
     /**
