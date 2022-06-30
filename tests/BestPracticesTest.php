@@ -79,7 +79,10 @@ class BestPracticesTest extends TestCase
 
     /**
      * Test to see if an example command with a parameter can be called.
-     * @covers ExampleCommands::exampleParam
+     *
+     * @group best_practices
+     *
+     * @throws \Exception
      */
     public function testBestPracticesFast404()
     {
@@ -105,6 +108,8 @@ class BestPracticesTest extends TestCase
     }
 
     /**
+     * @group best_practices
+     *
      * @throws \Exception
      * @group folder_structure
      */
@@ -201,6 +206,11 @@ class BestPracticesTest extends TestCase
         }
     }
 
+    /**
+     * @group best_practices
+     *
+     * @throws \Exception
+     */
     public function testBestPracticesMultisite()
     {
         //SiteAuditCheckBestPracticesMultisite:
@@ -226,6 +236,11 @@ class BestPracticesTest extends TestCase
 
     }
 
+    /**
+     * @group best_practices
+     *
+     * @throws \Exception
+     */
     public function testBestPracticesSettings()
     {
         //SiteAuditCheckBestPracticesSettings:
@@ -239,6 +254,11 @@ class BestPracticesTest extends TestCase
 
     }
 
+    /**
+     * @group best_practices
+     *
+     * @throws \Exception
+     */
     public function testBestPracticesServices()
     {
         //SiteAuditCheckBestPracticesServices:
@@ -265,6 +285,11 @@ __EOT__;
         //no need to reset, default is no file
     }
 
+    /**
+     * @group best_practices
+     *
+     * @throws \Exception
+     */
     public function testBestPracticesSites()
     {
 
@@ -307,6 +332,11 @@ __EOT__;
 
     }
 
+    /**
+     * @group best_practices
+     *
+     * @throws \Exception
+     */
     public function testBestPracticesSitesDefault()
     {
         //SiteAuditCheckBestPracticesSitesDefault:
@@ -321,6 +351,11 @@ __EOT__;
 
     }
 
+    /**
+     * @group best_practices
+     *
+     * @throws \Exception
+     */
     public function testBestPracticesSuperfluous()
     {
         //SiteAuditCheckBestPracticesSitesSuperfluous:
