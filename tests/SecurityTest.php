@@ -4,7 +4,7 @@ namespace SiteAudit;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
- * Security tests
+ * Security tests.
  *
  * SiteAuditCheckSecurityMenuRouter:
  *  - n/a: This check would require modifying the SUT codebase
@@ -25,7 +25,10 @@ class SecurityTest extends TestCase
 
     /**
      * Test to see if an example command with a parameter can be called.
-     * @covers ExampleCommands::exampleParam
+     *
+     * @group security
+     *
+     * @throws \Exception
      */
     public function testSecurity()
     {

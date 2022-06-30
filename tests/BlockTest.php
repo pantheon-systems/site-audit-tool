@@ -4,7 +4,7 @@ namespace SiteAudit;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
- * Block tests
+ * Block tests.
  *
  * SiteAuditCheckBlockEnabled:
  *  - pass: drush pm:enable block
@@ -27,7 +27,8 @@ class BlockTest extends TestCase
 
     /**
      * Test to see if an example command with a parameter can be called.
-     * @covers ExampleCommands::exampleParam
+     *
+     * @group block
      */
     public function testBlock()
     {
@@ -46,7 +47,6 @@ class BlockTest extends TestCase
 
         //reset
         $this->drush('pm:enable', ['block']);
-
     }
 
 }

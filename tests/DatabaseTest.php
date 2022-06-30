@@ -4,7 +4,7 @@ namespace SiteAudit;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
- * Database tests
+ * Database tests.
  */
 class DatabaseTest extends TestCase
 {
@@ -22,7 +22,10 @@ class DatabaseTest extends TestCase
 
     /**
      * Test to see if an example command with a parameter can be called.
-     * @covers ExampleCommands::exampleParam
+     *
+     * @group database
+     *
+     * @throws \Exception
      */
     public function testDatabase()
     {
