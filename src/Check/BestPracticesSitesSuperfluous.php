@@ -14,6 +14,20 @@ use SiteAudit\SiteAuditCheckBase;
 class BestPracticesSitesSuperfluous extends SiteAuditCheckBase {
 
   /**
+   * @var string[]
+   */
+  private $allowedFiles = array(
+    '.DS_Store',
+    '.gitignore',
+    'all',
+    'default',
+    'development.services.yml',
+    'example.settings.local.php',
+    'example.sites.php',
+    'README.txt',
+  );
+
+  /**
    * {@inheritdoc}.
    */
   public function getId() {
@@ -108,4 +122,15 @@ class BestPracticesSitesSuperfluous extends SiteAuditCheckBase {
     return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
   }
 
+  /**
+   * Returns TRUE if the file is an allowed file.
+   *
+   * @param string $file
+   *   File name.
+   *
+   * @return bool
+   */
+  private function isAllowedFile($file) {
+    return in_array($file, $this->allowedFiles, true);
+  }
 }
