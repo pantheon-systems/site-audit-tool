@@ -93,33 +93,29 @@ class BestPracticesSitesSuperfluous extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
-    $handle = opendir(DRUPAL_ROOT . '/sites/');
     $this->registry->superfluous = array();
-    while (FALSE !== ($entry = readdir($handle))) {
-      if (!in_array($entry, array(
-        '.',
-        '..',
-        'default',
-        'all',
-        'example.sites.php',
-        'development.services.yml',
-        'example.settings.local.php',
-        'README.txt',
-        '.DS_Store',
-      ))) {
-        if (is_file(DRUPAL_ROOT . '/sites/' . $entry)) {
-          // Support multi-site directory aliasing for non-Pantheon sites.
-          if ($entry != 'sites.php' || $this->registry->vendor == 'pantheon') {
-            $this->registry->superfluous[] = $entry;
-          }
-        }
+    $sites_dir = DRUPAL_ROOT . DIRECTORY_SEPARATOR . 'sites';
+    $files = @scandir($sites_dir) ?: array();
+    foreach ($files as $file) {
+      if (!is_file($sites_dir . DIRECTORY_SEPARATOR . $file)) {
+        continue;
       }
+
+      if ($this->isAllowedFile($file)) {
+        continue;
+      }
+
+      if ($file === 'sites.php' && $this->registry->vendor !== 'pantheon') {
+        // Support multi-site directory aliasing for non-Pantheon sites.
+        continue;
+      }
+
+      $this->registry->superfluous[] = $file;
     }
-    closedir($handle);
-    if (!empty($this->registry->superfluous)) {
-      return SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN;
-    }
-    return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
+
+    return count($this->registry->superfluous) > 0
+      ? self::AUDIT_CHECK_SCORE_WARN
+      : self::AUDIT_CHECK_SCORE_PASS;
   }
 
   /**
