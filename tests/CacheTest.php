@@ -4,7 +4,7 @@ namespace SiteAudit;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
- * Cache tests
+ * Cache tests.
  *
  * SiteAuditCheckCacheBinsAll:
  *  - n/a: This check is informational only, and never fails
@@ -45,7 +45,10 @@ class CacheTest extends TestCase
 
     /**
      * Test to see if an example command with a parameter can be called.
-     * @covers ExampleCommands::exampleParam
+     *
+     * @group cache
+     *
+     * @throws \Exception
      */
     public function testCachePageExpire()
     {
@@ -73,6 +76,11 @@ class CacheTest extends TestCase
         $this->drush('config:set', ['system.performance', 'cache.page.max_age', 100]);
     }
 
+    /**
+     * @group cache
+     *
+     * @throws \Exception
+     */
     public function testCachePreprocessCSS()
     {
         //SiteAuditCheckCachePreprocessCSS:
@@ -93,6 +101,11 @@ class CacheTest extends TestCase
         
     }
 
+    /**
+     * @group cache
+     *
+     * @throws \Exception
+     */
     public function testCachePreprocessJS()
     {
         //SiteAuditCheckCachePreprocessCSS:

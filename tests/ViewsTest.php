@@ -4,7 +4,7 @@ namespace SiteAudit;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
- * Views tests
+ * Views tests.
  *
  * SiteAuditCheckViewsCacheOutput:
  *  - n/a: Testing this check would require we modify views. Note also that
@@ -37,7 +37,10 @@ class ViewsTest extends TestCase
 
     /**
      * Test to see if an example command with a parameter can be called.
-     * @covers ExampleCommands::exampleParam
+     *
+     * @group views
+     *
+     * @throws \Exception
      */
     public function testViews()
     {
@@ -54,6 +57,11 @@ class ViewsTest extends TestCase
 
     }
 
+    /**
+     * @group views
+     *
+     * @throws \Exception
+     */
     public function testViewsEnabled()
     {
         // SiteAuditCheckViewsEnabled:

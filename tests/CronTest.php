@@ -4,7 +4,7 @@ namespace SiteAudit;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
- * Cron tests
+ * Cron tests.
  *
  * SiteAuditCheckCronEnabled:
  *  - pass: drush config:set automated_cron.settings interval 10800
@@ -26,7 +26,10 @@ class CronTest extends TestCase
 
     /**
      * Test to see if an example command with a parameter can be called.
-     * @covers ExampleCommands::exampleParam
+     *
+     * @group cron
+     *
+     * @throws \Exception
      */
     public function testCron()
     {

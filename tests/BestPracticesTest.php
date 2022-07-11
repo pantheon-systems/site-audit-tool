@@ -60,21 +60,32 @@ class BestPracticesTest extends TestCase
     {
         $this->fixtures()->tearDown();
 
-        if (!$this->filesystem->exists('sut/web/modules_backup')) {
-            return;
+        if ($this->filesystem->exists('sut/web/modules_backup')) {
+          $this->filesystem->remove('sut/web/modules');
+          $this->filesystem->rename('sut/web/modules_backup', 'sut/web/modules');
         }
 
-        $this->filesystem->remove('sut/web/modules');
-        $this->filesystem->rename('sut/web/modules_backup', 'sut/web/modules');
+        $this->filesystem->remove(
+          array(
+            'sut/web/modules/custom',
+            'sut/web/sites/multi',
+            'sut/web/sites/test.php',
+            'sut/web/sites/super.php',
+            'sut/web/sites/sites.php',
+            'sut/web/sites/.gitignore',
+          )
+        );
     }
 
     /**
      * Test to see if an example command with a parameter can be called.
-     * @covers ExampleCommands::exampleParam
+     *
+     * @group best_practices
+     *
+     * @throws \Exception
      */
     public function testBestPracticesFast404()
     {
-
         //SiteAuditCheckBestPracticesFast404
 
         //pass: drush config-set system.performance fast_404.enabled 1
@@ -88,16 +99,15 @@ class BestPracticesTest extends TestCase
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('Fast 404 pages are not enabled for any path.', $json['checks']['SiteAuditCheckBestPracticesFast404']['result']);
-        //$output = $this->getSimplifiedOutput();
-        //$this->assertStringContainsString('Fast 404 pages are not enabled', $output);
 
         //reset
         $this->drush('config:set', ['system.performance', 'fast_404.enabled', 1]);
     }
 
     /**
+     * @group best_practices
+     *
      * @throws \Exception
-     * @group folder_structure
      */
     public function testBestPracticesFolderStructure()
     {
@@ -192,31 +202,33 @@ class BestPracticesTest extends TestCase
         }
     }
 
+    /**
+     * @group best_practices
+     *
+     * @throws \Exception
+     */
     public function testBestPracticesMultisite()
     {
         //SiteAuditCheckBestPracticesMultisite:
 
         //pass: sut/web/sites does not contain any directories other than 'all' and 'default'
-
-        $multi = 'sut/web/sites/multi';
-        if (file_exists($multi)) {
-            rmdir($multi);
-        }
+        $multi_dir = 'sut/web/sites/multi';
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('No multi-sites detected.', $json['checks']['SiteAuditCheckBestPracticesMultisite']['result']);
 
         //fail: sut/web/sites has other directories
-        mkdir($multi);
+        $this->filesystem->mkdir($multi_dir);
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('Multisite directories are present but sites/sites.php is not present.', $json['checks']['SiteAuditCheckBestPracticesMultisite']['result']);
-
-        //reset
-        rmdir($multi);
-
     }
 
+    /**
+     * @group best_practices
+     *
+     * @throws \Exception
+     */
     public function testBestPracticesSettings()
     {
         //SiteAuditCheckBestPracticesSettings:
@@ -227,9 +239,13 @@ class BestPracticesTest extends TestCase
         $this->assertEquals('settings.php exists and is not a symbolic link.', $json['checks']['SiteAuditCheckBestPracticesSettings']['result']);
 
         //fail: Cannot test this, because removing settings.php makes Drush unusable
-
     }
 
+    /**
+     * @group best_practices
+     *
+     * @throws \Exception
+     */
     public function testBestPracticesServices()
     {
         //SiteAuditCheckBestPracticesServices:
@@ -247,57 +263,48 @@ __EOT__;
         $this->assertEquals('services.yml exists and is not a symbolic link.', $json['checks']['SiteAuditCheckBestPracticesServices']['result']);
 
         //fail: sut/web/sites/default/services.yml
-        unlink($services_path);
+        $this->filesystem->remove($services_path);
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('services.yml does not exist! Copy the default.service.yml to services.yml and see https://www.drupal.org/documentation/install/settings-file for details.', $json['checks']['SiteAuditCheckBestPracticesServices']['result']);
-
-        //reset
-        //no need to reset, default is no file
     }
 
+    /**
+     * @group best_practices
+     *
+     * @throws \Exception
+     */
     public function testBestPracticesSites()
     {
-
         //SiteAuditCheckBestPracticesSites:
-
-        //pass: Remove sut/web/sites/sites.php or make sure it is not a symlink
-        if (file_exists('sut/web/sites/sites.php')) {
-            unlink('sut/web/sites/sites.php');
-        }
-
-        if (file_exists('sut/web/sites/test.php')) {
-            unlink('sut/web/sites/test.php');
-        }
 
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('sites.php does not exist.', $json['checks']['SiteAuditCheckBestPracticesSites']['result']);
 
         //warn: sites.php exists but is not a symlink
-        $site = 'sut/web/sites/sites.php';
-        file_put_contents($site, "<?php \n //empty file");
+        $sites_php_file = 'sut/web/sites/sites.php';
+        file_put_contents($sites_php_file, "<?php \n //empty file");
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('sites.php is not a symbolic link.', $json['checks']['SiteAuditCheckBestPracticesSites']['result']);
-        unlink($site);
+        $this->filesystem->remove($sites_php_file);
 
         //fail: sut/web/sites/sites.php is a symlink
-        $target = 'sut/web/sites/test.php';
-        file_put_contents($target, "<?php \n //empty file");
+        $test_php_file = 'sut/web/sites/test.php';
+        file_put_contents($test_php_file, "<?php \n //empty file");
         $link_name = 'sut/web/sites/sites.php';
-        //file_put_contents($link_name, "<?php \n //empty file");
-        $test = symlink($target, $link_name);
+        symlink($test_php_file, $link_name);
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
         $json = $this->getOutputFromJSON();
         $this->assertEquals('sites/sites.php is a symbolic link.', $json['checks']['SiteAuditCheckBestPracticesSites']['result']);
-
-        //reset: remove sites.php
-        unlink($target);
-        unlink($link_name);
-
     }
 
+    /**
+     * @group best_practices
+     *
+     * @throws \Exception
+     */
     public function testBestPracticesSitesDefault()
     {
         //SiteAuditCheckBestPracticesSitesDefault:
@@ -309,34 +316,41 @@ __EOT__;
 
         //fail: sut/web/sites/default does not exist
         //can't test without removing everything in default
-
     }
 
+    /**
+     * @group best_practices
+     *
+     * @throws \Exception
+     */
     public function testBestPracticesSuperfluous()
     {
-        //SiteAuditCheckBestPracticesSitesSuperfluous:
-
-        //pass: No extra files in sut/web/sites/default
-        if (file_exists('sut/web/sites/super.php')) {
-            unlink('sut/web/sites/super.php');
-        }
-
-
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
-        $json = $this->getOutputFromJSON();
-        $this->assertEquals('No unnecessary files detected.', $json['checks']['SiteAuditCheckBestPracticesSitesSuperfluous']['result']);
+        $result = $this->getOutputFromJSON()['checks']['SiteAuditCheckBestPracticesSitesSuperfluous']['result'];
+        $this->assertEquals('No unnecessary files detected.', $result);
 
-        //fail: Create a file with an arbitrary name in sut/web/sites/default
         $superfluous = 'sut/web/sites/super.php';
-        //$handle = fopen($file, 'w');
         file_put_contents($superfluous, "<?php \n //empty file");
         $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
-        $json = $this->getOutputFromJSON();
-        $this->assertEquals('The following extra files were detected: super.php', $json['checks']['SiteAuditCheckBestPracticesSitesSuperfluous']['result']);
+        $result = $this->getOutputFromJSON()['checks']['SiteAuditCheckBestPracticesSitesSuperfluous']['result'];
+        $this->assertEquals('The following extra files were detected: super.php', $result);
+        $this->filesystem->remove($superfluous);
 
-        //reset
-        unlink($superfluous);
+        $sites_php_file = 'sut/web/sites/sites.php';
+        file_put_contents($sites_php_file, "<?php \n //empty file");
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $result = $this->getOutputFromJSON()['checks']['SiteAuditCheckBestPracticesSitesSuperfluous']['result'];
+        $this->assertEquals('The following extra files were detected: sites.php', $result);
+        $this->drush('audit:best-practices');
+        $result = $this->getOutputFromJSON()['checks']['SiteAuditCheckBestPracticesSitesSuperfluous']['result'];
+        $this->assertEquals('No unnecessary files detected.', $result);
+        $this->filesystem->remove($sites_php_file);
 
+        $gitignore_file = 'sut/web/sites/.gitignore';
+        file_put_contents($gitignore_file, '# A test .gitignore file');
+        $this->drush('audit:best-practices', [], ['vendor' => 'pantheon']);
+        $result = $this->getOutputFromJSON()['checks']['SiteAuditCheckBestPracticesSitesSuperfluous']['result'];
+        $this->assertEquals('No unnecessary files detected.', $result);
     }
 
 }

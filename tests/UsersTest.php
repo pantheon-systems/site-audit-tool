@@ -4,7 +4,7 @@ namespace SiteAudit;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
- * Users tests
+ * Users tests.
  *
  * SiteAuditCheckUsersBlockedNumberOne:
  *  - pass: drush user:block admin
@@ -38,9 +38,11 @@ class UsersTest extends TestCase
 
     /**
      * Test to see if an example command with a parameter can be called.
-     * @covers ExampleCommands::exampleParam
+     *
+     * @group users
+     *
+     * @throws \Exception
      */
-
     public function testUsersBlockedNumberOne()
     {
         //SiteAuditCheckUsersBlockedNumberOne:
@@ -59,6 +61,12 @@ class UsersTest extends TestCase
         //reset
         $this->drush('user:block', ['admin']);
     }
+
+    /**
+     * @group users
+     *
+     * @throws \Exception
+     */
     public function testUsers()
     {
         // Run 'users' check on out test site

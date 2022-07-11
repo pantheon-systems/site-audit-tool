@@ -50,6 +50,8 @@ class ExtensionsTest extends TestCase
     /**
      * Test the SiteAuditCheckExtensionsDev check
      *
+     * @group extensions
+     *
      * @throws \Exception
      */
     public function testExtensionsDev()
@@ -75,6 +77,8 @@ class ExtensionsTest extends TestCase
 
     /**
      * Test the SiteAuditCheckExtensionsDuplicate check
+     *
+     * @group extensions
      *
      * @throws \Exception
      */
@@ -121,6 +125,8 @@ class ExtensionsTest extends TestCase
 
     /**
      * Test the SiteAuditCheckExtensionsUnrecommended check
+     *
+     * @group extensions
      *
      * @throws \Exception
      */
