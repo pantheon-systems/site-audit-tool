@@ -79,6 +79,11 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
+    if ($this->registry->pantheon) {
+      return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
+
+    }
+
     $query = Database::getConnection()->select('users_field_data', 'ufd');
     $query->addField('ufd', 'status');
     $query->condition('uid', 1);

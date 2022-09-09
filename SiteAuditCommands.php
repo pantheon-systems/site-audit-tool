@@ -428,6 +428,7 @@ class SiteAuditCommands extends DrushCommands
         $registry->vendor = $options['vendor'];
         $registry->html = $options['html'];
         $registry->detail = $options['detail'];
+        $registry->pantheon = $options['pantheon'];
 
         $registry->checksList = new ChecksRegistry();
 
@@ -501,7 +502,6 @@ class SiteAuditCommands extends DrushCommands
             new \SiteAudit\Check\DatabaseSize($registry, [], $excludes),
             new \SiteAudit\Check\DatabaseCollation($registry, [], $excludes),
             new \SiteAudit\Check\DatabaseEngine($registry, [], $excludes),
-            new \SiteAudit\Check\DatabaseFragmentation($registry, [], $excludes),
             new \SiteAudit\Check\DatabaseRowCount($registry, [], $excludes),
 
             // extensions
