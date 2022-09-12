@@ -58,6 +58,9 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function getResultPass() {
+    if ($this->registry->vendor == "pantheon") {
+      return $this->t('UID #1 is not blocked, but --vendor=pantheon exempts this test.');
+    }
     return $this->t('UID #1 is blocked, as recommended.');
   }
 
@@ -79,9 +82,8 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
-    if ($this->registry->pantheon) {
+    if ($this->registry->vendor == "pantheon") {
       return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
-
     }
 
     $query = Database::getConnection()->select('users_field_data', 'ufd');

@@ -428,7 +428,6 @@ class SiteAuditCommands extends DrushCommands
         $registry->vendor = $options['vendor'];
         $registry->html = $options['html'];
         $registry->detail = $options['detail'];
-        $registry->pantheon = $options['pantheon'];
 
         $registry->checksList = new ChecksRegistry();
 

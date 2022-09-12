@@ -14,18 +14,15 @@ use SiteAudit\SiteAuditCheckBase;
 class BestPracticesServices extends SiteAuditCheckBase {
 
   /**
-   * Whether the services.yml file exists.
-   *
-   * @var bool
-   */
-  protected $exists = FALSE;
-
-  /**
    * Whether the services.yml file is a symlink.
    *
-   * @var bool
+   * 0 = Does not exist.
+   * 1 = Exists, but is symlink.
+   * 2 = Exists and is not symlink.
+   *
+   * @var int
    */
-  protected $is_symlink = FALSE;
+  protected $status = 0;
 
   /**
    * {@inheritdoc}.
@@ -64,10 +61,20 @@ class BestPracticesServices extends SiteAuditCheckBase {
     }
 
     if (file_exists(DRUPAL_ROOT . '/sites/default/services.yml')) {
+      // File exists, but is symlink.
       if (is_link(DRUPAL_ROOT . '/sites/default/services.yml')) {
-        $this->is_symlink = TRUE;
+        $this->status = 1;
+        $this->score = SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN;
       }
-      $this->exists = TRUE;
+      // File exists, and is not symlink.
+      else {
+        $this->status = 2;
+        $this->score = SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
+      }
+    }
+    // File does not exist.
+    else {
+      $this->score = SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN;
     }
 
     switch ($this->score) {
@@ -107,10 +114,10 @@ class BestPracticesServices extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function getResultWarn() {
-    if (!$this->exists) {
+    if ($this->status == 0) {
       return $this->t('services.yml does not exist! Copy the default.service.yml to services.yml and see https://www.drupal.org/documentation/install/settings-file for details.');
     }
-    if ($this->is_symlink) {
+    if ($this->status == 1) {
       return $this->t('sites/default/services.yml is a symbolic link.');
     }
   }
@@ -119,10 +126,10 @@ class BestPracticesServices extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function getAction() {
-    if (!$this->exists && !$this->is_symlink) {
+    if ($this->status == 0) {
       return $this->t('Create services.yml file inside sites/default directory by copying default.services.yml file. See https://www.drupal.org/documentation/install/settings-file for details.');
     }
-    if ($this->exists && $this->is_symlink) {
+    if ($this->status == 1) {
       return $this->t('Don\'t rely on symbolic links for core configuration files; copy services.yml where it should be and remove the symbolic link.');
     }
   }
@@ -131,10 +138,12 @@ class BestPracticesServices extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
-    if ($this->exists && !$this->is_symlink) {
-      return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
+    switch($this->status) {
+      case 2:
+        return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
+      default:
+        return SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN;
     }
-    return SiteAuditCheckBase::AUDIT_CHECK_SCORE_WARN;
   }
 
 }
