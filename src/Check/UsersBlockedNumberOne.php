@@ -15,6 +15,16 @@ use Drupal\Core\Database\Database;
 class UsersBlockedNumberOne extends SiteAuditCheckBase {
 
   /**
+   * Whether UID #1 is blocked.
+   *
+   * 1 = UID #1 is not blocked.
+   * 0 = UID #1 is blocked.
+   *
+   * @var bool
+   */
+  protected $status;
+
+  /**
    * {@inheritdoc}.
    */
   public function getId() {
@@ -58,10 +68,19 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function getResultPass() {
-    if ($this->registry->vendor == "pantheon") {
-      return $this->t('UID #1 is not blocked, but --vendor=pantheon exempts this test.');
+    // If the result is passed but the account is unblocked, the request must
+    // have come from inside the platform.
+    if ($this->status == 1) {
+      return $this->t('UID #1 is not blocked, but blocking UID #1 is not recommended on the Pantheon platform.');
     }
-    return $this->t('UID #1 is blocked, as recommended.');
+    // If the account is blocked, alert users that this is considered optional
+    // on the platform.
+    elseif ($this->registry->vendor == "pantheon") {
+      return $this->t('UID #1 is blocked, though this is unnecessary on the Pantheon platform.');
+    }
+    else {
+      return $this->t('UID #1 is blocked, as recommended.');
+    }
   }
 
   /**
@@ -82,18 +101,27 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
-    if ($this->registry->vendor == "pantheon") {
-      return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
-    }
 
     $query = Database::getConnection()->select('users_field_data', 'ufd');
     $query->addField('ufd', 'status');
     $query->condition('uid', 1);
 
     if (!$query->execute()->fetchField()) {
+      // UID 1 is blocked or otherwise disabled.
+      $this->status = 0;
       return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
     }
-    return SiteAuditCheckBase::AUDIT_CHECK_SCORE_FAIL;
+    else {
+      // UID 1 is active.
+      $this->status = 1;
+      // If UID 1 is active, but the request is made from Pantheon, pass.
+      if ($this->registry->vendor == "pantheon") {
+        return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
+      }
+      else {
+        return SiteAuditCheckBase::AUDIT_CHECK_SCORE_FAIL;
+      }
+    }
   }
 
 }
