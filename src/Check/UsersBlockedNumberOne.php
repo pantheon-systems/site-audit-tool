@@ -71,12 +71,7 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
     // If the result is passed but the account is unblocked, the request must
     // have come from inside the platform.
     if ($this->status == 1) {
-      return $this->t('UID #1 is not blocked, but blocking UID #1 is not recommended on the Pantheon platform.');
-    }
-    // If the account is blocked, alert users that this is considered optional
-    // on the platform.
-    elseif ($this->registry->vendor == "pantheon") {
-      return $this->t('UID #1 is blocked, though this is unnecessary on the Pantheon platform.');
+      return $this->t('UID #1 is not blocked. Blocking this user eliminates a potential security risk.');
     }
     else {
       return $this->t('UID #1 is blocked, as recommended.');
@@ -118,9 +113,8 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
       if ($this->registry->vendor == "pantheon") {
         return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
       }
-      else {
-        return SiteAuditCheckBase::AUDIT_CHECK_SCORE_FAIL;
-      }
+
+      return SiteAuditCheckBase::AUDIT_CHECK_SCORE_FAIL;
     }
   }
 
