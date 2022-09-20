@@ -15,6 +15,16 @@ use Drupal\Core\Database\Database;
 class UsersBlockedNumberOne extends SiteAuditCheckBase {
 
   /**
+   * Whether UID #1 is blocked.
+   *
+   * 1 = UID #1 is not blocked.
+   * 0 = UID #1 is blocked.
+   *
+   * @var bool
+   */
+  protected $status;
+
+  /**
    * {@inheritdoc}.
    */
   public function getId() {
@@ -58,7 +68,14 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function getResultPass() {
-    return $this->t('UID #1 is blocked, as recommended.');
+    // If the result is passed but the account is unblocked, the request must
+    // have come from inside the platform.
+    if ($this->status == 1) {
+      return $this->t('UID #1 is not blocked. Blocking this user eliminates a potential security risk.');
+    }
+    else {
+      return $this->t('UID #1 is blocked, as recommended.');
+    }
   }
 
   /**
@@ -79,14 +96,26 @@ class UsersBlockedNumberOne extends SiteAuditCheckBase {
    * {@inheritdoc}.
    */
   public function calculateScore() {
+
     $query = Database::getConnection()->select('users_field_data', 'ufd');
     $query->addField('ufd', 'status');
     $query->condition('uid', 1);
 
     if (!$query->execute()->fetchField()) {
+      // UID 1 is blocked or otherwise disabled.
+      $this->status = 0;
       return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
     }
-    return SiteAuditCheckBase::AUDIT_CHECK_SCORE_FAIL;
+    else {
+      // UID 1 is active.
+      $this->status = 1;
+      // If UID 1 is active, but the request is made from Pantheon, pass.
+      if ($this->registry->vendor == "pantheon") {
+        return SiteAuditCheckBase::AUDIT_CHECK_SCORE_PASS;
+      }
+
+      return SiteAuditCheckBase::AUDIT_CHECK_SCORE_FAIL;
+    }
   }
 
 }
