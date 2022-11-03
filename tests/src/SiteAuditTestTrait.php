@@ -4,7 +4,7 @@ namespace SiteAudit;
 
 use Drush\TestTraits\DrushTestTrait;
 
-trait SiteAuditToolTestTrait {
+trait SiteAuditTestTrait {
 
     use DrushTestTrait {
         DrushTestTrait::drush as parentDrush;
