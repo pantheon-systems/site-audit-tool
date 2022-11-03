@@ -17,13 +17,13 @@ trait SiteAuditTestTrait {
         $this->parentDrush($command, $args, $options, $site_specification, $cd, $expected_return, $suffix, $env);
         $outputRaw = $this->getOutputRaw();
         
-        if (strpos($outputRaw, 'PHP Deprecated') !== FALSE) {
+        if (strpos($outputRaw, 'eprecated') !== FALSE) {
             throw new \Exception(sprintf("Command '%s' output must not contain PHP deprecation notices", $command));
         }
 
         $errorOutputRaw = $this->getErrorOutputRaw();
 
-        if (strpos($errorOutputRaw, 'PHP Deprecated') !== FALSE) {
+        if (strpos($errorOutputRaw, 'eprecated') !== FALSE) {
             throw new \Exception(sprintf("Command '%s' error output must not contain PHP deprecation notices", $command));
         }
     }
