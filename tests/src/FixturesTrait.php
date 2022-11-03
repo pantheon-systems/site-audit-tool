@@ -2,14 +2,14 @@
 
 namespace SiteAudit;
 
-use Drush\TestTraits\DrushTestTrait;
+use SiteAudit\SiteAuditTestTrait;
 
 /**
  * Convenience class for creating fixtures.
  */
 trait FixturesTrait
 {
-    use DrushTestTrait;
+    use SiteAuditTestTrait;
 
     protected function fixtures()
     {

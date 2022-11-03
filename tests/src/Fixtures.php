@@ -4,7 +4,7 @@ namespace SiteAudit;
 
 use Symfony\Component\Filesystem\Filesystem;
 
-use Drush\TestTraits\DrushTestTrait;
+use SiteAudit\SiteAuditTestTrait;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -12,7 +12,7 @@ use Webmozart\PathUtil\Path;
  */
 class Fixtures
 {
-  use DrushTestTrait;
+  use SiteAuditTestTrait;
 
   protected static $fixtures = null;
   protected $installed = false;
