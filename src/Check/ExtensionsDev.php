@@ -6,6 +6,7 @@
 
 namespace SiteAudit\Check;
 
+use Drupal\Core\Extension\ModuleExtensionList;
 use SiteAudit\SiteAuditCheckBase;
 use SiteAudit\Util\SiteAuditEnvironment;
 
@@ -103,7 +104,7 @@ class ExtensionsDev extends SiteAuditCheckBase {
     if (!isset($this->registry->extensions) || empty($this->registry->extensions)) {
       $moduleHandler = \Drupal::service('module_handler');
       $this->registry->extensions = $modules = \Drupal::service('extension.list.module')->reset()->getList();
-      uasort($this->registry->extensions, 'system_sort_modules_by_info_name');
+      uasort($this->registry->extensions, [ModuleExtensionList::class, 'sortByName']);
     }
     $this->registry->extensions_dev = array();
     $extension_info = $this->registry->extensions;
