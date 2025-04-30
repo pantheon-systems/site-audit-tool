@@ -72,6 +72,12 @@ class SiteAuditCommands extends DrushCommands
             'skip' => [],
         ])
     {
+        // abort audit if Drupal install isn't done
+        $task = \Drupal::state()->get("install_task");
+        if($task !== NULL && $task !== 'done') {
+            return;
+        }
+
         $this->init();
 
         $settings_excludes = \Drupal::config('site_audit')->get('opt_out');
