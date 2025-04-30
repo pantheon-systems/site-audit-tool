@@ -74,7 +74,7 @@ class SiteAuditCommands extends DrushCommands
     {
         // abort audit if Drupal install isn't done
         $task = \Drupal::state()->get("install_task");
-        if($task !==NULL && $task !== 'done') {
+        if($task !== NULL && $task !== 'done') {
             return;
         }
 
