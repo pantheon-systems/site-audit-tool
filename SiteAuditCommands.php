@@ -73,12 +73,6 @@ class SiteAuditCommands extends DrushCommands
             'skip' => [],
         ])
     {
-        // abort audit if Drupal install isn't done
-        $task = \Drupal::state()->get("install_task");
-        if($task !== NULL && $task !== 'done') {
-            return;
-        }
-
         // and check if the users table exists
         try {
             $connection = \Drupal\Core\Database\Database::getConnection();
@@ -92,6 +86,12 @@ class SiteAuditCommands extends DrushCommands
                 return;
             }
         } catch (\Exception $e) {
+            return;
+        }
+
+        // abort audit if Drupal install isn't done
+        $task = \Drupal::state()->get("install_task");
+        if($task !== NULL && $task !== 'done') {
             return;
         }
 
