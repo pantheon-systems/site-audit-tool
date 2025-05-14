@@ -5,6 +5,7 @@ namespace Drush\Commands\site_audit_tool;
 use Consolidation\AnnotatedCommand\CommandData;
 use Consolidation\OutputFormatters\StructuredData\PropertyList;
 use Consolidation\OutputFormatters\StructuredData\RowsOfFieldsWithMetadata;
+use Drupal\Core\Database\Database;
 use Drush\Commands\DrushCommands;
 use Drush\Exceptions\UserAbortException;
 use SiteAudit\ChecksRegistry;
@@ -72,6 +73,22 @@ class SiteAuditCommands extends DrushCommands
             'skip' => [],
         ])
     {
+        // and check if the users table exists
+        try {
+            $connection = \Drupal\Core\Database\Database::getConnection();
+            $exists = (bool) $connection->select('users', 'u')
+            ->fields('u', ['uid'])
+            ->range(0,1)
+            ->execute()
+            ->fetchField();
+
+            if (!$exists) {
+                return;
+            }
+        } catch (\Exception $e) {
+            return;
+        }
+
         // abort audit if Drupal install isn't done
         $task = \Drupal::state()->get("install_task");
         if($task !== NULL && $task !== 'done') {
