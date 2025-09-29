@@ -109,7 +109,7 @@ class Fixtures
 
         // Be tolerant: if status is 0 and DB is present, consider it bootstrapped.
         if (!$this->drupalIsInstalledAndBootstrapped()) {
-            // Don’t fail hard—leave a breadcrumb and continue.
+            // Don’t fail hard—leave a sentinel so we don't loop.
             @file_put_contents($this->sentinelPath(), (string) time());
         } else {
             @file_put_contents($this->sentinelPath(), (string) time());
@@ -236,19 +236,33 @@ class Fixtures
             1 => ['pipe', 'w'], // stdout
             2 => ['pipe', 'w'], // stderr
         ];
-        $proc = proc_open($cmd, $desc, $pipes, $cwd ?: $this->repoRoot, $this->inheritedEnv());
+
+        $proc = @proc_open($cmd, $desc, $pipes, $cwd ?: $this->repoRoot, $this->inheritedEnv());
         if (!\is_resource($proc)) {
             return [1, 'Failed to start process'];
         }
-        // We don't write to stdin.
-        @fclose($pipes[0]);
-        $stdout = stream_get_contents($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        foreach ($pipes as $p) {
-            @fclose($p);
+
+        // Close STDIN immediately.
+        if (isset($pipes[0]) && \is_resource($pipes[0])) {
+            @fclose($pipes[0]);
         }
+
+        $stdout = '';
+        $stderr = '';
+
+        if (isset($pipes[1]) && \is_resource($pipes[1])) {
+            $stdout = stream_get_contents($pipes[1]) ?: '';
+            @fclose($pipes[1]);
+        }
+
+        if (isset($pipes[2]) && \is_resource($pipes[2])) {
+            $stderr = stream_get_contents($pipes[2]) ?: '';
+            @fclose($pipes[2]);
+        }
+
         $code = proc_close($proc);
-        $out  = trim((string) $stdout . ($stderr ? "\n" . (string) $stderr : ''));
+        $out  = trim($stdout . ($stderr !== '' ? "\n" . $stderr : ''));
+
         return [$code, $out];
     }
 
