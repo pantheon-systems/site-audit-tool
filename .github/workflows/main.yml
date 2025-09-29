@@ -23,7 +23,7 @@ jobs:
       options: --user root
       env:
         MYSQL_HOST: mysql
-        UNISH_DB_URL: mysql://root:@mysql
+        UNISH_DB_URL: mysql://root:@mysql/testsiteaudittooldatabase
 
     services:
       # MySQL service (replaces Circle's secondary docker image)
@@ -83,6 +83,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Export UNISH_DB_URL for child processes
+        run: echo "UNISH_DB_URL=${{ env.UNISH_DB_URL }}" >> $GITHUB_ENV
+
+      - name: Mark workspace as safe for Git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Copy PHP ini
         run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/
