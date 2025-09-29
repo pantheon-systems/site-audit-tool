@@ -5,7 +5,6 @@ on:
   workflow_dispatch:
 
 env:
-  # Mirrors CircleCI defaults
   TZ: "/usr/share/zoneinfo/America/Los_Angeles"
   TERM: dumb
   PHPUNIT_ARGS: ""
@@ -17,24 +16,25 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
 
-    # Canonical Drupal + DB env (visible inside the job container)
+    # Single, unambiguous DB URL for everything (note: ssl-mode=DISABLED).
     env:
       DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
       DRUSH_OPTIONS_URI: http://default
-      UNISH_DB_URL: mysql://root:root@mysql:3306/testsiteaudittooldatabase
+      UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase?ssl-mode=DISABLED
 
-    # Run steps inside a PHP container (wodby/php)
+    # Run the job inside the desired PHP container
     container:
       image: ${{ matrix.php_image }}
       options: --user root
 
-    # Single DB service: MariaDB 10.6 reachable at host "mysql"
     services:
-      mysql:
+      mariadb:
         image: mariadb:10.6
         env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: testsiteaudittooldatabase
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: testsiteaudittooldatabase
+        ports:
+          - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
           --health-interval=10s --health-timeout=5s --health-retries=30
@@ -100,17 +100,17 @@ jobs:
           tar -C "$HOME" -xzf dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
           rm dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
 
-      - name: Wait for MariaDB (mysql service)
-        run: $HOME/dockerize -wait tcp://mysql:3306 -timeout 90s
+      - name: Wait for MariaDB
+        run: $HOME/dockerize -wait tcp://mariadb:3306 -timeout 1m
 
       - name: Show what PHP sees
         run: php -r "var_dump(getenv('UNISH_DB_URL'));"
 
-      - name: Sanity-check DB connectivity
+      - name: Sanity-check DB connectivity (no SSL)
         run: |
           echo "UNISH_DB_URL=$UNISH_DB_URL"
-          mysql --protocol=tcp -hmysql -uroot -proot -e 'SELECT VERSION();'
-          mysql --protocol=tcp -hmysql -uroot -proot -e 'SHOW DATABASES;'
+          mysql --protocol=tcp -hmariadb -uroot -proot --ssl-mode=DISABLED -e 'SELECT VERSION();'
+          mysql --protocol=tcp -hmariadb -uroot -proot --ssl-mode=DISABLED -e 'SHOW DATABASES;'
 
       - name: Lint tests and check class
         run: |
