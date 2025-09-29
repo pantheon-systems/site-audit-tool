@@ -153,7 +153,7 @@ jobs:
 
       - name: Drush status (probe)
         run: |
-          php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"\\nSUT ready\\n\";";
+          php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"\nSUT ready\n\";";
           vendor/drush/drush/drush status
 
       - name: Run tests

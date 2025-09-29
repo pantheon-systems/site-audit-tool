@@ -80,24 +80,31 @@ final class Fixtures
             'drupal/web',
             'drupal',
             '.build/web',
+            // common in our scenarios:
+            'sut/web',
         );
+
         foreach ($candidates as $rel) {
             $path = self::join(getcwd(), $rel);
-            if (is_file(self::join($path, 'core/lib/Drupal.php'))) {
+            if (is_file(self::join($path, 'core', 'lib', 'Drupal.php'))) {
                 return realpath($path);
             }
         }
-        // Last resort: shallow scan a couple of levels for core/lib/Drupal.php.
+
+        // Fallback: scan and go up THREE levels from core/lib/Drupal.php -> <root>.
         $rii = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator(getcwd(), \FilesystemIterator::SKIP_DOTS)
         );
         foreach ($rii as $file) {
-            if ($file->getFilename() === 'Drupal.php' && strpos($file->getPathname(), 'core/lib/Drupal.php') !== false) {
-                return realpath(dirname(dirname($file->getPathname()))); // up to <root>/core
+            $p = $file->getPathname();
+            if ($file->getFilename() === 'Drupal.php' && preg_match('#/core/lib/Drupal\.php$#', $p)) {
+                return realpath(dirname(dirname(dirname($p)))); // .../core/lib/Drupal.php -> <root>
             }
         }
+
         return null;
     }
+
 
     /** @param string $root */
     private static function isBootstrapped($root)
