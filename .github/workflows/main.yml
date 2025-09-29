@@ -20,6 +20,7 @@ jobs:
     # Run the job inside the desired PHP container (like Circle's primary docker image)
     container:
       image: ${{ matrix.php_image }}
+      options: --user root
       env:
         MYSQL_HOST: mysql
         UNISH_DB_URL: mysql://root:@mysql
@@ -84,7 +85,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Copy PHP ini
-        run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
+        run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/
 
       - name: Composer install
         run: composer install -n
