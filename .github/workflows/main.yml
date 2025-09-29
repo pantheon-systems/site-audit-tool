@@ -109,8 +109,8 @@ jobs:
       - name: Sanity-check DB connectivity (no SSL)
         run: |
           echo "UNISH_DB_URL=$UNISH_DB_URL"
-          mysql --protocol=tcp -hmariadb -uroot -proot --ssl-mode=DISABLED -e 'SELECT VERSION();'
-          mysql --protocol=tcp -hmariadb -uroot -proot --ssl-mode=DISABLED -e 'SHOW DATABASES;'
+          mysql --protocol=tcp -hmariadb -uroot -proot --skip-ssl -e 'SELECT VERSION();'
+          mysql --protocol=tcp -hmariadb -uroot -proot --skip-ssl -e 'SHOW DATABASES;'
 
       - name: Lint tests and check class
         run: |
