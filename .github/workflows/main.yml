@@ -153,13 +153,15 @@ jobs:
           php -l tests/src/Fixtures.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
 
-      - name: Setup Drupal Test Site
+      - name: Create SUT (install Drupal once)
         run: |
-          # This installs Drupal if it hasn't been already and warms up caches.
-          php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut();"
-          echo "Drupal SUT is ready."
-          # Verify with drush status.
+          php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
           vendor/drush/drush/drush status
+
+      - name: Check SUT path
+        run: |
+          echo "Expecting: $GITHUB_WORKSPACE/sut/web"
+          test -d "$GITHUB_WORKSPACE/sut/web" || (echo "SUT missing; did the scenario install run?" && exit 1)
 
       - name: Ensure SUT is installed
         env:
