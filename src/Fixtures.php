@@ -5,54 +5,44 @@ namespace SiteAudit;
 final class Fixtures
 {
     /** @var self|null */
-    private static $singleton = null;
+    private static $instance;
 
-    private function __construct() {}
+    // Keep the constructor empty and private. No calls to instance() here.
+    private function __construct()
+    {
+    }
 
     /**
-     * Required by FixturesTrait: return a shared instance.
+     * @return self
      */
     public static function instance()
     {
-        if (!self::$singleton) {
-            self::$singleton = new self();
+        if (self::$instance instanceof self) {
+            return self::$instance;
         }
-        return self::$singleton;
+        self::$instance = new self();
+        return self::$instance;
+    }
+
+    // Optional: help in tests
+    public static function reset()
+    {
+        self::$instance = null;
     }
 
     /**
-     * Let instance calls transparently proxy to static methods (e.g. $fx->dbUrl()).
+     * @return string
      */
-    public function __call($name, array $args)
+    public function dbUrl()
     {
-        if (is_callable([self::class, $name])) {
-            return forward_static_call([self::class, $name], ...$args);
-        }
-        throw new \BadMethodCallException("Unknown method: {$name}");
-    }
-
-    /**
-     * Your existing method that computes the DB URL.
-     * (Keep this exactly as you already have it.)
-     */
-    public static function dbUrl(): string
-    {
-        $url = getenv('UNISH_DB_URL');
-        if (!empty($url)) {
-            return $url;
+        // Prefer the pipeline-provided URL.
+        $env = getenv('UNISH_DB_URL');
+        if (is_string($env) && $env !== '') {
+            return $env;
         }
 
-        $host = getenv('MYSQL_HOST') ?: 'mysql';
-        $db   = getenv('MYSQL_DATABASE') ?: 'testsiteaudittooldatabase';
-        $user = getenv('MYSQL_USER') ?: 'root';
-        $pass = getenv('MYSQL_PASSWORD') ?: '';
-
-        return sprintf(
-            'mysql://%s%s@%s/%s',
-            $user,
-            $pass !== '' ? ':' . $pass : '',
-            $host,
-            $db
-        );
+        // Fallback for local runs.
+        $host = getenv('MYSQL_HOST') ?: '127.0.0.1';
+        return sprintf('mysql://root:@%s/testsiteaudittooldatabase', $host);
     }
 }

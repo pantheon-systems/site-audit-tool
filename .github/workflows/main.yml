@@ -150,10 +150,10 @@ jobs:
         run: |
           php -l tests/src/Fixtures.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
-          
-          composer dump-autoload -a
-          php -r "require 'vendor/autoload.php'; var_dump(method_exists('SiteAudit\\Fixtures','instance'));"
-          vendor/bin/phpunit --color=always
 
       - name: Run tests
-        run: composer test
+        run: |
+          composer dump-autoload -a
+          php -r "require 'vendor/autoload.php'; var_dump(method_exists('SiteAudit\\Fixtures','instance'));"
+          php -r "require 'vendor/autoload.php'; \$f=SiteAudit\\Fixtures::instance(); var_dump(is_object(\$f)); echo \$f->dbUrl(), PHP_EOL;"
+          composer test
