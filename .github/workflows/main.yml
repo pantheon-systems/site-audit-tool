@@ -19,9 +19,11 @@ jobs:
 
     # Make UNISH_DB_URL unambiguous (job-level so it shows up in the step env)
     env:
-      UNISH_DB_URL: mysql://root:@mysql/testsiteaudittooldatabase
-      DRUSH_OPTIONS_URI: http://default
       DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
+      DRUSH_OPTIONS_URI: http://default
+      # IMPORTANT: real connection string; no placeholders.
+      UNISH_DB_URL: mysql://root:root@127.0.0.1:${{ job.services.mariadb.ports[3306] }}/testsiteaudittooldatabase?ssl-mode=DISABLED
+      MYSQL_SSL_MODE: DISABLED
 
     # Run the job inside the desired PHP container (like Circle's primary docker image)
     container:
@@ -170,45 +172,35 @@ jobs:
           MYSQL_SSL_MODE: DISABLED
           UNISH_DB_URL: mysql://USER:PASS@HOST:3306/DBNAME?ssl-mode=DISABLED
         run: |
-            set -eux
-  
-            # --- Ensure the mysql/mariadb CLI does NOT try to verify TLS ---
-            # Works for MySQL and modern MariaDB clients.
-            export MYSQL_SSL_MODE=DISABLED
-            
-            # Also add ssl-mode=DISABLED to the DB URL Drush hands to PHP/CLI.
-            DBURL="${UNISH_DB_URL}"
-            if echo "$DBURL" | grep -q '?'; then
-            DBURL="${DBURL}&ssl-mode=DISABLED"
-            else
-            DBURL="${DBURL}?ssl-mode=DISABLED"
-            fi
-            export UNISH_DB_URL="$DBURL"
-            
-            # --- If Drupal looks installed but you want a clean install, reset settings.php ---
-            SITES_DIR="${DRUSH_OPTIONS_ROOT:-$GITHUB_WORKSPACE/sut/web}/sites/default"
-            if [ -f "$SITES_DIR/settings.php" ]; then
-            rm -f "$SITES_DIR/settings.php"
-            fi
-            cp -f "$SITES_DIR/default.settings.php" "$SITES_DIR/settings.php"
-            chmod 644 "$SITES_DIR/settings.php"
-            
-            # --- Make sure the database is empty/exists (ignore errors if it doesn't exist yet) ---
-            vendor/drush/drush/drush sql:drop   -y --db-url="$UNISH_DB_URL" || true
-            vendor/drush/drush/drush sql:create -y --db-url="$UNISH_DB_URL" || true
-            
-            # --- Install if not bootstrapped ---
-            if ! vendor/drush/drush/drush status --fields=bootstrap --format=json | grep -q '"bootstrap":"Successful"'; then
-            vendor/drush/drush/drush si -y \
-            --db-url="$UNISH_DB_URL" \
-            --account-name=admin \
-            --account-pass=admin \
-            --site-name=SUT \
-            standard
-            fi
-            
-            # --- Verify bootstrap & DB connectivity ---
-            vendor/drush/drush/drush status --fields=bootstrap,db-status,db-driver,db-hostname,db-name
+          set -eux
+          
+          # Add ssl-mode=DISABLED only if it's not already present
+          case "$UNISH_DB_URL" in
+              *ssl-mode=*) : ;;
+              *\?*) UNISH_DB_URL="${UNISH_DB_URL}&ssl-mode=DISABLED" ;;
+              *)    UNISH_DB_URL="${UNISH_DB_URL}?ssl-mode=DISABLED" ;;
+          esac
+          export UNISH_DB_URL
+          
+          SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
+          rm -f "$SITES_DIR/settings.php" || true
+          cp -f "$SITES_DIR/default.settings.php" "$SITES_DIR/settings.php"
+          chmod 644 "$SITES_DIR/settings.php"
+          
+          # Make sure DB exists (service has root privileges)
+          mysql -h 127.0.0.1 -uroot -proot -e "DROP DATABASE IF EXISTS testsiteaudittooldatabase; CREATE DATABASE testsiteaudittooldatabase;"
+          
+          # Install if not already bootstrapped
+          if ! vendor/drush/drush/drush status --fields=bootstrap --format=json | grep -q '"bootstrap":"Successful"'; then
+          vendor/drush/drush/drush si -y \
+          --db-url="$UNISH_DB_URL" \
+          --account-name=admin \
+          --account-pass=admin \
+          --site-name=SUT \
+          standard
+          fi
+          
+          vendor/drush/drush/drush status --fields=bootstrap,db-status,db-driver,db-hostname,db-name
 
 
       - name: Run tests
