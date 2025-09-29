@@ -7,25 +7,25 @@ namespace SiteAudit;
  * Test fixtures helper for spinning up a Drupal SUT (system under test).
  *
  * Responsibilities:
- *  - Locate the repo root and SUT root (sut/web).
- *  - Read UNISH_DB_URL and expose it via dbUrl().
- *  - Pre-create the database with --skip-ssl (works with CI MySQL service).
- *  - Perform a Drupal site-install once, then skip on subsequent calls.
- *  - Provide a thin Drush wrapper which throws on non-zero exit codes.
+ * - Locate the repo root and SUT root (sut/web).
+ * - Read UNISH_DB_URL and expose it via dbUrl().
+ * - Pre-create the database with --skip-ssl (works with CI MySQL service).
+ * - Perform a Drupal site-install once, then skip on subsequent calls.
+ * - Provide a thin Drush wrapper which throws on non-zero exit codes.
  */
 final class Fixtures
 {
     /** @var Fixtures|null */
-    private static ?Fixtures $singleton = null;
+    private static $singleton = null;
 
     /** @var string Absolute path to repo root (directory that has composer.json). */
-    private string $projectRoot;
+    private $projectRoot;
 
     /** @var string Absolute path to Drupal root inside the SUT (sut/web). */
-    private string $sutRoot;
+    private $sutRoot;
 
     /** @var string Database URL (e.g., mysql://root:@mysql/testsiteaudittooldatabase). */
-    private string $dbUrl;
+    private $dbUrl;
 
     private function __construct()
     {
@@ -36,7 +36,7 @@ final class Fixtures
     }
 
     /** Singleton accessor used by tests. */
-    public static function instance(): self
+    public static function instance()
     {
         if (!self::$singleton) {
             self::$singleton = new self();
@@ -48,7 +48,7 @@ final class Fixtures
      * Ensure a working SUT. Idempotent: if Drupal is already installed and
      * bootstraps successfully, this is a no-op.
      */
-    public static function createSut(array $options = []): self
+    public static function createSut(array $options = [])
     {
         $self = self::instance();
 
@@ -69,19 +69,19 @@ final class Fixtures
     }
 
     /** Absolute path of the repo root (directory with composer.json). */
-    public function projectRoot(): string
+    public function projectRoot()
     {
         return $this->projectRoot;
     }
 
     /** Absolute path of the Drupal root inside the SUT (sut/web). */
-    public function sutRoot(): string
+    public function sutRoot()
     {
         return $this->sutRoot;
     }
 
     /** The DB URL pulled from UNISH_DB_URL (or default). */
-    public function dbUrl(): string
+    public function dbUrl()
     {
         return $this->dbUrl;
     }
@@ -94,7 +94,7 @@ final class Fixtures
      * @param bool   $throwOnError throw RuntimeException on non-zero exit
      * @return array{0:int,1:string,2:string} [exit, stdout, stderr]
      */
-    public function drush(string $args, bool $quiet = false, bool $throwOnError = true): array
+    public function drush($args, $quiet = false, $throwOnError = true)
     {
         $bin = $this->projectRoot . '/vendor/drush/drush/drush';
 
@@ -110,7 +110,7 @@ final class Fixtures
 
     /* ---------- internals ---------- */
 
-    private function ensureSutExists(): void
+    private function ensureSutExists()
     {
         if (!is_dir($this->sutRoot)) {
             throw new \RuntimeException(
@@ -119,11 +119,11 @@ final class Fixtures
         }
     }
 
-    private function isInstalled(): bool
+    private function isInstalled()
     {
         // Prefer asking Drush; fall back to quick file checks if needed.
         try {
-            [$code, $out] = $this->drush('status --field=bootstrap', true, false);
+            list($code, $out) = $this->drush('status --field=bootstrap', true, false);
             if ($code === 0 && preg_match('/Successful/i', $out)) {
                 return true;
             }
@@ -135,7 +135,7 @@ final class Fixtures
         return is_file($settings);
     }
 
-    private function installDrupal(): void
+    private function installDrupal()
     {
         $args = sprintf(
             "si -y --db-url=%s --account-name=%s --account-pass=%s --site-name=%s standard",
@@ -149,7 +149,7 @@ final class Fixtures
         $this->drush($args, false, true);
     }
 
-    private function prepareDatabase(): void
+    private function prepareDatabase()
     {
         $dsn = $this->parseDbUrl($this->dbUrl);
 
@@ -191,7 +191,7 @@ final class Fixtures
     }
 
     /** @return array{scheme?:string,user?:string,pass?:string,host?:string,port?:int,path?:string} */
-    private function parseDbUrl(string $url): array
+    private function parseDbUrl($url)
     {
         $parts = parse_url($url);
         if ($parts === false) {
@@ -200,7 +200,7 @@ final class Fixtures
         return $parts;
     }
 
-    private function findMysqlCli(): string
+    private function findMysqlCli()
     {
         foreach (['mysql', 'mariadb'] as $bin) {
             $path = trim((string)@shell_exec("command -v {$bin}"));
@@ -217,12 +217,12 @@ final class Fixtures
      * @return array{0:int,1:string,2:string}
      */
     private function run(
-        string $cmd,
-        ?string $cwd = null,
-        bool $quiet = false,
-        bool $throwOnError = true,
-        string $labelForError = 'Command'
-    ): array {
+        $cmd,
+        $cwd = null,
+        $quiet = false,
+        $throwOnError = true,
+        $labelForError = 'Command'
+    ) {
         $spec = [
             1 => ['pipe', 'w'], // stdout
             2 => ['pipe', 'w'], // stderr
