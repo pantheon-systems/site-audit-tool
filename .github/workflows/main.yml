@@ -98,17 +98,39 @@ jobs:
       - name: Wait for MariaDB
         run: $HOME/dockerize -wait tcp://mariadb:3306 -timeout 90s
 
-      - name: Sanity-check DB connectivity (MariaDB, no TLS)
-        run: |
-          echo "UNISH_DB_URL=$UNISH_DB_URL"
-          # The 'mysql' client in wodby images is MariaDB. Use --skip-ssl.
-          mysql --protocol=tcp -hmariadb -uroot -proot --skip-ssl -e 'SELECT VERSION();'
-          mysql --protocol=tcp -hmariadb -uroot -proot --skip-ssl -e 'SHOW DATABASES;'
-
       - name: Lint tests and check class
         run: |
           php -l tests/src/Fixtures.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
+
+      - name: Set runtime env (correct paths + DSN)
+        run: |
+          echo "DRUSH_OPTIONS_ROOT=$GITHUB_WORKSPACE/sut/web" >> "$GITHUB_ENV"
+          echo "UNISH_DB_URL=mysql://root:root@mariadb:3306/testsiteaudittooldatabase" >> "$GITHUB_ENV"
+
+      - name: Make mysql CLI never try SSL (Drush uses this)
+        run: |
+          cat > "$HOME/.my.cnf" <<'EOF'
+          [client]
+          # Works across old/new mysql/mariadb clients
+          skip-ssl
+          protocol=tcp
+          host=mariadb
+          user=root
+          password=root
+          EOF
+          chmod 600 "$HOME/.my.cnf"
+
+      - name: Sanity-check DB connectivity
+        run: |
+          echo "UNISH_DB_URL=$UNISH_DB_URL"
+          mysql -e 'SELECT VERSION();'
+          mysql -e 'SHOW DATABASES;'
+
+      - name: Ensure empty DB (idempotent)
+        run: |
+          mysql -e 'DROP DATABASE IF EXISTS testsiteaudittooldatabase;'
+          mysql -e 'CREATE DATABASE testsiteaudittooldatabase CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;'
 
       - name: Provision SUT (single path; MariaDB only)
         env:
