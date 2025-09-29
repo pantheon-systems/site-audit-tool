@@ -16,23 +16,23 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
 
-    # Single, unambiguous DB URL for everything (note: ssl-mode=DISABLED).
+    # Use the correct path inside the container and a single MariaDB DSN.
     env:
       DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
       DRUSH_OPTIONS_URI: http://default
-      UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase?ssl-mode=DISABLED
+      UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
 
-    # Run the job inside the desired PHP container
     container:
       image: ${{ matrix.php_image }}
       options: --user root
+      # No container-level env override for UNISH_DB_URL; we keep one source of truth.
 
     services:
       mariadb:
         image: mariadb:10.6
         env:
-          MARIADB_ROOT_PASSWORD: root
-          MARIADB_DATABASE: testsiteaudittooldatabase
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testsiteaudittooldatabase
         ports:
           - 3306:3306
         options: >-
@@ -47,27 +47,22 @@ jobs:
             php_image: wodby/php:8.1
             install_cmd: ".scenarios.lock/install drupal9"
             scaffold: "no"
-
           - name: php 8.0 / drupal9
             php_image: wodby/php:8.0
             install_cmd: ".scenarios.lock/install drupal9"
             scaffold: "no"
-
           - name: php 7.3 / drupal9 lowest
             php_image: wodby/php:7.3
             install_cmd: ".scenarios.lock/install drupal9 lowest"
             scaffold: "no"
-
           - name: php 7.3 / drupal8
             php_image: wodby/php:7.3
             install_cmd: ""
             scaffold: "no"
-
           - name: php 7.2 / drush8
             php_image: wodby/php:7.2
             install_cmd: ".scenarios.lock/install drush8"
             scaffold: "no"
-
           - name: php 5.6 / drupal 8.7
             php_image: wodby/php:5.6
             install_cmd: ".scenarios.lock/install php56"
@@ -101,14 +96,12 @@ jobs:
           rm dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
 
       - name: Wait for MariaDB
-        run: $HOME/dockerize -wait tcp://mariadb:3306 -timeout 1m
+        run: $HOME/dockerize -wait tcp://mariadb:3306 -timeout 90s
 
-      - name: Show what PHP sees
-        run: php -r "var_dump(getenv('UNISH_DB_URL'));"
-
-      - name: Sanity-check DB connectivity (no SSL)
+      - name: Sanity-check DB connectivity (MariaDB, no TLS)
         run: |
           echo "UNISH_DB_URL=$UNISH_DB_URL"
+          # The 'mysql' client in wodby images is MariaDB. Use --skip-ssl.
           mysql --protocol=tcp -hmariadb -uroot -proot --skip-ssl -e 'SELECT VERSION();'
           mysql --protocol=tcp -hmariadb -uroot -proot --skip-ssl -e 'SHOW DATABASES;'
 
@@ -117,17 +110,27 @@ jobs:
           php -l tests/src/Fixtures.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
 
-      - name: Provision SUT (single path)
+      - name: Provision SUT (single path; MariaDB only)
+        env:
+          # Make sure the same DSN is used by Drush
+          UNISH_DB_URL: ${{ env.UNISH_DB_URL }}
         run: |
           set -eux
+
           SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
           if [ ! -f "$SITES_DIR/settings.php" ]; then
             cp -f "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php
             chmod 644 "$SITES_DIR"/settings.php
           fi
 
+          # Drop & (re)create the DB to avoid leftover state (ignore failures).
+          vendor/drush/drush/drush sql:drop   -y --db-url="$UNISH_DB_URL" || true
+          vendor/drush/drush/drush sql:create -y --db-url="$UNISH_DB_URL" || true
+
+          # Let the helper install the site (it will no-op if already installed).
           php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
 
+          # Prove we’re bootstrapped and DB-connected.
           vendor/drush/drush/drush status --fields=bootstrap,db-status,db-driver,db-hostname,db-name
 
       - name: Check SUT path
