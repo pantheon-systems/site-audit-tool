@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace SiteAudit;
 
 /**
- * Test fixtures helper for provisioning and stabilizing the SUT (Drupal site).
+ * Provisions a Drupal SUT for tests in a safe, idempotent way.
  *
- * Usage (from CI or locally):
+ * Typical CI usage:
  *   php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
  */
 class Fixtures
@@ -21,25 +21,21 @@ class Fixtures
     /** @var string */
     private $drush;
 
-    /** Sentinel to avoid re-install loops. */
-    private function sentinelPath(): string
-    {
-        return $this->repoRoot . '/.sut-installed';
-    }
-
     public function __construct()
     {
-        // Prefer CI workspace if provided (keeps paths consistent in logs).
-        $workspace = getenv('GITHUB_WORKSPACE');
+        $workspace      = getenv('GITHUB_WORKSPACE') ?: '';
         $this->repoRoot = $workspace ?: realpath(__DIR__ . '/..') ?: getcwd();
         $this->sutRoot  = $this->repoRoot . '/sut';
         $this->webRoot  = $this->sutRoot . '/web';
         $this->drush    = $this->repoRoot . '/vendor/drush/drush/drush';
     }
 
-    /**
-     * Entry point used by CI and tests.
-     */
+    private function sentinelPath(): string
+    {
+        return $this->repoRoot . '/.sut-installed';
+    }
+
+    /** Entry point for CI/tests */
     public static function createSut(): void
     {
         $self = new self();
@@ -47,122 +43,150 @@ class Fixtures
         $self->ensureSutInstalled();
     }
 
-    /**
-     * Ensure DRUSH_OPTIONS_* env is sensible for all spawned processes.
-     */
+    /** Ensure DRUSH_OPTIONS_* and minimal drush.yml are in place. */
     private function prepareEnv(): void
     {
         if (!is_dir($this->webRoot)) {
-            $expected = ($workspace = getenv('GITHUB_WORKSPACE')) ? "$workspace/sut/web" : $this->webRoot;
+            $expected = (getenv('GITHUB_WORKSPACE') ?: $this->repoRoot) . '/sut/web';
             throw new \RuntimeException("Expected Drupal root at {$expected}. Run the scenario install step that provisions 'sut/web' before tests.");
         }
 
-        // Default to http://default if not set (Drush convention in tests).
         if (!getenv('DRUSH_OPTIONS_URI')) {
             putenv('DRUSH_OPTIONS_URI=http://default');
         }
-        // Always set ROOT explicitly (even if also passed via -r).
         if (!getenv('DRUSH_OPTIONS_ROOT')) {
             putenv('DRUSH_OPTIONS_ROOT=' . $this->webRoot);
         }
 
-        // Minimal drush config so local runs behave consistently.
         $drushDir = $this->sutRoot . '/drush';
         if (!is_dir($drushDir)) {
             @mkdir($drushDir, 0777, true);
         }
         $drushYml = $drushDir . '/drush.yml';
         if (!file_exists($drushYml)) {
-            $yml = <<<YML
-options:
-  uri: http://default
-  root: {$this->webRoot}
-YML;
-            @file_put_contents($drushYml, $yml);
+            @file_put_contents($drushYml, "options:\n  uri: http://default\n  root: {$this->webRoot}\n");
         }
     }
 
-    /**
-     * Idempotently ensure the SUT is installed and its container is stable.
-     */
+    /** Idempotently install site, then stabilize container/proxies. */
     private function ensureSutInstalled(): void
     {
-        // If we know we've finished a successful install before, bail early.
-        if (is_file($this->sentinelPath()) && $this->drupalBootstraps()) {
+        // If we’ve already installed and it still bootstraps, we’re done.
+        if (is_file($this->sentinelPath()) && $this->drupalIsInstalledAndBootstrapped()) {
             return;
         }
 
-        // If it already bootstraps, just make sure proxies exist and caches are warm.
-        if ($this->drupalBootstraps()) {
+        // If already installed (DB present & bootstrap OK), just warm things.
+        if ($this->drupalIsInstalledAndBootstrapped()) {
+            // Only generate proxies when DB connection is defined.
             $this->generateProxiesIfMissing();
             $this->execMust($this->drushCmd('cr'), 'drush cr failed');
             @file_put_contents($this->sentinelPath(), (string) time());
             return;
         }
 
-        // Fresh install (profile 'standard' unless overridden).
+        // Fresh install path.
         $dbUrl   = getenv('UNISH_DB_URL');
         $profile = getenv('DRUPAL_INSTALL_PROFILE') ?: 'standard';
 
-        // Ensure public files dir exists; SQLite fallback needs it too.
         $filesDir = $this->webRoot . '/sites/default/files';
         if (!is_dir($filesDir)) {
             @mkdir($filesDir, 0777, true);
         }
 
-        $si = $this->drushCmd(sprintf(
+        $installCmd = $this->drushCmd(sprintf(
             'si %s -y --account-name=admin --account-pass=admin %s',
             escapeshellarg($profile),
             $dbUrl ? '--db-url=' . escapeshellarg($dbUrl) : '--db-url=sqlite://sites/default/files/.ht.sqlite'
         ));
-        $this->execMust($si, 'drush site:install failed');
+        $this->execMust($installCmd, 'drush site:install failed');
 
-        // Generate missing ProxyClass files if Composer was dumped with -a.
+        // Now that Drupal is installed and has a DB, generate proxies.
         $this->generateProxiesIfMissing();
 
-        // Rebuild caches to finalize container and service discovery.
+        // Rebuild caches to finalize container & discovery.
         $this->execMust($this->drushCmd('cr'), 'drush cr failed');
 
-        // Confirm bootstrap once more, then write sentinel.
-        if (!$this->drupalBootstraps()) {
+        if (!$this->drupalIsInstalledAndBootstrapped()) {
             throw new \RuntimeException('Drupal still did not bootstrap after install.');
         }
         @file_put_contents($this->sentinelPath(), (string) time());
     }
 
-    /**
-     * Drush command builder with explicit -r to avoid env-only reliance.
-     */
+    /** Build a consistent Drush command with explicit root. */
     private function drushCmd(string $args): string
     {
-        $bin = escapeshellarg($this->drush);
+        $bin  = escapeshellarg($this->drush);
         $root = escapeshellarg($this->webRoot);
-        // Always run with --no-interaction and explicit root; let args supply anything else.
         return "{$bin} --no-interaction -r {$root} {$args}";
     }
 
     /**
-     * Does "drush status" return success (site bootstrapped)?
+     * Robust check that Drupal is installed *and* can fully bootstrap.
+     * Plain `drush status` can return 0 before DB is connected; we verify:
+     *  - settings.php exists and has a DB array,
+     *  - drush status reports a successful bootstrap (JSON),
+     *  - and at least one DB field is present.
      */
-    private function drupalBootstraps(): bool
+    private function drupalIsInstalledAndBootstrapped(): bool
     {
-        [$code,] = $this->exec($this->drushCmd('status --format=json'));
-        return $code === 0;
+        if (!$this->settingsHasDb()) {
+            return false;
+        }
+
+        [$code, $out] = $this->exec($this->drushCmd('status --format=json'));
+        if ($code !== 0) {
+            return false;
+        }
+
+        $data = json_decode($out, true);
+        if (!is_array($data)) {
+            return false;
+        }
+
+        // Drush 10 returns e.g. "bootstrap": "Successful".
+        $bootstrap = $data['bootstrap'] ?? $data['bootstrap-message'] ?? '';
+        $okBootstrap = is_string($bootstrap) && stripos($bootstrap, 'success') !== false;
+
+        $hasDb = !empty($data['db-name']) || !empty($data['db-driver']) || !empty($data['database']) || !empty($data['db-status']);
+
+        return $okBootstrap && $hasDb;
+    }
+
+    /** True if sites/default/settings.php defines $databases (or DATABASE_URL). */
+    private function settingsHasDb(): bool
+    {
+        $settings = $this->webRoot . '/sites/default/settings.php';
+        if (!is_file($settings)) {
+            return false;
+        }
+        $txt = @file_get_contents($settings);
+        if ($txt === false) {
+            return false;
+        }
+        if (preg_match('/\$databases\s*=\s*\[.+\];/s', $txt)) {
+            return true;
+        }
+        // Allow env-based setups that keep DB config indirect.
+        return strpos($txt, 'DATABASE_URL') !== false;
     }
 
     /**
-     * Generate known missing proxy classes when Composer's autoloader is authoritative (-a).
-     * Safe to run multiple times; it only creates files that aren't there yet.
+     * Generate known proxy classes, but **only after** DB exists.
+     * This avoids: ConnectionNotDefinedException during kernel boot.
      */
     private function generateProxiesIfMissing(): void
     {
-        // Class => relative source directory inside core/modules/**/src
+        if (!$this->settingsHasDb()) {
+            // Nothing to do yet; will be re-run after install.
+            return;
+        }
+
         $targets = [
-            // Core + contrib complaints commonly seen on clean installs (D9.x).
-            'Drupal\\field\\FieldUninstallValidator'           => 'core/modules/field/src',
-            'Drupal\\filter\\FilterUninstallValidator'         => 'core/modules/filter/src',
-            'Drupal\\node\\ParamConverter\\NodePreviewConverter' => 'core/modules/node/src',
-            'Drupal\\views_ui\\ParamConverter\\ViewUIConverter'  => 'core/modules/views_ui/src',
+            'Drupal\\field\\FieldUninstallValidator'              => 'core/modules/field/src',
+            'Drupal\\filter\\FilterUninstallValidator'            => 'core/modules/filter/src',
+            'Drupal\\node\\ParamConverter\\NodePreviewConverter'  => 'core/modules/node/src',
+            'Drupal\\views_ui\\ParamConverter\\ViewUIConverter'   => 'core/modules/views_ui/src',
         ];
 
         foreach ($targets as $class => $srcDir) {
@@ -170,43 +194,37 @@ YML;
             if (is_file($proxyPath)) {
                 continue;
             }
+
             $cmd = sprintf(
                 'php %s %s %s',
                 escapeshellarg($this->webRoot . '/core/scripts/generate-proxy-class.php'),
                 escapeshellarg($class),
                 escapeshellarg($srcDir)
             );
-            // Run from web root so relative paths in the script are correct.
+
+            // Run in DRUPAL_ROOT to match the script’s relative path expectations.
             $this->execMust($cmd, "Proxy generation failed for {$class}", $this->webRoot);
         }
     }
 
-    /**
-     * Calculate ProxyClass file path for a given FQCN.
-     */
+    /** Calculate expected ProxyClass file path from FQCN. */
     private function proxyPathFor(string $fqcn): string
     {
-        // Example: Drupal\field\FieldUninstallValidator
-        // -> core/modules/field/src/ProxyClass/FieldUninstallValidator.php
-        if (strpos($fqcn, 'Drupal\\') !== 0) {
-            return $this->webRoot . '/core'; // harmless default
-        }
-        $parts = explode('\\', $fqcn);               // ['Drupal','field','FieldUninstallValidator']
-        $module = $parts[1];                         // 'field'
-        $class  = end($parts);                       // 'FieldUninstallValidator'
+        // e.g. Drupal\field\FieldUninstallValidator
+        $parts  = explode('\\', $fqcn);
+        $module = $parts[1] ?? '';
+        $class  = $parts[\count($parts) - 1] ?? '';
         return $this->webRoot . '/core/modules/' . $module . '/src/ProxyClass/' . $class . '.php';
     }
 
-    /**
-     * Execute a shell command. Returns [exitCode, output].
-     */
+    /** Execute a command and return [exitCode, combinedOutput]. */
     private function exec(string $cmd, ?string $cwd = null): array
     {
-        $descriptors = [
+        $desc = [
             1 => ['pipe', 'w'], // stdout
             2 => ['pipe', 'w'], // stderr
         ];
-        $proc = proc_open($cmd, $descriptors, $pipes, $cwd ?: $this->repoRoot, $this->inheritedEnv());
+        $proc = proc_open($cmd, $desc, $pipes, $cwd ?: $this->repoRoot, $this->inheritedEnv());
         if (!\is_resource($proc)) {
             return [1, 'Failed to start process'];
         }
@@ -216,24 +234,20 @@ YML;
             @fclose($p);
         }
         $code = proc_close($proc);
-        $out = trim($stdout . ($stderr ? "\n" . $stderr : ''));
+        $out  = trim((string) $stdout . ($stderr ? "\n" . (string) $stderr : ''));
         return [$code, $out];
     }
 
-    /**
-     * Execute a shell command and throw on non-zero exit.
-     */
+    /** Execute and throw on non-zero exit. */
     private function execMust(string $cmd, string $failMsg, ?string $cwd = null): void
     {
         [$code, $out] = $this->exec($cmd, $cwd);
         if ($code !== 0) {
-            throw new \RuntimeException($failMsg . "\n\nExit code: {$code}\nCommand: {$cmd}\nOutput:\n" . $out);
+            throw new \RuntimeException($failMsg . "\n\nExit code: {$code}\nCommand: {$cmd}\nOutput:\n{$out}");
         }
     }
 
-    /**
-     * Inherit important env (esp. DRUSH_OPTIONS_* and DB URL) for subprocesses.
-     */
+    /** Pass through the important env vars to sub-processes. */
     private function inheritedEnv(): array
     {
         $env = [];
@@ -244,10 +258,10 @@ YML;
                      'COMPOSER_HOME',
                      'PATH',
                      'HOME',
-                 ] as $key) {
-            $val = getenv($key);
-            if ($val !== false) {
-                $env[$key] = $val;
+                 ] as $k) {
+            $v = getenv($k);
+            if ($v !== false) {
+                $env[$k] = $v;
             }
         }
         return $env;
