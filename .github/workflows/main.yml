@@ -16,16 +16,9 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
 
-    # Use the correct path inside the container and a single MariaDB DSN.
-    env:
-      DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
-      DRUSH_OPTIONS_URI: http://default
-      UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
-
     container:
       image: ${{ matrix.php_image }}
       options: --user root
-      # No container-level env override for UNISH_DB_URL; we keep one source of truth.
 
     services:
       mariadb:
@@ -75,10 +68,13 @@ jobs:
       - name: Mark workspace as safe for Git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
+      - name: Force Composer to use dist everywhere
+        run: composer config -g preferred-install dist
+
       - name: Copy PHP ini
         run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/
 
-      - name: Composer install
+      - name: Composer install (repo)
         run: composer install -n
 
       - name: Scenario install (if any)
@@ -96,63 +92,43 @@ jobs:
           rm dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
 
       - name: Wait for MariaDB
-        run: $HOME/dockerize -wait tcp://mariadb:3306 -timeout 90s
+        run: $HOME/dockerize -wait tcp://mariadb:3306 -timeout 60s
+
+      - name: Set runtime env (correct paths & DSN)
+        run: |
+          echo "DRUSH_OPTIONS_ROOT=$GITHUB_WORKSPACE/sut/web" >> "$GITHUB_ENV"
+          echo "DRUSH_OPTIONS_URI=http://default" >> "$GITHUB_ENV"
+          echo "UNISH_DB_URL=mysql://root:root@mariadb:3306/testsiteaudittooldatabase" >> "$GITHUB_ENV"
+
+      - name: Make mysql CLI avoid TLS, and precreate DB
+        run: |
+          cat > "$HOME/.my.cnf" <<'EOF'
+          [client]
+          host=mariadb
+          user=root
+          password=root
+          protocol=tcp
+          skip-ssl
+          EOF
+          chmod 600 "$HOME/.my.cnf"
+          mysql -e 'DROP DATABASE IF EXISTS testsiteaudittooldatabase;'
+          mysql -e 'CREATE DATABASE testsiteaudittooldatabase CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;'
+          mysql -e 'SHOW DATABASES;'
 
       - name: Lint tests and check class
         run: |
           php -l tests/src/Fixtures.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
 
-      - name: Set runtime env (correct paths + DSN)
-        run: |
-          echo "DRUSH_OPTIONS_ROOT=$GITHUB_WORKSPACE/sut/web" >> "$GITHUB_ENV"
-          echo "UNISH_DB_URL=mysql://root:root@mariadb:3306/testsiteaudittooldatabase" >> "$GITHUB_ENV"
-
-      - name: Make mysql CLI never try SSL (Drush uses this)
-        run: |
-          cat > "$HOME/.my.cnf" <<'EOF'
-          [client]
-          # Works across old/new mysql/mariadb clients
-          skip-ssl
-          protocol=tcp
-          host=mariadb
-          user=root
-          password=root
-          EOF
-          chmod 600 "$HOME/.my.cnf"
-
-      - name: Sanity-check DB connectivity
-        run: |
-          echo "UNISH_DB_URL=$UNISH_DB_URL"
-          mysql -e 'SELECT VERSION();'
-          mysql -e 'SHOW DATABASES;'
-
-      - name: Ensure empty DB (idempotent)
-        run: |
-          mysql -e 'DROP DATABASE IF EXISTS testsiteaudittooldatabase;'
-          mysql -e 'CREATE DATABASE testsiteaudittooldatabase CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;'
-
-      - name: Provision SUT (single path; MariaDB only)
-        env:
-          # Make sure the same DSN is used by Drush
-          UNISH_DB_URL: ${{ env.UNISH_DB_URL }}
+      - name: Provision SUT (single path)
         run: |
           set -eux
-
           SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
           if [ ! -f "$SITES_DIR/settings.php" ]; then
             cp -f "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php
             chmod 644 "$SITES_DIR"/settings.php
           fi
-
-          # Drop & (re)create the DB to avoid leftover state (ignore failures).
-          vendor/drush/drush/drush sql:drop   -y --db-url="$UNISH_DB_URL" || true
-          vendor/drush/drush/drush sql:create -y --db-url="$UNISH_DB_URL" || true
-
-          # Let the helper install the site (it will no-op if already installed).
           php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
-
-          # Prove we’re bootstrapped and DB-connected.
           vendor/drush/drush/drush status --fields=bootstrap,db-status,db-driver,db-hostname,db-name
 
       - name: Check SUT path
