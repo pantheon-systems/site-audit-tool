@@ -20,8 +20,8 @@ jobs:
     # Make UNISH_DB_URL unambiguous (job-level so it shows up in the step env)
     env:
       UNISH_DB_URL: mysql://root:@mysql/testsiteaudittooldatabase
-      DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
       DRUSH_OPTIONS_URI: http://default
+      DRUSH_OPTIONS_ROOT: $GITHUB_WORKSPACE/sut/web
 
     # Run the job inside the desired PHP container (like Circle's primary docker image)
     container:
@@ -159,10 +159,11 @@ jobs:
           php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
           vendor/drush/drush/drush status
 
-      - name: Drush status (probe)
+      - name: Prepare SUT
         run: |
-          php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"\nSUT ready\n\";";
+          php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
           vendor/drush/drush/drush status
+
 
       - name: Run tests
         run: |
