@@ -1,0 +1,110 @@
+name: Site Audit Tool - Tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # Mirrors CircleCI defaults
+  TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+  TERM: dumb
+  PHPUNIT_ARGS: ""
+  PHP_SENDMAIL_PATH: /dev/null
+  DOCKERIZE_VERSION: v0.6.1
+
+jobs:
+  tests:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+
+    # Run the job inside the desired PHP container (like Circle's primary docker image)
+    container:
+      image: ${{ matrix.php_image }}
+      env:
+        MYSQL_HOST: mysql
+        UNISH_DB_URL: mysql://root:@mysql
+
+    services:
+      # MySQL service (replaces Circle's secondary docker image)
+      mysql:
+        image: cimg/mysql:5.7.36
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        # Healthcheck so we can wait reliably
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+        ports:
+          - 3306:3306
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # test_81_drupal9
+          - name: php 8.1 / drupal9
+            php_image: wodby/php:8.1
+            install_cmd: ".scenarios.lock/install drupal9"
+            scaffold: "no"
+
+          # test_80_drupal9
+          - name: php 8.0 / drupal9
+            php_image: wodby/php:8.0
+            install_cmd: ".scenarios.lock/install drupal9"
+            scaffold: "no"
+
+          # test_73_drupal9
+          - name: php 7.3 / drupal9 lowest
+            php_image: wodby/php:7.3
+            install_cmd: ".scenarios.lock/install drupal9 lowest"
+            scaffold: "no"
+
+          # test_73_drupal8
+          - name: php 7.3 / drupal8
+            php_image: wodby/php:7.3
+            install_cmd: ""          # none in Circle; just composer install/test
+            scaffold: "no"
+
+          # test_72_drush8
+          - name: php 7.2 / drush8
+            php_image: wodby/php:7.2
+            install_cmd: ".scenarios.lock/install drush8"
+            scaffold: "no"
+
+          # test_56_drupal87
+          - name: php 5.6 / drupal 8.7
+            php_image: wodby/php:5.6
+            install_cmd: ".scenarios.lock/install php56"
+            scaffold: "yes"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy PHP ini
+        run: cp .circleci/zz-php.ini /usr/local/etc/php/conf.d/
+
+      - name: Composer install
+        run: composer install -n
+
+      - name: Scenario install (if any)
+        if: ${{ matrix.install_cmd != '' }}
+        run: ${{ matrix.install_cmd }}
+
+      - name: Drupal scaffold (only for php 5.6 job)
+        if: ${{ matrix.scaffold == 'yes' }}
+        run: composer drupal:scaffold
+
+      - name: Install dockerize (for MySQL wait)
+        run: |
+          wget -q https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
+          tar -C "$HOME" -xzf dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
+          rm dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
+
+      - name: Wait for MySQL
+        run: $HOME/dockerize -wait tcp://mysql:3306 -timeout 1m
+
+      - name: Run tests
+        run: composer test
