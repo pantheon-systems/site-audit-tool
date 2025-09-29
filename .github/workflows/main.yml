@@ -146,5 +146,10 @@ jobs:
           sleep 1
           mysql -h 127.0.0.1 -uroot --skip-ssl -e 'SELECT VERSION();'
 
+      - name: Lint tests and check class
+        run: |
+          php -l tests/src/Fixtures.php
+          php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
+
       - name: Run tests
         run: composer test
