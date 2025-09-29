@@ -154,6 +154,6 @@ jobs:
       - name: Run tests
         run: |
           composer dump-autoload -a
-          php -r "require 'vendor/autoload.php'; var_dump(method_exists('SiteAudit\\Fixtures','instance'));"
-          php -r "require 'vendor/autoload.php'; \$f=SiteAudit\\Fixtures::instance(); var_dump(is_object(\$f)); echo \$f->dbUrl(), PHP_EOL;"
+          php -r "require 'vendor/autoload.php'; var_dump(method_exists('SiteAudit\\Fixtures','createSut'));"
+          vendor/bin/phpunit --colors=always
           composer test
