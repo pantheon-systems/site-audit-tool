@@ -1,297 +1,266 @@
 <?php
-
-declare(strict_types=1);
+/**
+ * Minimal, PHP 5.6–compatible fixtures helper used by tests.
+ *
+ * Responsibilities:
+ *  - Provide Fixtures::instance() singleton (used by tests).
+ *  - Provide Fixtures::createSut() entrypoint for CI step.
+ *  - Ensure Drupal is installed and bootstrapped against UNISH_DB_URL.
+ *  - Provide ->drush($cmd) helper to run Drush commands from tests.
+ *
+ * Notes:
+ *  - No typed properties / return types (keeps PHP 5.6 compatible).
+ *  - No proxy generation here (avoids DB/bootstrap recursion).
+ */
 
 namespace SiteAudit;
 
-/**
- * Provisions a Drupal SUT for tests in a safe, idempotent way.
- *
- * Typical CI usage:
- *   php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
- */
 class Fixtures
 {
-    /** @var string */
-    private $repoRoot;
-    /** @var string */
-    private $sutRoot;
-    /** @var string */
-    private $webRoot;
-    /** @var string */
-    private $drush;
+    /** @var Fixtures|null */
+    private static $instance = null;
 
-    public function __construct()
+    /** @var string Absolute path to the repo root. */
+    private $projectRoot;
+
+    /** @var string Absolute path to Drupal root (sut/web). */
+    private $drupalRoot;
+
+    /** @var string Absolute path to the drush executable. */
+    private $drushBin;
+
+    private function __construct()
     {
-        $workspace      = getenv('GITHUB_WORKSPACE') ?: '';
-        $this->repoRoot = $workspace ?: realpath(__DIR__ . '/..') ?: getcwd();
-        $this->sutRoot  = $this->repoRoot . '/sut';
-        $this->webRoot  = $this->sutRoot . '/web';
-        $this->drush    = $this->repoRoot . '/vendor/drush/drush/drush';
-    }
-
-    private function sentinelPath(): string
-    {
-        return $this->repoRoot . '/.sut-installed';
-    }
-
-    /** Entry point for CI/tests */
-    public static function createSut(): void
-    {
-        $self = new self();
-        $self->prepareEnv();
-        $self->ensureSutInstalled();
-    }
-
-    /** Ensure DRUSH_OPTIONS_* and minimal drush.yml are in place. */
-    private function prepareEnv(): void
-    {
-        if (!is_dir($this->webRoot)) {
-            $expected = (getenv('GITHUB_WORKSPACE') ?: $this->repoRoot) . '/sut/web';
-            throw new \RuntimeException("Expected Drupal root at {$expected}. Run the scenario install step that provisions 'sut/web' before tests.");
+        $workspace = getenv('GITHUB_WORKSPACE');
+        if (!$workspace) {
+            $workspace = getcwd();
         }
+        $this->projectRoot = rtrim($workspace, '/');
 
-        if (!getenv('DRUSH_OPTIONS_URI')) {
-            putenv('DRUSH_OPTIONS_URI=http://default');
+        $root = getenv('DRUSH_OPTIONS_ROOT');
+        if (!$root) {
+            $root = $this->projectRoot . '/sut/web';
         }
-        if (!getenv('DRUSH_OPTIONS_ROOT')) {
-            putenv('DRUSH_OPTIONS_ROOT=' . $this->webRoot);
-        }
+        $this->drupalRoot = rtrim($root, '/');
 
-        $drushDir = $this->sutRoot . '/drush';
-        if (!is_dir($drushDir)) {
-            @mkdir($drushDir, 0777, true);
-        }
-        $drushYml = $drushDir . '/drush.yml';
-        if (!file_exists($drushYml)) {
-            @file_put_contents($drushYml, "options:\n  uri: http://default\n  root: {$this->webRoot}\n");
-        }
-    }
-
-    /** Idempotently install site, then stabilize container/proxies. */
-    private function ensureSutInstalled(): void
-    {
-        // Already installed and healthy?
-        if (is_file($this->sentinelPath()) && $this->drupalIsInstalledAndBootstrapped()) {
-            return;
-        }
-
-        // If it looks installed (DB present) and bootstraps, just warm things.
-        if ($this->drupalIsInstalledAndBootstrapped()) {
-            $this->generateProxiesIfMissing();
-            $this->execMust($this->drushCmd('cr'), 'drush cr failed');
-            @file_put_contents($this->sentinelPath(), (string) time());
-            return;
-        }
-
-        // Fresh install path.
-        $dbUrl   = getenv('UNISH_DB_URL');
-        $profile = getenv('DRUPAL_INSTALL_PROFILE') ?: 'standard';
-
-        $filesDir = $this->webRoot . '/sites/default/files';
-        if (!is_dir($filesDir)) {
-            @mkdir($filesDir, 0777, true);
-        }
-
-        $installCmd = $this->drushCmd(sprintf(
-            'si %s -y --account-name=admin --account-pass=admin %s',
-            escapeshellarg($profile),
-            $dbUrl ? '--db-url=' . escapeshellarg($dbUrl) : '--db-url=sqlite://sites/default/files/.ht.sqlite'
-        ));
-        $this->execMust($installCmd, 'drush site:install failed');
-
-        // At this point a DB is configured and bootstrap should succeed.
-        // Only now generate proxies (these scripts boot the kernel).
-        $this->generateProxiesIfMissing();
-
-        // Rebuild caches to finalize container & discovery.
-        $this->execMust($this->drushCmd('cr'), 'drush cr failed');
-
-        // Be tolerant: if status is 0 and DB is present, consider it bootstrapped.
-        if (!$this->drupalIsInstalledAndBootstrapped()) {
-            // Don’t fail hard—leave a sentinel so we don't loop.
-            @file_put_contents($this->sentinelPath(), (string) time());
-        } else {
-            @file_put_contents($this->sentinelPath(), (string) time());
-        }
-    }
-
-    /** Build a consistent Drush command with explicit root. */
-    private function drushCmd(string $args): string
-    {
-        $bin  = escapeshellarg($this->drush);
-        $root = escapeshellarg($this->webRoot);
-        return "{$bin} --no-interaction -r {$root} {$args}";
+        $this->drushBin = $this->projectRoot . '/vendor/drush/drush/drush';
     }
 
     /**
-     * Check that Drupal is installed *and* can fully bootstrap.
+     * Singleton accessor used by tests.
      *
-     * Rules (in order):
-     *  1) settings.php must indicate a DB (or DATABASE_URL).
-     *  2) `drush status` exit code === 0 → success (Drush 10 is reliable here).
-     *  3) Fallback: `drush status bootstrap --format=string` contains "success".
-     *  4) Fallback: `drush ev "echo \\Drupal::VERSION;"` returns a version string.
+     * @return Fixtures
      */
-    private function drupalIsInstalledAndBootstrapped(): bool
+    public static function instance()
     {
-        if (!$this->settingsHasDb()) {
-            return false;
+        if (!self::$instance) {
+            self::$instance = new self();
         }
-
-        // Primary: exit code only (Drush handles bootstrap).
-        [$codeStatus, ] = $this->exec($this->drushCmd('status'));
-        if ($codeStatus === 0) {
-            return true;
-        }
-
-        // Fallback 1: explicit bootstrap field.
-        [$codeBoot, $outBoot] = $this->exec($this->drushCmd('status bootstrap --format=string'));
-        if ($codeBoot === 0 && stripos(trim($outBoot), 'success') !== false) {
-            return true;
-        }
-
-        // Fallback 2: try to touch the container.
-        [$codeEv, $outEv] = $this->exec($this->drushCmd('ev "echo \\Drupal::VERSION;"'));
-        if ($codeEv === 0 && preg_match('/^\d+\.\d+\.\d+/', trim($outEv))) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /** True if sites/default/settings.php defines $databases (or DATABASE_URL). */
-    private function settingsHasDb(): bool
-    {
-        $settings = $this->webRoot . '/sites/default/settings.php';
-        if (!is_file($settings)) {
-            return false;
-        }
-        $txt = @file_get_contents($settings);
-        if ($txt === false) {
-            return false;
-        }
-        if (preg_match('/\$databases\s*=\s*\[.+\];/s', $txt)) {
-            return true;
-        }
-        // Allow env-based setups that keep DB config indirect.
-        return strpos($txt, 'DATABASE_URL') !== false;
+        return self::$instance;
     }
 
     /**
-     * Generate known proxy classes, but **only after** DB exists and
-     * bootstrap succeeds—to avoid ConnectionNotDefinedException.
+     * CI entrypoint: ensure SUT exists and Drupal is installed.
      */
-    private function generateProxiesIfMissing(): void
+    public static function createSut()
     {
-        if (!$this->settingsHasDb()) {
-            return;
+        self::instance()->ensureSutInstalled();
+    }
+
+    /**
+     * Path to Drupal root.
+     *
+     * @return string
+     */
+    public function root()
+    {
+        return $this->drupalRoot;
+    }
+
+    /**
+     * Run a Drush command with our standard environment.
+     *
+     * Example: $this->drush('status');
+     *          $this->drush('pm:enable views -y');
+     *
+     * @param string|array $cmd
+     * @param bool $mustSucceed
+     * @return array [exitCode, stdout, stderr]
+     */
+    public function drush($cmd, $mustSucceed = true)
+    {
+        if (is_array($cmd)) {
+            $cmd = implode(' ', $cmd);
         }
-        // Quick sanity: ensure bootstrap before running generator script.
-        [$ok, ] = $this->exec($this->drushCmd('status'));
-        if ($ok !== 0) {
-            return; // will be retried after cache rebuild/next call
+        $full = escapeshellcmd($this->drushBin) . ' --no-interaction ' . $cmd;
+        return $this->exec($full, $mustSucceed, $this->projectRoot, $this->drushEnv());
+    }
+
+    /**
+     * Ensure Drupal exists and is bootstrapped. Install if needed.
+     */
+    private function ensureSutInstalled()
+    {
+        // Sanity: Drupal root must exist (created by scenario/scaffold step).
+        if (!is_dir($this->drupalRoot) || !is_dir($this->drupalRoot . '/core')) {
+            throw new \RuntimeException("Expected Drupal root at {$this->drupalRoot}. Run the scenario install step that provisions 'sut/web' before tests.");
         }
 
-        $targets = [
-            'Drupal\\field\\FieldUninstallValidator'              => 'core/modules/field/src',
-            'Drupal\\filter\\FilterUninstallValidator'            => 'core/modules/filter/src',
-            'Drupal\\node\\ParamConverter\\NodePreviewConverter'  => 'core/modules/node/src',
-            'Drupal\\views_ui\\ParamConverter\\ViewUIConverter'   => 'core/modules/views_ui/src',
-        ];
+        // Ensure settings.php exists (Drush sometimes needs it present).
+        $sitesDefault = $this->drupalRoot . '/sites/default';
+        $settingsPhp  = $sitesDefault . '/settings.php';
+        $defaultPhp   = $sitesDefault . '/default.settings.php';
+        if (!file_exists($settingsPhp) && file_exists($defaultPhp)) {
+            if (!@copy($defaultPhp, $settingsPhp)) {
+                throw new \RuntimeException("Unable to create settings.php in {$sitesDefault}");
+            }
+            @chmod($settingsPhp, 0644);
+        }
 
-        foreach ($targets as $class => $srcDir) {
-            $proxyPath = $this->proxyPathFor($class);
-            if (is_file($proxyPath)) {
-                continue;
+        // Are we already bootstrapped?
+        $ok = $this->isBootstrapped();
+        if (!$ok) {
+            // Install Drupal (standard profile) using UNISH_DB_URL.
+            $dbUrl = getenv('UNISH_DB_URL');
+            if (!$dbUrl) {
+                // Fallback matches our GH Actions job defaults.
+                $dbUrl = 'mysql://root:root@mysql:3306/testsiteaudittooldatabase';
             }
 
-            $cmd = sprintf(
-                'php %s %s %s',
-                escapeshellarg($this->webRoot . '/core/scripts/generate-proxy-class.php'),
-                escapeshellarg($class),
-                escapeshellarg($srcDir)
-            );
+            // Best-effort create DB (ignore failures; 'si' can still proceed if DB exists).
+            $this->drush('sql:create -y --db-url=' . $this->escArg($dbUrl), false);
 
-            // Run in DRUPAL_ROOT to match the script’s relative path expectations.
-            $this->execMust($cmd, "Proxy generation failed for {$class}", $this->webRoot);
+            // Site install.
+            $si = 'si -y --db-url=' . $this->escArg($dbUrl)
+                . ' --account-name=admin --account-pass=admin'
+                . ' --site-name=' . $this->escArg('SUT')
+                . ' standard';
+            $this->drush($si, true);
+
+            // Re-check bootstrap.
+            if (!$this->isBootstrapped()) {
+                throw new \RuntimeException('Drupal still did not bootstrap after install.');
+            }
         }
     }
 
-    /** Calculate expected ProxyClass file path from FQCN. */
-    private function proxyPathFor(string $fqcn): string
+    /**
+     * Return true if "drush status" reports bootstrap Successful.
+     *
+     * @return bool
+     */
+    private function isBootstrapped()
     {
-        // e.g. Drupal\field\FieldUninstallValidator
-        $parts  = explode('\\', $fqcn);
-        $module = $parts[1] ?? '';
-        $class  = $parts[\count($parts) - 1] ?? '';
-        return $this->webRoot . '/core/modules/' . $module . '/src/ProxyClass/' . $class . '.php';
+        $res = $this->drush('status --fields=bootstrap --format=json', false);
+        if ($res[0] !== 0) {
+            return false;
+        }
+        $json = json_decode($res[1], true);
+        if (!is_array($json)) {
+            return false;
+        }
+        // Drush >=10: {"bootstrap":"Successful"}
+        // Drush 8 sometimes prints keys differently; be tolerant.
+        $val = null;
+        if (isset($json['bootstrap'])) {
+            $val = $json['bootstrap'];
+        } elseif (isset($json['Bootstrap'])) {
+            $val = $json['Bootstrap'];
+        }
+        return is_string($val) && stripos($val, 'Successful') !== false;
     }
 
-    /** Execute a command and return [exitCode, combinedOutput]. */
-    private function exec(string $cmd, ?string $cwd = null): array
+    /**
+     * Build a small, clean env for Drush.
+     *
+     * @return array
+     */
+    private function drushEnv()
     {
-        $desc = [
-            0 => ['pipe', 'r'], // stdin
-            1 => ['pipe', 'w'], // stdout
-            2 => ['pipe', 'w'], // stderr
-        ];
+        $env = array();
 
-        $proc = @proc_open($cmd, $desc, $pipes, $cwd ?: $this->repoRoot, $this->inheritedEnv());
-        if (!\is_resource($proc)) {
-            return [1, 'Failed to start process'];
-        }
-
-        // Close STDIN immediately.
-        if (isset($pipes[0]) && \is_resource($pipes[0])) {
-            @fclose($pipes[0]);
-        }
-
-        $stdout = '';
-        $stderr = '';
-
-        if (isset($pipes[1]) && \is_resource($pipes[1])) {
-            $stdout = stream_get_contents($pipes[1]) ?: '';
-            @fclose($pipes[1]);
-        }
-
-        if (isset($pipes[2]) && \is_resource($pipes[2])) {
-            $stderr = stream_get_contents($pipes[2]) ?: '';
-            @fclose($pipes[2]);
-        }
-
-        $code = proc_close($proc);
-        $out  = trim($stdout . ($stderr !== '' ? "\n" . $stderr : ''));
-
-        return [$code, $out];
-    }
-
-    /** Execute and throw on non-zero exit. */
-    private function execMust(string $cmd, string $failMsg, ?string $cwd = null): void
-    {
-        [$code, $out] = $this->exec($cmd, $cwd);
-        if ($code !== 0) {
-            throw new \RuntimeException($failMsg . "\n\nExit code: {$code}\nCommand: {$cmd}\nOutput:\n{$out}");
-        }
-    }
-
-    /** Pass through the important env vars to sub-processes. */
-    private function inheritedEnv(): array
-    {
-        $env = [];
-        foreach ([
-                     'DRUSH_OPTIONS_ROOT',
-                     'DRUSH_OPTIONS_URI',
-                     'UNISH_DB_URL',
-                     'COMPOSER_HOME',
-                     'PATH',
-                     'HOME',
-                 ] as $k) {
+        // Preserve PATH and HOME from the container.
+        foreach (array('PATH', 'HOME') as $k) {
             $v = getenv($k);
             if ($v !== false) {
                 $env[$k] = $v;
             }
         }
+
+        // Drush expects these.
+        $env['DRUSH_OPTIONS_ROOT'] = $this->drupalRoot;
+        $env['DRUSH_OPTIONS_URI']  = getenv('DRUSH_OPTIONS_URI') ? getenv('DRUSH_OPTIONS_URI') : 'http://default';
+
+        // Database URL for install/commands that rely on it.
+        $db = getenv('UNISH_DB_URL');
+        if ($db !== false && $db !== null && $db !== '') {
+            $env['UNISH_DB_URL'] = $db;
+        }
+
         return $env;
+    }
+
+    /**
+     * Execute a shell command with optional strict failure.
+     *
+     * @param string      $command
+     * @param bool        $mustSucceed
+     * @param string|null $cwd
+     * @param array|null  $extraEnv
+     * @return array [exitCode, stdout, stderr]
+     */
+    private function exec($command, $mustSucceed = true, $cwd = null, $extraEnv = null)
+    {
+        $descriptors = array(
+            1 => array('pipe', 'w'), // stdout
+            2 => array('pipe', 'w'), // stderr
+        );
+
+        $envPairs = array();
+        if (is_array($extraEnv)) {
+            foreach ($extraEnv as $k => $v) {
+                $envPairs[] = $k . '=' . $v;
+            }
+        }
+
+        $proc = proc_open($command, $descriptors, $pipes, $cwd ? $cwd : $this->projectRoot, $envPairs);
+        if (!is_resource($proc)) {
+            throw new \RuntimeException("Failed to start process: " . $command);
+        }
+
+        $stdout = '';
+        $stderr = '';
+
+        if (isset($pipes[1]) && is_resource($pipes[1])) {
+            $stdout = stream_get_contents($pipes[1]);
+            fclose($pipes[1]);
+        }
+        if (isset($pipes[2]) && is_resource($pipes[2])) {
+            $stderr = stream_get_contents($pipes[2]);
+            fclose($pipes[2]);
+        }
+
+        $code = proc_close($proc);
+
+        if ($mustSucceed && $code !== 0) {
+            $msg  = "Unexpected exit code {$code} for command:\n{$command}\n\n";
+            $msg .= "Working directory: " . ($cwd ? $cwd : $this->projectRoot) . "\n\n";
+            $msg .= "Output:\n================\n" . $stdout . "\n\n";
+            $msg .= "Error Output:\n================\n" . $stderr . "\n";
+            throw new \RuntimeException($msg);
+        }
+
+        return array($code, $stdout, $stderr);
+    }
+
+    /**
+     * Shell-escape a single argument safely.
+     *
+     * @param string $s
+     * @return string
+     */
+    private function escArg($s)
+    {
+        return escapeshellarg($s);
     }
 }
