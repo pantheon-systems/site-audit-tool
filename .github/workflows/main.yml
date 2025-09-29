@@ -153,23 +153,32 @@ jobs:
           php -l tests/src/Fixtures.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
 
-
-      - name: Create SUT (install Drupal once)
+      - name: Setup Drupal Test Site
         run: |
-          php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
+          # This installs Drupal if it hasn't been already and warms up caches.
+          php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut();"
+          echo "Drupal SUT is ready."
+          # Verify with drush status.
           vendor/drush/drush/drush status
 
-      - name: Check SUT path
+      - name: Ensure SUT is installed
+        env:
+          DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
+          DRUSH_OPTIONS_URI: http://default
         run: |
-          echo "Expecting: $GITHUB_WORKSPACE/sut/web"
-          test -d "$GITHUB_WORKSPACE/sut/web" || (echo "SUT missing; did the scenario install run?" && exit 1)
-
-      - name: Prepare SUT
-        run: |
-          export DRUSH_OPTIONS_ROOT="$GITHUB_WORKSPACE/sut/web"
-          export DRUSH_OPTIONS_URI="http://default"
-          php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
-          vendor/drush/drush/drush status
+          set -eux
+          # Is Drupal bootstrapped?
+          if ! vendor/drush/drush/drush status --fields=bootstrap --format=json | grep -q '"bootstrap":"Successful"'; then
+            vendor/drush/drush/drush si -y \
+              --db-url="$UNISH_DB_URL" \
+              --account-name=admin \
+              --account-pass=admin \
+              --site-name=SUT \
+              standard
+          fi
+      
+          # Show we’re really bootstrapped & DB-connected now
+          vendor/drush/drush/drush status --fields=bootstrap,db-status,db-driver,db-hostname,db-name
 
       - name: Run tests
         run: |

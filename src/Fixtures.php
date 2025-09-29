@@ -141,12 +141,11 @@ class Fixtures
 
     private function exportDrushEnv()
     {
-        if (!getenv('DRUSH_OPTIONS_ROOT')) {
-            $this->putEnvBoth('DRUSH_OPTIONS_ROOT', $this->sutRoot);
-        }
-        if (!getenv('DRUSH_OPTIONS_URI')) {
-            $this->putEnvBoth('DRUSH_OPTIONS_URI', 'http://default');
-        }
+        // Unconditionally set the environment variables for the PHP process.
+        // This ensures Drush, when called from PHPUnit's DrushTestTrait,
+        // can always find the Drupal site.
+        $this->putEnvBoth('DRUSH_OPTIONS_ROOT', $this->sutRoot);
+        $this->putEnvBoth('DRUSH_OPTIONS_URI', 'http://default');
     }
 
     private static function defaultRoot()
