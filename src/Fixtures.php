@@ -1,180 +1,259 @@
 <?php
+declare(strict_types=1);
 
 namespace SiteAudit;
 
+/**
+ * Test fixtures helper for spinning up a Drupal SUT (system under test).
+ *
+ * Responsibilities:
+ *  - Locate the repo root and SUT root (sut/web).
+ *  - Read UNISH_DB_URL and expose it via dbUrl().
+ *  - Pre-create the database with --skip-ssl (works with CI MySQL service).
+ *  - Perform a Drupal site-install once, then skip on subsequent calls.
+ *  - Provide a thin Drush wrapper which throws on non-zero exit codes.
+ */
 final class Fixtures
 {
-    /** @var self|null */
-    private static $instance;
+    /** @var Fixtures|null */
+    private static ?Fixtures $singleton = null;
 
-    private function __construct() {}
+    /** @var string Absolute path to repo root (directory that has composer.json). */
+    private string $projectRoot;
 
-    /** @return self */
-    public static function instance()
+    /** @var string Absolute path to Drupal root inside the SUT (sut/web). */
+    private string $sutRoot;
+
+    /** @var string Database URL (e.g., mysql://root:@mysql/testsiteaudittooldatabase). */
+    private string $dbUrl;
+
+    private function __construct()
     {
-        if (self::$instance instanceof self) {
-            return self::$instance;
+        // project root = one up from this file's directory (…/src)
+        $this->projectRoot = (string) realpath(\dirname(__DIR__));
+        $this->sutRoot     = $this->projectRoot . '/sut/web';
+        $this->dbUrl       = getenv('UNISH_DB_URL') ?: 'mysql://root:@127.0.0.1/testsiteaudittooldatabase';
+    }
+
+    /** Singleton accessor used by tests. */
+    public static function instance(): self
+    {
+        if (!self::$singleton) {
+            self::$singleton = new self();
         }
-        self::$instance = new self();
-        return self::$instance;
+        return self::$singleton;
     }
 
     /**
-     * Called by tests before running Drush commands.
-     * - Finds the Drupal root created by scenario installers.
-     * - Points Drush at it.
-     * - Installs Drupal (once) using UNISH_DB_URL.
-     *
-     * @param array $options
-     * @return self
+     * Ensure a working SUT. Idempotent: if Drupal is already installed and
+     * bootstraps successfully, this is a no-op.
      */
-    public static function createSut(array $options = array())
+    public static function createSut(array $options = []): self
     {
-        if (isset($options['UNISH_DB_URL']) && is_string($options['UNISH_DB_URL'])) {
-            putenv('UNISH_DB_URL=' . $options['UNISH_DB_URL']);
+        $self = self::instance();
+
+        $self->ensureSutExists();
+
+        if (!$self->isInstalled()) {
+            // Prepare DB first; Drush may refuse to create it in CI.
+            $self->prepareDatabase();
+
+            // Perform a standard profile install.
+            $self->installDrupal();
+
+            // Make sure container/proxies are fresh.
+            $self->drush('cr', true);
         }
 
-        $root = self::findDrupalRoot();
-        if (!$root) {
-            throw new \RuntimeException('Could not locate a Drupal root (looked for core/lib/Drupal.php). Did the scenario install run?');
-        }
-
-        // Make sure subsequent Drush calls (from tests) use this root + a safe URI.
-        putenv('DRUSH_OPTIONS_ROOT=' . $root);
-        putenv('DRUSH_OPTIONS_URI=http://default');
-
-        // Install if not already bootstrapped.
-        if (!self::isBootstrapped($root)) {
-            self::installDrupal($root);
-        }
-
-        return self::instance();
+        return $self;
     }
 
-    /** @return string */
-    public function dbUrl()
+    /** Absolute path of the repo root (directory with composer.json). */
+    public function projectRoot(): string
     {
-        $env = getenv('UNISH_DB_URL');
-        if (is_string($env) && $env !== '') {
-            return $env;
-        }
-        $host = getenv('MYSQL_HOST') ?: '127.0.0.1';
-        return sprintf('mysql://root:@%s/testsiteaudittooldatabase', $host);
+        return $this->projectRoot;
     }
 
-    /** Reset between tests if needed. */
-    public static function reset()
+    /** Absolute path of the Drupal root inside the SUT (sut/web). */
+    public function sutRoot(): string
     {
-        self::$instance = null;
+        return $this->sutRoot;
     }
 
-    // -------------------- internals --------------------
-
-    /** @return string|null Absolute Drupal root or null. */
-    private static function findDrupalRoot()
+    /** The DB URL pulled from UNISH_DB_URL (or default). */
+    public function dbUrl(): string
     {
-        $candidates = array(
-            'web',
-            'docroot',
-            'html',
-            'drupal/web',
-            'drupal',
-            '.build/web',
-            // common in our scenarios:
-            'sut/web',
-        );
-
-        foreach ($candidates as $rel) {
-            $path = self::join(getcwd(), $rel);
-            if (is_file(self::join($path, 'core', 'lib', 'Drupal.php'))) {
-                return realpath($path);
-            }
-        }
-
-        // Fallback: scan and go up THREE levels from core/lib/Drupal.php -> <root>.
-        $rii = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator(getcwd(), \FilesystemIterator::SKIP_DOTS)
-        );
-        foreach ($rii as $file) {
-            $p = $file->getPathname();
-            if ($file->getFilename() === 'Drupal.php' && preg_match('#/core/lib/Drupal\.php$#', $p)) {
-                return realpath(dirname(dirname(dirname($p)))); // .../core/lib/Drupal.php -> <root>
-            }
-        }
-
-        return null;
+        return $this->dbUrl;
     }
 
-
-    /** @param string $root */
-    private static function isBootstrapped($root)
+    /**
+     * Run a Drush command against the SUT.
+     *
+     * @param string $args         e.g. "status" or "pm:enable views_ui -y"
+     * @param bool   $quiet        if true, suppresses streaming stdout/stderr
+     * @param bool   $throwOnError throw RuntimeException on non-zero exit
+     * @return array{0:int,1:string,2:string} [exit, stdout, stderr]
+     */
+    public function drush(string $args, bool $quiet = false, bool $throwOnError = true): array
     {
-        $out = self::drush($root, 'status --field=bootstrap', true);
-        // Drush 8/9/10 print "Successful" when bootstrapped.
-        return stripos(trim($out), 'successful') !== false;
-    }
+        $bin = $this->projectRoot . '/vendor/drush/drush/drush';
 
-    /** @param string $root */
-    private static function installDrupal($root)
-    {
-        // Ensure sites/default is writable so Drush can write settings.php/files.
-        @chmod(self::join($root, 'sites', 'default'), 0777);
-        @chmod(self::join($root, 'sites', 'default', 'settings.php'), 0666);
-
-        $dbUrl = getenv('UNISH_DB_URL');
-        if (!$dbUrl) {
-            $dbUrl = self::instance()->dbUrl();
-            putenv('UNISH_DB_URL=' . $dbUrl);
-        }
-
-        // Use the short alias "si" to work across Drush 8–11.
         $cmd = sprintf(
-            'si -y --db-url=%s --account-name=admin --account-pass=admin --site-name=SUT standard',
-            escapeshellarg($dbUrl)
+            "'%s' --no-interaction -r '%s' %s",
+            $bin,
+            $this->sutRoot,
+            $args
         );
-        self::drush($root, $cmd, false);
 
-        // Sanity: confirm bootstrap after install.
-        if (!self::isBootstrapped($root)) {
-            throw new \RuntimeException('Drupal install appears to have failed; Drush cannot bootstrap.');
+        return $this->run($cmd, $this->projectRoot, $quiet, $throwOnError, /*labelForError*/'Drush');
+    }
+
+    /* ---------- internals ---------- */
+
+    private function ensureSutExists(): void
+    {
+        if (!is_dir($this->sutRoot)) {
+            throw new \RuntimeException(
+                "SUT not found at {$this->sutRoot}. Ensure your scenario step scaffolded Drupal into 'sut/web'."
+            );
         }
+    }
+
+    private function isInstalled(): bool
+    {
+        // Prefer asking Drush; fall back to quick file checks if needed.
+        try {
+            [$code, $out] = $this->drush('status --field=bootstrap', true, false);
+            if ($code === 0 && preg_match('/Successful/i', $out)) {
+                return true;
+            }
+        } catch (\Throwable $e) {
+            // ignore and fall through to file checks
+        }
+
+        $settings = $this->sutRoot . '/sites/default/settings.php';
+        return is_file($settings);
+    }
+
+    private function installDrupal(): void
+    {
+        $args = sprintf(
+            "si -y --db-url=%s --account-name=%s --account-pass=%s --site-name=%s standard",
+            escapeshellarg($this->dbUrl),
+            escapeshellarg('admin'),
+            escapeshellarg('admin'),
+            escapeshellarg('SUT')
+        );
+
+        // If install fails, throw with the exact command echoed (matches test expectations)
+        $this->drush($args, false, true);
+    }
+
+    private function prepareDatabase(): void
+    {
+        $dsn = $this->parseDbUrl($this->dbUrl);
+
+        if (($dsn['scheme'] ?? '') !== 'mysql') {
+            return; // Only MySQL/MariaDB supported in CI
+        }
+
+        $host = $dsn['host'] ?? '127.0.0.1';
+        $port = (int)($dsn['port'] ?? 3306);
+        $user = $dsn['user'] ?? 'root';
+        $pass = $dsn['pass'] ?? '';
+        $db   = ltrim((string)($dsn['path'] ?? ''), '/');
+
+        if ($db === '') {
+            return;
+        }
+
+        $cli = $this->findMysqlCli();
+        $pw  = $pass !== '' ? "-p" . str_replace("'", "'\"'\"'", $pass) : '';
+
+        $sql = sprintf(
+            "DROP DATABASE IF EXISTS `%s`; CREATE DATABASE `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;",
+            $db,
+            $db
+        );
+
+        $cmd = sprintf(
+            "%s --protocol=tcp -h %s -P %d -u %s %s --skip-ssl -e %s",
+            $cli,
+            escapeshellarg($host),
+            $port,
+            escapeshellarg($user),
+            $pw,
+            escapeshellarg($sql)
+        );
+
+        // Don't fail the whole run if this step can't manage the DB; Drush may still succeed.
+        $this->run($cmd, $this->projectRoot, true, false, 'mysql');
+    }
+
+    /** @return array{scheme?:string,user?:string,pass?:string,host?:string,port?:int,path?:string} */
+    private function parseDbUrl(string $url): array
+    {
+        $parts = parse_url($url);
+        if ($parts === false) {
+            throw new \InvalidArgumentException("Invalid DB URL: {$url}");
+        }
+        return $parts;
+    }
+
+    private function findMysqlCli(): string
+    {
+        foreach (['mysql', 'mariadb'] as $bin) {
+            $path = trim((string)@shell_exec("command -v {$bin}"));
+            if ($path !== '') {
+                return escapeshellcmd($path);
+            }
+        }
+        return 'mysql';
     }
 
     /**
-     * Run drush with this repo’s executable, bound to a root.
+     * Run a shell command and capture exit/stdout/stderr.
      *
-     * @param string $root
-     * @param string $args
-     * @param bool   $quiet  If true, don’t throw on failure (used for probes).
-     * @return string Combined stdout (trimmed).
+     * @return array{0:int,1:string,2:string}
      */
-    private static function drush($root, $args, $quiet)
-    {
-        $bin = self::drushBin();
-        $cmd = escapeshellarg($bin) . ' --no-interaction -r ' . escapeshellarg($root) . ' ' . $args . ' 2>&1';
-        exec($cmd, $lines, $code);
-        $out = trim(implode("\n", $lines));
-        if ($code !== 0 && !$quiet) {
-            throw new \RuntimeException("Drush failed (exit $code):\n$cmd\n\n$out\n");
-        }
-        return $out;
-    }
+    private function run(
+        string $cmd,
+        ?string $cwd = null,
+        bool $quiet = false,
+        bool $throwOnError = true,
+        string $labelForError = 'Command'
+    ): array {
+        $spec = [
+            1 => ['pipe', 'w'], // stdout
+            2 => ['pipe', 'w'], // stderr
+        ];
 
-    /** @return string */
-    private static function drushBin()
-    {
-        $a = self::join(dirname(__DIR__), 'vendor', 'drush', 'drush', 'drush');
-        if (is_file($a) && is_executable($a)) {
-            return $a;
+        $proc = proc_open($cmd, $spec, $pipes, $cwd ?? getcwd());
+        if (!\is_resource($proc)) {
+            throw new \RuntimeException("Failed to execute: {$cmd}");
         }
-        $b = self::join(getcwd(), 'vendor', 'bin', 'drush'); // fallback
-        return $b;
-    }
 
-    /** @return string */
-    private static function join()
-    {
-        $parts = func_get_args();
-        return preg_replace('#/+#','/', join('/', $parts));
+        $out  = stream_get_contents($pipes[1]); fclose($pipes[1]);
+        $err  = stream_get_contents($pipes[2]); fclose($pipes[2]);
+        $code = proc_close($proc);
+
+        if (!$quiet) {
+            if ($out !== '') { fwrite(STDOUT, $out); }
+            if ($err !== '') { fwrite(STDERR, $err); }
+        }
+
+        if ($code !== 0 && $throwOnError) {
+            // Match the error format your logs showed (include command and "2>&1" hint).
+            $message = sprintf(
+                "%s failed (exit %d):\n%s 2>&1\n\n%s",
+                $labelForError,
+                $code,
+                $cmd,
+                trim($err) !== '' ? trim($err) : trim($out)
+            );
+            throw new \RuntimeException($message);
+        }
+
+        return [$code, (string)$out, (string)$err];
     }
 }
