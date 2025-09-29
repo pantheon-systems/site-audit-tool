@@ -151,6 +151,11 @@ jobs:
           php -l tests/src/Fixtures.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
 
+      - name: Drush status (probe)
+        run: |
+          php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"\\nSUT ready\\n\";";
+          vendor/drush/drush/drush status
+
       - name: Run tests
         run: |
           composer dump-autoload -a
