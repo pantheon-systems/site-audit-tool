@@ -32,7 +32,7 @@ jobs:
     services:
       # MySQL service (replaces Circle's secondary docker image)
       mysql:
-        image: mysql:5.7
+        image: cimg/mysql:5.7.36
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
           MYSQL_ROOT_HOST: "%"
@@ -120,12 +120,16 @@ jobs:
         run: |
           printf "[client]\nssl-mode=DISABLED\n" > /etc/mysql/conf.d/no-ssl.cnf || true
 
+      - name: Show what PHP sees
+        run: php -r "var_dump(getenv('UNISH_DB_URL'));"
+
       - name: Sanity-check DB connectivity
         run: |
           echo "UNISH_DB_URL=$UNISH_DB_URL"
-          # Force plain TCP and disable SSL verification for the MariaDB client:
-          mysql --protocol=tcp -h mysql -uroot --ssl-mode=DISABLED -e 'SELECT VERSION();'
-          mysql --protocol=tcp -h mysql -uroot --ssl-mode=DISABLED -e 'SHOW DATABASES;'
+          # Use MariaDB client semantics: disable TLS with --skip-ssl
+          # (or call `mariadb` instead of `mysql`—they're the same binary here)
+          mysql --protocol=tcp -h mysql -uroot --skip-ssl -e 'SELECT VERSION();'
+          mysql --protocol=tcp -h mysql -uroot --skip-ssl -e 'SHOW DATABASES;'
 
       - name: Run tests
         run: composer test
