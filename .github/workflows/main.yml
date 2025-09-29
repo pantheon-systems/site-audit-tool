@@ -21,7 +21,7 @@ jobs:
     env:
       UNISH_DB_URL: mysql://root:@mysql/testsiteaudittooldatabase
       DRUSH_OPTIONS_URI: http://default
-      DRUSH_OPTIONS_ROOT: $GITHUB_WORKSPACE/sut/web
+      DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
 
     # Run the job inside the desired PHP container (like Circle's primary docker image)
     container:
@@ -159,11 +159,17 @@ jobs:
           php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
           vendor/drush/drush/drush status
 
+      - name: Check SUT path
+        run: |
+          echo "Expecting: $GITHUB_WORKSPACE/sut/web"
+          test -d "$GITHUB_WORKSPACE/sut/web" || (echo "SUT missing; did the scenario install run?" && exit 1)
+
       - name: Prepare SUT
         run: |
+          export DRUSH_OPTIONS_ROOT="$GITHUB_WORKSPACE/sut/web"
+          export DRUSH_OPTIONS_URI="http://default"
           php -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
           vendor/drush/drush/drush status
-
 
       - name: Run tests
         run: |
