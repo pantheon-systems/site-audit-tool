@@ -4,8 +4,36 @@ namespace SiteAudit;
 
 final class Fixtures
 {
+    /** @var self|null */
+    private static $singleton = null;
+
+    private function __construct() {}
+
     /**
-     * Build the DB URL from env so CI can point to the mysql service.
+     * Required by FixturesTrait: return a shared instance.
+     */
+    public static function instance()
+    {
+        if (!self::$singleton) {
+            self::$singleton = new self();
+        }
+        return self::$singleton;
+    }
+
+    /**
+     * Let instance calls transparently proxy to static methods (e.g. $fx->dbUrl()).
+     */
+    public function __call($name, array $args)
+    {
+        if (is_callable([self::class, $name])) {
+            return forward_static_call([self::class, $name], ...$args);
+        }
+        throw new \BadMethodCallException("Unknown method: {$name}");
+    }
+
+    /**
+     * Your existing method that computes the DB URL.
+     * (Keep this exactly as you already have it.)
      */
     public static function dbUrl(): string
     {
@@ -26,21 +54,5 @@ final class Fixtures
             $host,
             $db
         );
-    }
-
-    /**
-     * Example: wherever you call Drush, use self::dbUrl().
-     */
-    public static function installDrupal(): void
-    {
-        $cmd = [
-            __DIR__ . '/../../vendor/drush/drush/drush',
-            '--no-interaction',
-            'site-install',
-            '--yes',
-            "--db-url='" . self::dbUrl() . "'",
-        ];
-        // however you execute commands now — keep your existing helper
-        // e.g. CliTestTrait::execute() or your wrapper
     }
 }
