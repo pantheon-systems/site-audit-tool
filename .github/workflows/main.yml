@@ -21,9 +21,7 @@ jobs:
     env:
       DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
       DRUSH_OPTIONS_URI: http://default
-      # IMPORTANT: real connection string; no placeholders.
-      UNISH_DB_URL: mysql://root:root@127.0.0.1:${{ job.services.mariadb.ports[3306] }}/testsiteaudittooldatabase?ssl-mode=DISABLED
-      MYSQL_SSL_MODE: DISABLED
+      UNISH_DB_URL: mysql://root:root@127.0.0.1:3306/testsiteaudittooldatabase?ssl-mode=DISABLED
 
     # Run the job inside the desired PHP container (like Circle's primary docker image)
     container:
@@ -35,20 +33,16 @@ jobs:
 
     services:
       # MySQL service (replaces Circle's secondary docker image)
-      mysql:
-        image: cimg/mysql:5.7.36
+      mariadb:
+        image: mariadb:10.6
         env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-          MYSQL_ROOT_HOST: "%"
+          MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: testsiteaudittooldatabase
-        # Healthcheck so we can wait reliably
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=12
         ports:
           - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s --health-timeout=5s --health-retries=10
 
     strategy:
       fail-fast: false
@@ -165,43 +159,31 @@ jobs:
           echo "Expecting: $GITHUB_WORKSPACE/sut/web"
           test -d "$GITHUB_WORKSPACE/sut/web" || (echo "SUT missing; did the scenario install run?" && exit 1)
 
-      - name: Ensure SUT is installed
+      - name: Install SUT
         env:
-          DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
-          DRUSH_OPTIONS_URI: http://default
-          MYSQL_SSL_MODE: DISABLED
-          UNISH_DB_URL: mysql://USER:PASS@HOST:3306/DBNAME?ssl-mode=DISABLED
+          UNISH_DB_URL: >-
+            mysql://root:root@127.0.0.1:${{ job.services.mariadb.ports[3306] }}/testsiteaudittooldatabase?ssl-mode=DISABLED
         run: |
           set -eux
-          
-          # Add ssl-mode=DISABLED only if it's not already present
-          case "$UNISH_DB_URL" in
-              *ssl-mode=*) : ;;
-              *\?*) UNISH_DB_URL="${UNISH_DB_URL}&ssl-mode=DISABLED" ;;
-              *)    UNISH_DB_URL="${UNISH_DB_URL}?ssl-mode=DISABLED" ;;
-          esac
-          export UNISH_DB_URL
-          
+          export MYSQL_SSL_MODE=DISABLED
+    
           SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
           rm -f "$SITES_DIR/settings.php" || true
           cp -f "$SITES_DIR/default.settings.php" "$SITES_DIR/settings.php"
           chmod 644 "$SITES_DIR/settings.php"
-          
-          # Make sure DB exists (service has root privileges)
+    
+          # Create DB explicitly (root user)
           mysql -h 127.0.0.1 -uroot -proot -e "DROP DATABASE IF EXISTS testsiteaudittooldatabase; CREATE DATABASE testsiteaudittooldatabase;"
-          
-          # Install if not already bootstrapped
+    
           if ! vendor/drush/drush/drush status --fields=bootstrap --format=json | grep -q '"bootstrap":"Successful"'; then
-          vendor/drush/drush/drush si -y \
-          --db-url="$UNISH_DB_URL" \
-          --account-name=admin \
-          --account-pass=admin \
-          --site-name=SUT \
-          standard
+            vendor/drush/drush/drush si -y \
+              --db-url="$UNISH_DB_URL" \
+              --account-name=admin \
+              --account-pass=admin \
+              --site-name=SUT \
+              standard
           fi
-          
           vendor/drush/drush/drush status --fields=bootstrap,db-status,db-driver,db-hostname,db-name
-
 
       - name: Run tests
         run: |
