@@ -141,8 +141,9 @@ jobs:
           test -d "$GITHUB_WORKSPACE/sut/web" || (echo "SUT missing; did the scenario install run?" && exit 1)
 
       - name: Run tests
+        env:
+          DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
+          DRUSH_OPTIONS_URI: http://default
+          UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
-          composer dump-autoload -a
-          php -r "require 'vendor/autoload.php'; var_dump(method_exists('SiteAudit\\Fixtures','createSut'));"
           vendor/bin/phpunit --colors=always
-          composer test
