@@ -178,29 +178,15 @@ jobs:
           php -l tests/src/Fixtures.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
 
-      - name: Provision SUT (single path) [DEBUG]
+      - name: Provision SUT (single path)
         run: |
           set -eux
-          
-          echo "--- Preparing site directory ---"
           SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
           if [ ! -f "$SITES_DIR/settings.php" ]; then
             cp -f "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php
             chmod 644 "$SITES_DIR"/settings.php
           fi
-          
-          echo "--- Running Drush site-install with maximum verbosity ---"
-          # We are running drush directly again with -vvv. Since the previous fatal errors
-          # are fixed, this command will now hang, and the last line of output will
-          # show us the exact cause.
-          vendor/drush/drush/drush si standard -y \
-            --db-url="${UNISH_DB_URL}" \
-            --account-name=admin \
-            --account-pass=admin \
-            --site-name="SUT" \
-            -vvv
-          
-          echo "--- Site install command finished. Checking status. ---"
+          php -d xdebug.mode=off -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";" < /dev/null
           vendor/drush/drush/drush status --fields=bootstrap,db-status,db-driver,db-hostname,db-name
 
       - name: Check SUT path
