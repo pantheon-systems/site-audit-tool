@@ -38,11 +38,11 @@ jobs:
         include:
           - name: php 8.1 / drupal9
             php_image: wodby/php:8.1
-            install_cmd: ""
+            install_cmd: ".scenarios.lock/install drupal9"
             scaffold: "no"
           - name: php 8.0 / drupal9
             php_image: wodby/php:8.0
-            install_cmd: ""
+            install_cmd: ".scenarios.lock/install drupal9"
             scaffold: "no"
           - name: php 7.3 / drupal9 lowest
             php_image: wodby/php:7.3
@@ -115,13 +115,16 @@ jobs:
           composer config --no-plugins allow-plugins.drupal/core-composer-scaffold true
           composer config --no-plugins allow-plugins.composer/installers true
 
-          # Step 2: Add the Drupal 9 requirement to composer.json without installing.
+          # Step 2: Prevent the problematic generic scenario-creation script from running automatically.
+          composer config --unset scripts.post-update-cmd
+
+          # Step 3: Add the Drupal 9 requirement to composer.json without installing.
           composer require -W --no-interaction --no-progress --no-update --dev \
             drupal/core-recommended:^9.5 \
             drupal/core-composer-scaffold:^9.5 \
             drupal/core-project-message:^9.5
           
-          # Step 3: Run a full update to resolve the entire dependency tree.
+          # Step 4: Run a full update to resolve the entire dependency tree.
           composer update --no-interaction --no-progress
 
       - name: Scenario install (if any)
@@ -237,3 +240,4 @@ jobs:
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
+
