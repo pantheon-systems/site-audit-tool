@@ -118,8 +118,7 @@ class Fixtures
         }
 
         // Are we already bootstrapped?
-        $debugOutput = null;
-        if ($this->isBootstrapped($debugOutput)) {
+        if ($this->isBootstrapped()) {
             return;
         }
 
@@ -138,13 +137,9 @@ class Fixtures
             . ' standard';
         $this->drush($si, true);
 
-        // Re-check bootstrap with debugging.
-        $debugOutput = null;
-        if (!$this->isBootstrapped($debugOutput)) {
-            $details = "drush status command exited with code " . $debugOutput[0] . ".\n";
-            $details .= "Stdout:\n================\n" . $debugOutput[1] . "\n\n";
-            $details .= "Stderr:\n================\n" . $debugOutput[2];
-            throw new \RuntimeException("Drupal still did not bootstrap after install. 'drush status' check failed.\n" . $details);
+        // Re-check bootstrap.
+        if (!$this->isBootstrapped()) {
+            throw new \RuntimeException("Drupal still did not bootstrap after install.");
         }
     }
 
@@ -153,13 +148,13 @@ class Fixtures
      *
      * @return bool
      */
-    private function isBootstrapped(&$output = null)
+    private function isBootstrapped()
     {
-        $output = $this->drush('status --fields=bootstrap --format=json', false);
-        if ($output[0] !== 0) {
+        $res = $this->drush('status --fields=bootstrap --format=json', false);
+        if ($res[0] !== 0) {
             return false;
         }
-        $json = json_decode($output[1], true);
+        $json = json_decode($res[1], true);
         if (!is_array($json)) {
             return false;
         }
