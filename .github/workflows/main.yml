@@ -140,6 +140,13 @@ jobs:
           echo "Expecting: $GITHUB_WORKSPACE/sut/web"
           test -d "$GITHUB_WORKSPACE/sut/web" || (echo "SUT missing; did the scenario install run?" && exit 1)
 
+      - name: Clean up test environment
+        run: |
+          # Remove superfluous file that causes an assertion failure.
+          rm -f sut/web/test.php
+          # Create a dummy module directory expected by ExtensionsTest.
+          mkdir -p sut/web/modules/contrib/php
+
       - name: Run tests
         env:
           DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web

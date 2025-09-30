@@ -262,4 +262,14 @@ class Fixtures
     {
         return escapeshellarg($s);
     }
+
+    /**
+     * Test cleanup handler.
+     */
+    public function tearDown()
+    {
+        // This method is called by tests after they run.
+        // We don't need to do any specific cleanup of the SUT between tests,
+        // so a no-op is fine here.
+    }
 }
