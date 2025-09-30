@@ -111,11 +111,10 @@ jobs:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
           # Step 1: Allow trusted Composer plugins required by Drupal.
-          # This is necessary for non-interactive CI environments.
           composer config --no-plugins allow-plugins.drupal/core-project-message true
           composer config --no-plugins allow-plugins.drupal/core-composer-scaffold true
           composer config --no-plugins allow-plugins.composer/installers true
-          
+
           # Step 2: Add the Drupal 9 requirement to composer.json without installing.
           composer require -W --no-interaction --no-progress --no-update --dev \
             drupal/core-recommended:^9.5 \
