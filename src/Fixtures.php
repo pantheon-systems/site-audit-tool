@@ -127,11 +127,9 @@ class Fixtures
                 $dbUrl = 'mysql://root:root@mysql:3306/testsiteaudittooldatabase';
             }
 
-            // Best-effort create DB (ignore failures; 'si' can still proceed if DB exists).
-            $this->drush('sql:create -y --extra=--skip-ssl --db-url=' . $this->escArg($dbUrl), false);
-
-            // Site install.
-            $si = 'si -y --extra-db=--skip-ssl --db-url=' . $this->escArg($dbUrl)
+            // The database is already created by a previous step in the pipeline.
+            // We just need to install the site.
+            $si = 'si -y --db-url=' . $this->escArg($dbUrl)
                 . ' --account-name=admin --account-pass=admin'
                 . ' --site-name=' . $this->escArg('SUT')
                 . ' standard';
