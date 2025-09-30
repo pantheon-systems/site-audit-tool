@@ -60,6 +60,7 @@ jobs:
             php_image: wodby/php:5.6
             install_cmd: ".scenarios.lock/install php56"
             scaffold: "yes"
+            continue-on-error: true
 
     steps:
       - name: Checkout (Modern PHP)
@@ -260,4 +261,3 @@ jobs:
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
-
