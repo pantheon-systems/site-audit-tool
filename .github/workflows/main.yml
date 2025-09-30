@@ -99,11 +99,11 @@ jobs:
             composer require drupal/core-composer-scaffold:"^8.8" --no-update
           fi
 
-      # THE DEFINITIVE FIX: Use --prefer-lowest on modern PHP to avoid fatal errors with new dependencies
+      # CORRECTED COMMAND: Use `composer update` for --prefer-lowest
       - name: Composer install (repo)
         run: |
           if [[ "${{ matrix.php_image }}" == "wodby/php:8.1" || "${{ matrix.php_image }}" == "wodby/php:8.0" ]]; then
-            composer install -n --prefer-lowest
+            composer update -n --prefer-lowest
           else
             composer install -n
           fi
@@ -118,13 +118,14 @@ jobs:
         if: (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6')
         run: composer config --unset platform.php
 
+      # CORRECTED COMMAND: Use `composer update` for --prefer-lowest here as well
       - name: Finalize dependencies
         if: ${{ matrix.install_cmd != '' }}
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
           if [[ "${{ matrix.php_image }}" == "wodby/php:8.1" || "${{ matrix.php_image }}" == "wodby/php:8.0" ]]; then
-            composer install -n --prefer-dist --prefer-lowest
+            composer update -n --prefer-dist --prefer-lowest
           else
             composer install -n --prefer-dist
           fi
