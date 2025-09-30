@@ -3,14 +3,14 @@
  * Minimal, PHP 5.6–compatible fixtures helper used by tests.
  *
  * Responsibilities:
- *  - Provide Fixtures::instance() singleton (used by tests).
- *  - Provide Fixtures::createSut() entrypoint for CI step.
- *  - Ensure Drupal is installed and bootstrapped against UNISH_DB_URL.
- *  - Provide ->drush($cmd) helper to run Drush commands from tests.
+ * - Provide Fixtures::instance() singleton (used by tests).
+ * - Provide Fixtures::createSut() entrypoint for CI step.
+ * - Ensure Drupal is installed and bootstrapped against UNISH_DB_URL.
+ * - Provide ->drush($cmd) helper to run Drush commands from tests.
  *
  * Notes:
- *  - No typed properties / return types (keeps PHP 5.6 compatible).
- *  - No proxy generation here (avoids DB/bootstrap recursion).
+ * - No typed properties / return types (keeps PHP 5.6 compatible).
+ * - No proxy generation here (avoids DB/bootstrap recursion).
  */
 
 namespace SiteAudit;
@@ -81,7 +81,7 @@ class Fixtures
      * Run a Drush command with our standard environment.
      *
      * Example: $this->drush('status');
-     *          $this->drush('pm:enable views -y');
+     * $this->drush('pm:enable views -y');
      *
      * @param string|array $cmd
      * @param bool $mustSucceed
@@ -128,10 +128,10 @@ class Fixtures
             }
 
             // Best-effort create DB (ignore failures; 'si' can still proceed if DB exists).
-            $this->drush('sql:create -y --db-url=' . $this->escArg($dbUrl), false);
+            $this->drush('sql:create -y --extra=--skip-ssl --db-url=' . $this->escArg($dbUrl), false);
 
             // Site install.
-            $si = 'si -y --db-url=' . $this->escArg($dbUrl)
+            $si = 'si -y --extra-db=--skip-ssl --db-url=' . $this->escArg($dbUrl)
                 . ' --account-name=admin --account-pass=admin'
                 . ' --site-name=' . $this->escArg('SUT')
                 . ' standard';

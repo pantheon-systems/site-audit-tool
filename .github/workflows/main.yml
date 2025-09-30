@@ -23,9 +23,6 @@ jobs:
     services:
       mariadb:
         image: mariadb:10.6
-        # FIX 1: Add the --skip-ssl command to the MariaDB service
-        # This forces the server to not use SSL, resolving the client connection error.
-        command: --skip-ssl
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: testsiteaudittooldatabase
@@ -84,8 +81,6 @@ jobs:
         if: ${{ matrix.install_cmd != '' }}
         run: ${{ matrix.install_cmd }}
 
-      # FIX 2: Add this step to regenerate the autoloader.
-      # This ensures new classes from the scenario install are registered before tests run.
       - name: Regenerate autoloader
         if: ${{ matrix.install_cmd != '' }}
         run: composer dump-autoload -a
