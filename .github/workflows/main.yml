@@ -30,7 +30,7 @@ jobs:
           - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
-          --health-interval=10s --health-timeout=5s --health-retries=30
+          --health-interval=10s --health-timeout=5s --health-retries=60
 
     strategy:
       fail-fast: false
@@ -92,39 +92,26 @@ jobs:
         run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/
 
       - name: Prepare for Legacy Scenario
-        if: (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6')
+        if: matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6'
         run: |
           composer remove phpunit/phpunit --dev --no-update
           if [ "${{ matrix.php_image }}" = "wodby/php:5.6" ]; then
             composer require drupal/core-composer-scaffold:"^8.8" --no-update
           fi
 
+      # Modern PHP: DO NOT use --prefer-lowest
       - name: Composer install (modern PHP)
         if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: composer install -n --prefer-dist
 
-      - name: Composer install/update dependencies
-        if: matrix.php_image != 'wodby/php:8.1' || matrix.php_image != 'wodby/php:8.0'
+      # Legacy PHP: normal install; fix prior always-true condition using &&
+      - name: Composer install/update dependencies (legacy PHP)
+        if: matrix.php_image != 'wodby/php:8.1' && matrix.php_image != 'wodby/php:8.0'
         env:
           COMPOSER_MEMORY_LIMIT: -1
-        run: |
-          if [[ "${{ matrix.php_image }}" == "wodby/php:8.1" || "${{ matrix.php_image }}" == "wodby/php:8.0" ]]; then
-            composer update -n --prefer-lowest
-          else
-            composer install -n --prefer-dist
-          fi
-
-      - name: PHP 8.x make Doctrine PHP-8-safe
-        if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
-        run: |
-          composer require --dev --no-interaction --no-progress --no-update \
-            doctrine/common:^3.0 \
-            doctrine/annotations:^1.13 \
-            doctrine/reflection:^1.2
-          composer update -W --no-interaction --no-progress \
-            doctrine/common doctrine/annotations doctrine/reflection
+        run: composer install -n --prefer-dist
 
       - name: Scenario install (if any)
         if: ${{ matrix.install_cmd != '' }}
@@ -133,16 +120,14 @@ jobs:
         run: ${{ matrix.install_cmd }} || true
 
       - name: Remove Platform Override
-        if: (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6')
+        if: matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6'
         run: composer config --unset platform.php
 
       - name: Finalize dependencies
         if: ${{ matrix.install_cmd != '' }}
         env:
           COMPOSER_MEMORY_LIMIT: -1
-        run: |
-          # The main install/update has already happened, so we just ensure the lock file is honored here.
-          composer install -n --prefer-dist
+        run: composer install -n --prefer-dist
 
       - name: Install Legacy PHPUnit
         if: matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6'
@@ -167,7 +152,7 @@ jobs:
           rm dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
 
       - name: Wait for MariaDB
-        run: $HOME/dockerize -wait tcp://mariadb:3306 -timeout 60s
+        run: $HOME/dockerize -wait tcp://mariadb:3306 -timeout 120s
 
       - name: Set runtime env (correct paths & DSN)
         run: |
@@ -175,21 +160,7 @@ jobs:
           echo "DRUSH_OPTIONS_URI=http://default" >> "$GITHUB_ENV"
           echo "UNISH_DB_URL=mysql://root:root@mariadb:3306/testsiteaudittooldatabase" >> "$GITHUB_ENV"
 
-      - name: Make mysql CLI avoid TLS, and precreate DB
-        run: |
-          cat > "$HOME/.my.cnf" <<'EOF'
-          [client]
-          host=mariadb
-          user=root
-          password=root
-          protocol=tcp
-          skip-ssl
-          EOF
-          chmod 600 "$HOME/.my.cnf"
-          mysql -e 'DROP DATABASE IF EXISTS testsiteaudittooldatabase;'
-          mysql -e 'CREATE DATABASE testsiteaudittooldatabase CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;'
-          mysql -e 'SHOW DATABASES;'
-
+      # Consolidated DB prep; disable SSL and pre-create DB
       - name: DB prep / disable SSL
         run: |
           export MYSQL_SSL_MODE=DISABLED
@@ -197,34 +168,26 @@ jobs:
             "DROP DATABASE IF EXISTS testsiteaudittooldatabase;
              CREATE DATABASE testsiteaudittooldatabase
              CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+          mysql -hmariadb -P3306 -uroot -proot -e "SHOW DATABASES;"
 
       - name: Lint tests and check class
         run: |
           php -l tests/src/Fixtures.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
 
-      - name: Enforce Drupal 9 for PHP 8.x
+      # >>> The key change: bump the SUT to D9+ for PHP 8.x (inside sut/, not root)
+      - name: Ensure SUT is Drupal 9+ (PHP 8.x only)
         if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
         run: |
-          # Pull a consistent D9 trio and refresh the lock:
-          composer require -W --no-interaction --no-progress --dev \
+          test -f sut/composer.lock || { echo "sut/composer.lock missing"; exit 1; }
+
+          composer --working-dir=sut require -W --no-interaction --no-progress \
             drupal/core-recommended:^9.5 \
             drupal/core-composer-scaffold:^9.5 \
-            drupal/core-project-message:^9.5
-      
-          # (Optional but harmless) ensure install uses the fresh lock:
-          composer install -n --prefer-dist
+            drupal/core-project-message:^9.5 \
+            drush/drush:^11
 
-#      - name: Provision SUT (single path)
-#        run: |
-#          set -eux
-#          SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
-#          if [ ! -f "$SITES_DIR/settings.php" ]; then
-#            cp -f "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php
-#            chmod 644 "$SITES_DIR"/settings.php
-#          fi
-#          php -d xdebug.mode=off -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";" < /dev/null
-#          vendor/drush/drush/drush status --fields=bootstrap,db-status,db-driver,db-hostname,db-name
+          composer --working-dir=sut install -n --prefer-dist
 
       - name: Provision SUT (single path)
         env:
@@ -238,10 +201,17 @@ jobs:
           set -eux
           SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
           [ -f "$SITES_DIR/settings.php" ] || { cp "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php && chmod 644 "$SITES_DIR"/settings.php; }
+
+          # Run the fixture and guard against hangs
           timeout 15m bash -ce '
             php -d xdebug.mode=off -r "require \"vendor/autoload.php\"; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
           '
-          vendor/drush/drush/drush status --yes --no-interaction --fields=bootstrap,db-status,db-driver,db-hostname,db-name
+
+          # Use the SUT’s Drush (PHP-8 friendly)
+          sut/vendor/bin/drush --version || true
+          sut/vendor/bin/drush status --yes --no-interaction \
+            --root="${DRUSH_OPTIONS_ROOT}" --uri="${DRUSH_OPTIONS_URI}" \
+            --fields=bootstrap,db-status,db-driver,db-hostname,db-name
 
       - name: Check SUT path
         run: |
