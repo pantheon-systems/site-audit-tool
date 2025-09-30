@@ -173,10 +173,28 @@ jobs:
           mysql -e 'CREATE DATABASE testsiteaudittooldatabase CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;'
           mysql -e 'SHOW DATABASES;'
 
+      - name: DB prep / disable SSL
+        run: |
+          export MYSQL_SSL_MODE=DISABLED
+          mysql -hmariadb -P3306 -uroot -proot -e "DROP DATABASE IF EXISTS testsiteaudittooldatabase; \
+            CREATE DATABASE testsiteaudittooldatabase CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+
       - name: Lint tests and check class
         run: |
           php -l tests/src/Fixtures.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
+
+      - name: Enforce Drupal 9 for PHP 8.x
+        if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
+        run: |
+          # Pull a consistent D9 trio and refresh the lock:
+          composer require -W --no-interaction --no-progress --dev \
+            drupal/core-recommended:^9.5 \
+            drupal/core-composer-scaffold:^9.5 \
+            drupal/core-project-message:^9.5
+      
+          # (Optional but harmless) ensure install uses the fresh lock:
+          composer install -n --prefer-dist
 
       - name: Provision SUT (single path)
         run: |
