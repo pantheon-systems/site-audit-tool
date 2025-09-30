@@ -88,6 +88,7 @@ jobs:
         if: ${{ matrix.install_cmd != '' }}
         env:
           COMPOSER_MEMORY_LIMIT: -1
+        # Allow this step to fail; its main purpose is to modify composer.json
         run: ${{ matrix.install_cmd }} || true
 
       # THE DEFINITIVE FIX: Remove the problematic platform setting added by the scenario script.
@@ -97,6 +98,8 @@ jobs:
 
       - name: Finalize dependencies
         if: ${{ matrix.install_cmd != '' }}
+        env:
+          COMPOSER_MEMORY_LIMIT: -1
         run: composer install -n --prefer-dist
 
       # STEP 2 (MODIFIED): Install the correct legacy PHPUnit AFTER the scenario is set.
