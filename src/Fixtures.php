@@ -118,27 +118,33 @@ class Fixtures
         }
 
         // Are we already bootstrapped?
-        $ok = $this->isBootstrapped();
-        if (!$ok) {
-            // Install Drupal (standard profile) using UNISH_DB_URL.
-            $dbUrl = getenv('UNISH_DB_URL');
-            if (!$dbUrl) {
-                // Fallback matches our GH Actions job defaults.
-                $dbUrl = 'mysql://root:root@mysql:3306/testsiteaudittooldatabase';
-            }
+        $debugOutput = null;
+        if ($this->isBootstrapped($debugOutput)) {
+            return;
+        }
 
-            // The database is already created by a previous step in the pipeline.
-            // We just need to install the site.
-            $si = 'si -y --db-url=' . $this->escArg($dbUrl)
-                . ' --account-name=admin --account-pass=admin'
-                . ' --site-name=' . $this->escArg('SUT')
-                . ' standard';
-            $this->drush($si, true);
+        // Install Drupal (standard profile) using UNISH_DB_URL.
+        $dbUrl = getenv('UNISH_DB_URL');
+        if (!$dbUrl) {
+            // Fallback matches our GH Actions job defaults.
+            $dbUrl = 'mysql://root:root@mysql:3306/testsiteaudittooldatabase';
+        }
 
-            // Re-check bootstrap.
-            if (!$this->isBootstrapped()) {
-                throw new \RuntimeException('Drupal still did not bootstrap after install.');
-            }
+        // The database is already created by a previous step in the pipeline.
+        // We just need to install the site.
+        $si = 'si -y --db-url=' . $this->escArg($dbUrl)
+            . ' --account-name=admin --account-pass=admin'
+            . ' --site-name=' . $this->escArg('SUT')
+            . ' standard';
+        $this->drush($si, true);
+
+        // Re-check bootstrap with debugging.
+        $debugOutput = null;
+        if (!$this->isBootstrapped($debugOutput)) {
+            $details = "drush status command exited with code " . $debugOutput[0] . ".\n";
+            $details .= "Stdout:\n================\n" . $debugOutput[1] . "\n\n";
+            $details .= "Stderr:\n================\n" . $debugOutput[2];
+            throw new \RuntimeException("Drupal still did not bootstrap after install. 'drush status' check failed.\n" . $details);
         }
     }
 
@@ -147,13 +153,13 @@ class Fixtures
      *
      * @return bool
      */
-    private function isBootstrapped()
+    private function isBootstrapped(&$output = null)
     {
-        $res = $this->drush('status --fields=bootstrap --format=json', false);
-        if ($res[0] !== 0) {
+        $output = $this->drush('status --fields=bootstrap --format=json', false);
+        if ($output[0] !== 0) {
             return false;
         }
-        $json = json_decode($res[1], true);
+        $json = json_decode($output[1], true);
         if (!is_array($json)) {
             return false;
         }
