@@ -62,15 +62,20 @@ jobs:
             scaffold: "yes"
 
     steps:
-      # --- START: CORRECTED CHECKOUT LOGIC ---
+      # --- START: DEFINITIVE CHECKOUT LOGIC ---
       - name: Checkout (Modern PHP)
         if: matrix.php_image != 'wodby/php:5.6'
         uses: actions/checkout@v4
 
-      - name: Checkout (Legacy PHP 5.6)
+      - name: Manual Checkout (Legacy PHP 5.6)
         if: matrix.php_image == 'wodby/php:5.6'
-        uses: actions/checkout@v2
-      # --- END: CORRECTED CHECKOUT LOGIC ---
+        run: |
+          echo "Performing manual checkout to support legacy container..."
+          git init
+          git remote add origin https://github.com/${{ github.repository }}
+          git fetch --no-tags --prune --progress --depth=1 origin ${{ github.sha }}
+          git checkout --progress --force ${{ github.sha }}
+      # --- END: DEFINITIVE CHECKOUT LOGIC ---
 
       - name: Mark workspace as safe for Git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
