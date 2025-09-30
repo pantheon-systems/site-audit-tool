@@ -160,7 +160,7 @@ jobs:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
           if [ "${{ matrix.php_image }}" = "wodby/php:7.2" ]; then
-            composer require phpunit/phpunit "^8.0" --dev -W
+            composer require phpunit/phpunit "^6.0" --dev -W
           fi
           if [ "${{ matrix.php_image }}" = "wodby/php:5.6" ]; then
             composer require phpunit/phpunit "^5.0" --dev -W
