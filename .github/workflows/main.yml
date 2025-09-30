@@ -62,7 +62,6 @@ jobs:
             scaffold: "yes"
 
     steps:
-      # --- START: DEFINITIVE CHECKOUT LOGIC ---
       - name: Checkout (Modern PHP)
         if: matrix.php_image != 'wodby/php:5.6'
         uses: actions/checkout@v4
@@ -75,7 +74,6 @@ jobs:
           git remote add origin https://github.com/${{ github.repository }}
           git fetch --no-tags --prune --progress --depth=1 origin ${{ github.sha }}
           git checkout --progress --force ${{ github.sha }}
-      # --- END: DEFINITIVE CHECKOUT LOGIC ---
 
       - name: Mark workspace as safe for Git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -86,14 +84,18 @@ jobs:
       - name: Copy PHP ini
         run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/
 
-      - name: Composer install (repo)
-        run: composer install -n
-
+      # THE DEFINITIVE FIX: Preemptively downgrade the problematic package for PHP 5.6
       - name: Prepare for Legacy Scenario
         if: (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6')
         run: |
-          echo "Removing modern test dependencies to prevent conflicts..."
           composer remove phpunit/phpunit --dev --no-update
+          if [ "${{ matrix.php_image }}" = "wodby/php:5.6" ]; then
+            echo "Downgrading drupal/core-composer-scaffold for PHP 5.6 compatibility..."
+            composer require drupal/core-composer-scaffold:"^8.8" --no-update
+          fi
+
+      - name: Composer install (repo)
+        run: composer install -n
 
       - name: Scenario install (if any)
         if: ${{ matrix.install_cmd != '' }}
