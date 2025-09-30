@@ -178,16 +178,36 @@ jobs:
           php -l tests/src/Fixtures.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
 
-      - name: Provision SUT (single path)
+      - name: Provision SUT with strace [DEBUG]
         run: |
-          set -eux
-          SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
-          if [ ! -f "$SITES_DIR/settings.php" ]; then
-            cp -f "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php
-            chmod 644 "$SITES_DIR"/settings.php
+          set -x
+          echo "--- Running Drush site-install in the background ---"
+          (vendor/drush/drush/drush si standard -y \
+            --db-url="${UNISH_DB_URL}" \
+            --account-name=admin \
+            --account-pass=admin \
+            --site-name="SUT" \
+            -vvv) &
+          DRUSH_PID=$!
+          
+          echo "Drush is running with PID $DRUSH_PID. Waiting before tracing..."
+          sleep 5
+          
+          echo "--- Attaching strace to PID $DRUSH_PID ---"
+          # The -f flag follows child processes. Output goes to the main log.
+          strace -f -p $DRUSH_PID &
+          
+          echo "--- Collecting trace for 90 seconds... ---"
+          sleep 90
+          
+          if kill -0 $DRUSH_PID 2>/dev/null; then
+            echo "!!! PROCESS HAS HUNG !!!"
+            echo "The strace output above this message contains the reason for the hang."
+            kill -9 $DRUSH_PID
+            exit 1
+          else
+            echo "--- Process finished successfully (unexpected). ---"
           fi
-          php -d xdebug.mode=off -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";" < /dev/null
-          vendor/drush/drush/drush status --fields=bootstrap,db-status,db-driver,db-hostname,db-name
 
       - name: Check SUT path
         run: |
