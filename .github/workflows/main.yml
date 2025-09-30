@@ -63,11 +63,11 @@ jobs:
 
     steps:
       - name: Checkout (Modern PHP)
-        if: matrix.php_image != 'wodby/php:5.6'
+        if: ${{ matrix.php_image != 'wodby/php:5.6' }}
         uses: actions/checkout@v4
 
       - name: Manual Checkout (Legacy PHP 5.6)
-        if: matrix.php_image == 'wodby/php:5.6'
+        if: ${{ matrix.php_image == 'wodby/php:5.6' }}
         run: |
           git init
           git remote add origin https://github.com/${{ github.repository }}
@@ -78,7 +78,7 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Update Composer to v2 for Legacy PHP
-        if: matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6'
+        if: ${{ matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6' }}
         run: |
           php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
           php composer-setup.php --install-dir=/usr/local/bin --filename=composer
@@ -92,12 +92,12 @@ jobs:
         run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/
 
       - name: Prepare for Legacy Scenario
-        if: (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6')
+        if: ${{ (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6') }}
         run: |
           composer remove phpunit/phpunit --dev --no-update
 
       - name: Composer install/update (older PHP)
-        if: matrix.php_image != 'wodby/php:8.1' && matrix.php_image != 'wodby/php:8.0'
+        if: ${{ matrix.php_image != 'wodby/php:8.1' && matrix.php_image != 'wodby/php:8.0' }}
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
@@ -112,13 +112,13 @@ jobs:
           fi
 
       - name: Install jq
-        if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
+        if: ${{ matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0' }}
         run: |
           apk update
           apk add jq
 
       - name: Install Drupal 9 and Dependencies (PHP 8.x)
-        if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
+        if: ${{ matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0' }}
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
@@ -149,7 +149,7 @@ jobs:
         run: ${{ matrix.install_cmd }} || true
 
       - name: Remove Platform Override
-        if: (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6')
+        if: ${{ (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6') }}
         run: composer config --unset platform.php
 
       - name: Finalize dependencies
@@ -161,7 +161,7 @@ jobs:
           composer install -n --prefer-dist
 
       - name: Install Legacy PHPUnit
-        if: matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6'
+        if: ${{ matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6' }}
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
@@ -252,6 +252,6 @@ jobs:
         env:
           DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
           DRUSH_OPTIONS_URI: http://default
-          UNISH_DB_URL=mysql://root:root@mariadb:3306/testsiteaudittooldatabase
+          UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
