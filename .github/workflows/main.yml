@@ -95,6 +95,9 @@ jobs:
         if: ${{ (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6') }}
         run: |
           composer remove phpunit/phpunit --dev --no-update
+          if [ "${{ matrix.php_image }}" = "wodby/php:5.6" ]; then
+            composer require drupal/core-composer-scaffold:"8.8.0" --no-update
+          fi
 
       - name: Composer install/update (older PHP)
         if: ${{ matrix.php_image != 'wodby/php:8.1' && matrix.php_image != 'wodby/php:8.0' }}
