@@ -108,8 +108,8 @@ jobs:
       - name: Install jq
         if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
         run: |
-          apt-get update -y
-          apt-get install -y jq
+          apk update
+          apk add jq
 
       - name: Install Drupal 9 and Dependencies (PHP 8.x)
         if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
@@ -249,4 +249,3 @@ jobs:
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
-
