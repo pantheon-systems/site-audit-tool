@@ -99,32 +99,27 @@ jobs:
             composer require drupal/core-composer-scaffold:"^8.8" --no-update
           fi
 
-      - name: Composer install (modern PHP)
-        if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
+      - name: Composer install (older PHP)
+        if: matrix.php_image != 'wodby/php:8.1' && matrix.php_image != 'wodby/php:8.0'
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: composer install -n --prefer-dist
 
-      - name: Composer install/update dependencies
-        if: matrix.php_image != 'wodby/php:8.1' || matrix.php_image != 'wodby/php:8.0'
+      - name: Install Drupal 9 and Dependencies (PHP 8.x)
+        if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
-          if [[ "${{ matrix.php_image }}" == "wodby/php:8.1" || "${{ matrix.php_image }}" == "wodby/php:8.0" ]]; then
-            composer update -n --prefer-lowest
-          else
-            composer install -n --prefer-dist
-          fi
-
-      - name: PHP 8.x make Doctrine PHP-8-safe
-        if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
-        run: |
-          composer require --dev --no-interaction --no-progress --no-update \
-            doctrine/common:^3.0 \
-            doctrine/annotations:^1.13 \
-            doctrine/reflection:^1.2
-          composer update -W --no-interaction --no-progress \
-            doctrine/common doctrine/annotations doctrine/reflection
+          # First, require a version of Drupal that is compatible with PHP 8.
+          # This will update composer.json and allow the correct dependencies to be resolved.
+          composer require -W --no-interaction --no-progress --dev \
+            drupal/core-recommended:^9.5 \
+            drupal/core-composer-scaffold:^9.5 \
+            drupal/core-project-message:^9.5
+          
+          # Now, run the install. Composer will resolve the new Drupal 9 dependencies,
+          # which includes PHP 8-compatible versions of Doctrine.
+          composer install -n --prefer-dist
 
       - name: Scenario install (if any)
         if: ${{ matrix.install_cmd != '' }}
@@ -202,29 +197,6 @@ jobs:
         run: |
           php -l tests/src/Fixtures.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
-
-      - name: Enforce Drupal 9 for PHP 8.x
-        if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
-        run: |
-          # Pull a consistent D9 trio and refresh the lock:
-          composer require -W --no-interaction --no-progress --dev \
-            drupal/core-recommended:^9.5 \
-            drupal/core-composer-scaffold:^9.5 \
-            drupal/core-project-message:^9.5
-      
-          # (Optional but harmless) ensure install uses the fresh lock:
-          composer install -n --prefer-dist
-
-#      - name: Provision SUT (single path)
-#        run: |
-#          set -eux
-#          SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
-#          if [ ! -f "$SITES_DIR/settings.php" ]; then
-#            cp -f "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php
-#            chmod 644 "$SITES_DIR"/settings.php
-#          fi
-#          php -d xdebug.mode=off -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";" < /dev/null
-#          vendor/drush/drush/drush status --fields=bootstrap,db-status,db-driver,db-hostname,db-name
 
       - name: Provision SUT (single path)
         env:
