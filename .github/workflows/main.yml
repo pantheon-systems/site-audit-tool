@@ -85,18 +85,15 @@ jobs:
         if: ${{ matrix.install_cmd != '' }}
         run: composer install -n --prefer-dist
 
-      # MOVED TO HERE: Run this *after* all other dependency steps.
       - name: Downgrade Dependencies for Older PHP
         if: matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6'
         run: |
           if [ "${{ matrix.php_image }}" = "wodby/php:7.2" ]; then
             echo "Downgrading PHPUnit for PHP 7.2..."
-            # PHPUnit 8 is the last version to support PHP 7.2
             composer require phpunit/phpunit "^8.0" -W
           fi
           if [ "${{ matrix.php_image }}" = "wodby/php:5.6" ]; then
             echo "Downgrading PHPUnit for PHP 5.6..."
-            # PHPUnit 5 is the last version to support PHP 5.6
             composer require phpunit/phpunit "^5.0" -W
           fi
 
@@ -106,9 +103,9 @@ jobs:
 
       - name: Install dockerize (for DB wait)
         run: |
-          wget -q https://github.com/jwilder/dockerize/releases/download/${DOCKIZE_VERSION}/dockerize-linux-amd64-${DOCKIZE_VERSION}.tar.gz
-          tar -C "$HOME" -xzf dockerize-linux-amd64-${DOCKIZE_VERSION}.tar.gz
-          rm dockerize-linux-amd64-${DOCKIZE_VERSION}.tar.gz
+          wget -q https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
+          tar -C "$HOME" -xzf dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
+          rm dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
 
       - name: Wait for MariaDB
         run: $HOME/dockerize -wait tcp://mariadb:3306 -timeout 60s
