@@ -110,15 +110,19 @@ jobs:
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
-          # Step 1: Add the Drupal 9 requirement to composer.json without installing.
-          # This avoids the immediate conflict and prepares for a full update.
+          # Step 1: Allow trusted Composer plugins required by Drupal.
+          # This is necessary for non-interactive CI environments.
+          composer config --no-plugins allow-plugins.drupal/core-project-message true
+          composer config --no-plugins allow-plugins.drupal/core-composer-scaffold true
+          composer config --no-plugins allow-plugins.composer/installers true
+          
+          # Step 2: Add the Drupal 9 requirement to composer.json without installing.
           composer require -W --no-interaction --no-progress --no-update --dev \
             drupal/core-recommended:^9.5 \
             drupal/core-composer-scaffold:^9.5 \
             drupal/core-project-message:^9.5
           
-          # Step 2: Run a full update. Composer will now resolve the entire
-          # dependency tree to find a compatible set of packages.
+          # Step 3: Run a full update to resolve the entire dependency tree.
           composer update --no-interaction --no-progress
 
       - name: Scenario install (if any)
