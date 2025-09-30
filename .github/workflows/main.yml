@@ -62,8 +62,15 @@ jobs:
             scaffold: "yes"
 
     steps:
-      - name: Checkout
-        uses: ${{ matrix.php_image == 'wodby/php:5.6' && 'actions/checkout@v3' || 'actions/checkout@v4' }}
+      # --- START: CORRECTED CHECKOUT LOGIC ---
+      - name: Checkout (Modern PHP)
+        if: matrix.php_image != 'wodby/php:5.6'
+        uses: actions/checkout@v4
+
+      - name: Checkout (Legacy PHP 5.6)
+        if: matrix.php_image == 'wodby/php:5.6'
+        uses: actions/checkout@v3
+      # --- END: CORRECTED CHECKOUT LOGIC ---
 
       - name: Mark workspace as safe for Git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -77,7 +84,6 @@ jobs:
       - name: Composer install (repo)
         run: composer install -n
 
-      # STEP 1 (NEW): Remove conflicting packages BEFORE the scenario runs.
       - name: Prepare for Legacy Scenario
         if: (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6')
         run: |
@@ -88,10 +94,8 @@ jobs:
         if: ${{ matrix.install_cmd != '' }}
         env:
           COMPOSER_MEMORY_LIMIT: -1
-        # Allow this step to fail its internal Composer command; its main purpose is to modify composer.json.
         run: ${{ matrix.install_cmd }} || true
 
-      # STEP 2 (NEW): Remove the problematic platform setting added by the scenario script.
       - name: Remove Platform Override
         if: (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6')
         run: composer config --unset platform.php
@@ -102,7 +106,6 @@ jobs:
           COMPOSER_MEMORY_LIMIT: -1
         run: composer install -n --prefer-dist
 
-      # STEP 3 (MODIFIED): Install the correct legacy PHPUnit AFTER fixing the environment.
       - name: Install Legacy PHPUnit
         if: matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6'
         env:
