@@ -106,8 +106,14 @@ jobs:
           if [[ "${{ matrix.php_image }}" == "wodby/php:8.1" || "${{ matrix.php_image }}" == "wodby/php:8.0" ]]; then
             composer update -n --prefer-lowest
           else
-            composer install -n
+            composer install -n --prefer-dist
           fi
+
+      - name: Enforce D9 for modern PHP
+        if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
+        run: |
+          composer require --no-progress --no-interaction --no-update drupal/core-recommended:^9.5
+          composer install -n --prefer-dist
 
       - name: Scenario install (if any)
         if: ${{ matrix.install_cmd != '' }}
@@ -178,20 +184,7 @@ jobs:
           php -l tests/src/Fixtures.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
 
-      - name: Debug PHP/Drush env
-        run: |
-          php -v
-          php -m | grep -E 'pdo|mysql' || true
-          vendor/drush/drush/drush --version || true
-
       - name: Provision SUT (single path)
-        env:
-          DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
-          DRUSH_OPTIONS_URI: http://default
-          UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
-          # Force non-interactive + auto-yes for anything the fixture triggers
-          DRUSH_OPTIONS_YES: "1"
-          DRUSH_OPTIONS_NO_INTERACTION: "1"
         run: |
           set -eux
           SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
@@ -199,11 +192,8 @@ jobs:
             cp -f "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php
             chmod 644 "$SITES_DIR"/settings.php
           fi
-          # Protect against infinite waits and auto-answer "yes" if anything still prompts
-          timeout 15m bash -ce '
-            yes | php -d xdebug.mode=off -r "require \"vendor/autoload.php\"; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
-          '
-          vendor/drush/drush/drush status --yes --no-interaction --fields=bootstrap,db-status,db-driver,db-hostname,db-name
+          php -d xdebug.mode=off -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";" < /dev/null
+          vendor/drush/drush/drush status --fields=bootstrap,db-status,db-driver,db-hostname,db-name
 
       - name: Check SUT path
         run: |
