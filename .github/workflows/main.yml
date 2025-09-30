@@ -77,7 +77,6 @@ jobs:
       - name: Mark workspace as safe for Git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      # FIX 1: Upgrade Composer in old environments
       - name: Update Composer to v2 for Legacy PHP
         if: matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6'
         run: |
@@ -92,18 +91,22 @@ jobs:
       - name: Copy PHP ini
         run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/
 
-      # FIX 2: Preemptively downgrade incompatible packages for legacy jobs
       - name: Prepare for Legacy Scenario
         if: (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6')
         run: |
           composer remove phpunit/phpunit --dev --no-update
           if [ "${{ matrix.php_image }}" = "wodby/php:5.6" ]; then
-            echo "Downgrading drupal/core-composer-scaffold for PHP 5.6 compatibility..."
             composer require drupal/core-composer-scaffold:"^8.8" --no-update
           fi
 
+      # THE DEFINITIVE FIX: Use --prefer-lowest on modern PHP to avoid fatal errors with new dependencies
       - name: Composer install (repo)
-        run: composer install -n
+        run: |
+          if [[ "${{ matrix.php_image }}" == "wodby/php:8.1" || "${{ matrix.php_image }}" == "wodby/php:8.0" ]]; then
+            composer install -n --prefer-lowest
+          else
+            composer install -n
+          fi
 
       - name: Scenario install (if any)
         if: ${{ matrix.install_cmd != '' }}
@@ -119,7 +122,12 @@ jobs:
         if: ${{ matrix.install_cmd != '' }}
         env:
           COMPOSER_MEMORY_LIMIT: -1
-        run: composer install -n --prefer-dist
+        run: |
+          if [[ "${{ matrix.php_image }}" == "wodby/php:8.1" || "${{ matrix.php_image }}" == "wodby/php:8.0" ]]; then
+            composer install -n --prefer-dist --prefer-lowest
+          else
+            composer install -n --prefer-dist
+          fi
 
       - name: Install Legacy PHPUnit
         if: matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6'
@@ -127,11 +135,9 @@ jobs:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
           if [ "${{ matrix.php_image }}" = "wodby/php:7.2" ]; then
-            echo "Installing PHPUnit 8 for PHP 7.2..."
             composer require phpunit/phpunit "^8.0" --dev -W
           fi
           if [ "${{ matrix.php_image }}" = "wodby/php:5.6" ]; then
-            echo "Installing PHPUnit 5 for PHP 5.6..."
             composer require phpunit/phpunit "^5.0" --dev -W
           fi
 
@@ -174,27 +180,15 @@ jobs:
           php -l tests/src/Fixtures.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
 
-      - name: Provision SUT (single path) [DEBUG]
+      - name: Provision SUT (single path)
         run: |
           set -eux
-          
-          echo "--- Preparing site directory ---"
           SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
           if [ ! -f "$SITES_DIR/settings.php" ]; then
             cp -f "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php
             chmod 644 "$SITES_DIR"/settings.php
           fi
-          
-          echo "--- Running Drush site-install with maximum verbosity ---"
-          # We run drush directly with -vvv to get verbose output and diagnose the hang.
-          vendor/drush/drush/drush si standard -y \
-            --db-url="${UNISH_DB_URL}" \
-            --account-name=admin \
-            --account-pass=admin \
-            --site-name="SUT" \
-            -vvv
-          
-          echo "--- Site install command finished. Checking status. ---"
+          php -d xdebug.mode=off -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";" < /dev/null
           vendor/drush/drush/drush status --fields=bootstrap,db-status,db-driver,db-hostname,db-name
 
       - name: Check SUT path
