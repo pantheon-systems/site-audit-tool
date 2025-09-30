@@ -77,8 +77,8 @@ jobs:
       - name: Mark workspace as safe for Git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      - name: Update Composer to v2 for Legacy PHP (7.2 only)
-        if: ${{ matrix.php_image == 'wodby/php:7.2' }}
+      - name: Update Composer to v2 for Legacy PHP
+        if: ${{ matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6' }}
         run: |
           php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
           php composer-setup.php --install-dir=/usr/local/bin --filename=composer
@@ -107,8 +107,10 @@ jobs:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
           if [ "${{ matrix.php_image }}" = "wodby/php:5.6" ]; then
-            # With Composer v1, a simple update is sufficient to resolve the legacy dependencies.
-            composer update -n --prefer-dist
+            # Force Composer to resolve dependencies for PHP 5.6, then run a full update.
+            # We disable plugins to bypass the Composer v1 vs v2 plugin API conflict.
+            composer config platform.php 5.6
+            composer update -n --prefer-dist --no-plugins
           else
             # For other older versions (7.x), the lock file is compatible enough.
             composer install -n --prefer-dist
@@ -258,3 +260,4 @@ jobs:
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
+
