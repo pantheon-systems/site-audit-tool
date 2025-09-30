@@ -110,16 +110,16 @@ jobs:
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
-          # First, require a version of Drupal that is compatible with PHP 8.
-          # This will update composer.json and allow the correct dependencies to be resolved.
-          composer require -W --no-interaction --no-progress --dev \
+          # Step 1: Add the Drupal 9 requirement to composer.json without installing.
+          # This avoids the immediate conflict and prepares for a full update.
+          composer require -W --no-interaction --no-progress --no-update --dev \
             drupal/core-recommended:^9.5 \
             drupal/core-composer-scaffold:^9.5 \
             drupal/core-project-message:^9.5
           
-          # Now, run the install. Composer will resolve the new Drupal 9 dependencies,
-          # which includes PHP 8-compatible versions of Doctrine.
-          composer install -n --prefer-dist
+          # Step 2: Run a full update. Composer will now resolve the entire
+          # dependency tree to find a compatible set of packages.
+          composer update --no-interaction --no-progress
 
       - name: Scenario install (if any)
         if: ${{ matrix.install_cmd != '' }}
