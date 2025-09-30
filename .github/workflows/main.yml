@@ -109,12 +109,6 @@ jobs:
             composer install -n --prefer-dist
           fi
 
-      - name: Enforce D9 for modern PHP
-        if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
-        run: |
-          composer require --no-progress --no-interaction --no-update drupal/core-recommended:^9.5
-          composer install -n --prefer-dist
-
       - name: Scenario install (if any)
         if: ${{ matrix.install_cmd != '' }}
         env:
