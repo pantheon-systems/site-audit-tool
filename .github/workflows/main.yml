@@ -99,7 +99,14 @@ jobs:
             composer require drupal/core-composer-scaffold:"^8.8" --no-update
           fi
 
+      - name: Composer install (modern PHP)
+        if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
+        env:
+          COMPOSER_MEMORY_LIMIT: -1
+        run: composer install -n --prefer-dist
+
       - name: Composer install/update dependencies
+        if: matrix.php_image != 'wodby/php:8.1' || matrix.php_image != 'wodby/php:8.0'
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
@@ -108,6 +115,16 @@ jobs:
           else
             composer install -n --prefer-dist
           fi
+
+      - name: PHP 8.x make Doctrine PHP-8-safe
+        if: matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0'
+        run: |
+          composer require --dev --no-interaction --no-progress --no-update \
+            doctrine/common:^3.0 \
+            doctrine/annotations:^1.13 \
+            doctrine/reflection:^1.2
+          composer update -W --no-interaction --no-progress \
+            doctrine/common doctrine/annotations doctrine/reflection
 
       - name: Scenario install (if any)
         if: ${{ matrix.install_cmd != '' }}
@@ -176,8 +193,10 @@ jobs:
       - name: DB prep / disable SSL
         run: |
           export MYSQL_SSL_MODE=DISABLED
-          mysql -hmariadb -P3306 -uroot -proot -e "DROP DATABASE IF EXISTS testsiteaudittooldatabase; \
-            CREATE DATABASE testsiteaudittooldatabase CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+          mysql -hmariadb -P3306 -uroot -proot -e \
+            "DROP DATABASE IF EXISTS testsiteaudittooldatabase;
+             CREATE DATABASE testsiteaudittooldatabase
+             CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
 
       - name: Lint tests and check class
         run: |
@@ -196,16 +215,33 @@ jobs:
           # (Optional but harmless) ensure install uses the fresh lock:
           composer install -n --prefer-dist
 
+#      - name: Provision SUT (single path)
+#        run: |
+#          set -eux
+#          SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
+#          if [ ! -f "$SITES_DIR/settings.php" ]; then
+#            cp -f "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php
+#            chmod 644 "$SITES_DIR"/settings.php
+#          fi
+#          php -d xdebug.mode=off -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";" < /dev/null
+#          vendor/drush/drush/drush status --fields=bootstrap,db-status,db-driver,db-hostname,db-name
+
       - name: Provision SUT (single path)
+        env:
+          DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
+          DRUSH_OPTIONS_URI: http://default
+          UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
+          DRUSH_OPTIONS_YES: "1"
+          DRUSH_OPTIONS_NO_INTERACTION: "1"
+          MYSQL_SSL_MODE: DISABLED
         run: |
           set -eux
           SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
-          if [ ! -f "$SITES_DIR/settings.php" ]; then
-            cp -f "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php
-            chmod 644 "$SITES_DIR"/settings.php
-          fi
-          php -d xdebug.mode=off -r "require 'vendor/autoload.php'; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";" < /dev/null
-          vendor/drush/drush/drush status --fields=bootstrap,db-status,db-driver,db-hostname,db-name
+          [ -f "$SITES_DIR/settings.php" ] || { cp "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php && chmod 644 "$SITES_DIR"/settings.php; }
+          timeout 15m bash -ce '
+            php -d xdebug.mode=off -r "require \"vendor/autoload.php\"; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
+          '
+          vendor/drush/drush/drush status --yes --no-interaction --fields=bootstrap,db-status,db-driver,db-hostname,db-name
 
       - name: Check SUT path
         run: |
