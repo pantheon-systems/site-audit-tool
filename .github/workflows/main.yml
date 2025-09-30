@@ -107,8 +107,8 @@ jobs:
           if [ "${{ matrix.php_image }}" = "wodby/php:5.6" ]; then
             # The lock file is incompatible with PHP 5.6 due to updates from newer PHP jobs.
             # We must run a full 'update' to force Composer to re-resolve all dependencies
-            # against the PHP 5.6 platform, ignoring the lock file.
-            composer update -n --prefer-dist
+            # against the PHP 5.6 platform, ignoring the lock file and platform reqs for the V1 plugin API.
+            composer update -n --prefer-dist --ignore-platform-reqs
           else
             # For other older versions (7.x), the lock file is compatible enough.
             composer install -n --prefer-dist
@@ -258,3 +258,4 @@ jobs:
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
+
