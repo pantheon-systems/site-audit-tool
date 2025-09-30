@@ -96,7 +96,7 @@ jobs:
         run: |
           composer remove phpunit/phpunit --dev --no-update
           if [ "${{ matrix.php_image }}" = "wodby/php:5.6" ]; then
-            composer require drupal/core-composer-scaffold:"8.8.0" --no-update -W
+            composer require drupal/core-composer-scaffold:"8.8.0" --no-update
           fi
 
       - name: Composer install/update (older PHP)
@@ -258,4 +258,3 @@ jobs:
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
-
