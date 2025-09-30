@@ -115,17 +115,20 @@ jobs:
           composer config --no-plugins allow-plugins.drupal/core-composer-scaffold true
           composer config --no-plugins allow-plugins.composer/installers true
 
-          # Step 2: Prevent the problematic generic scenario-creation script from running automatically.
-          composer config --unset scripts.post-update-cmd
-
+          # Step 2: Temporarily remove legacy scenarios from composer.json
+          # This prevents the g1a/composer-test-scenarios plugin from trying to build
+          # lock files for scenarios that are incompatible with Drupal 9.
+          jq 'del(.extra.scenarios.drush8, .extra.scenarios.php56)' composer.json > composer.json.tmp && mv composer.json.tmp composer.json
+          
           # Step 3: Add the Drupal 9 requirement to composer.json without installing.
           composer require -W --no-interaction --no-progress --no-update --dev \
             drupal/core-recommended:^9.5 \
             drupal/core-composer-scaffold:^9.5 \
             drupal/core-project-message:^9.5
           
-          # Step 4: Run a full update to resolve the entire dependency tree.
-          composer update --no-interaction --no-progress --no-scripts
+          # Step 4: Run a full update. The post-update script will now only
+          # find compatible scenarios and will succeed.
+          composer update --no-interaction --no-progress
 
       - name: Scenario install (if any)
         if: ${{ matrix.install_cmd != '' }}
@@ -240,4 +243,3 @@ jobs:
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
-
