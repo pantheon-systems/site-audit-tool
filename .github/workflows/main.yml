@@ -38,11 +38,11 @@ jobs:
         include:
           - name: php 8.1 / drupal9
             php_image: wodby/php:8.1
-            install_cmd: ".scenarios.lock/install drupal9"
+            install_cmd: ""
             scaffold: "no"
           - name: php 8.0 / drupal9
             php_image: wodby/php:8.0
-            install_cmd: ".scenarios.lock/install drupal9"
+            install_cmd: ""
             scaffold: "no"
           - name: php 7.3 / drupal9 lowest
             php_image: wodby/php:7.3
