@@ -88,12 +88,12 @@ jobs:
         if: ${{ matrix.install_cmd != '' }}
         env:
           COMPOSER_MEMORY_LIMIT: -1
-        # Allow this step to fail; its main purpose is to modify composer.json
+        # Allow this step to fail its internal Composer command; its main purpose is to modify composer.json.
         run: ${{ matrix.install_cmd }} || true
 
-      # THE DEFINITIVE FIX: Remove the problematic platform setting added by the scenario script.
+      # STEP 2 (NEW): Remove the problematic platform setting added by the scenario script.
       - name: Remove Platform Override
-        if: matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6'
+        if: (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6')
         run: composer config --unset platform.php
 
       - name: Finalize dependencies
@@ -102,7 +102,7 @@ jobs:
           COMPOSER_MEMORY_LIMIT: -1
         run: composer install -n --prefer-dist
 
-      # STEP 2 (MODIFIED): Install the correct legacy PHPUnit AFTER the scenario is set.
+      # STEP 3 (MODIFIED): Install the correct legacy PHPUnit AFTER fixing the environment.
       - name: Install Legacy PHPUnit
         if: matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6'
         env:
