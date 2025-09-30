@@ -96,7 +96,9 @@ jobs:
         run: |
           composer remove phpunit/phpunit --dev --no-update
           if [ "${{ matrix.php_image }}" = "wodby/php:5.6" ]; then
+            # Pin dependencies to versions compatible with PHP 5.6.
             composer require drupal/core-composer-scaffold:"8.8.0" --no-update
+            composer require drush/drush:"^8" --no-update
           fi
 
       - name: Composer install/update (older PHP)
