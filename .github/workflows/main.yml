@@ -79,6 +79,9 @@ jobs:
 
       - name: Scenario install (if any)
         if: ${{ matrix.install_cmd != '' }}
+        env:
+          # Give Composer unlimited memory to solve complex dependency trees
+          COMPOSER_MEMORY_LIMIT: -1
         run: ${{ matrix.install_cmd }}
 
       - name: Finalize dependencies
@@ -87,6 +90,9 @@ jobs:
 
       - name: Downgrade Dependencies for Older PHP
         if: matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6'
+        env:
+          # Also give this step unlimited memory
+          COMPOSER_MEMORY_LIMIT: -1
         run: |
           if [ "${{ matrix.php_image }}" = "wodby/php:7.2" ]; then
             echo "Downgrading PHPUnit for PHP 7.2..."
@@ -163,6 +169,6 @@ jobs:
         env:
           DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
           DRUSH_OPTIONS_URI: http://default
-          UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
+          UNISH_DB_URL: mysql://root:root@mariadb:3.6/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
