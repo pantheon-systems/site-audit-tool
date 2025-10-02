@@ -60,11 +60,16 @@ jobs:
           # Overwrite the modern composer.json with the one from the legacy scenario.
           cp .scenarios.lock/php56/composer.json composer.json
 
+      - name: Install jq
+        run: |
+          apk update
+          apk add jq
+
       - name: Remove Incompatible Scaffold Plugin
         # This is a critical step. The drupal-composer/drupal-scaffold package is a
         # Composer v1 plugin and is the source of the API version conflict.
-        # We remove it from the requirements before attempting to install.
-        run: composer remove drupal-composer/drupal-scaffold --no-update
+        # We use jq to surgically remove it from the composer.json file.
+        run: jq 'del(."require-dev"."drupal-composer/drupal-scaffold")' composer.json > composer.json.tmp && mv composer.json.tmp composer.json
 
       - name: Add Legacy PHPUnit Requirement
         run: composer require phpunit/phpunit:"^5.0" --dev --no-update
@@ -172,6 +177,6 @@ jobs:
         env:
           DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
           DRUSH_OPTIONS_URI: http://default
-          UNISH_DB_URL: mysql://root:root@mariadb:3_306/testsiteaudittooldatabase
+          UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
