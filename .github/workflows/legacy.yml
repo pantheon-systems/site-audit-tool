@@ -100,15 +100,12 @@ jobs:
            * when Composer dev deps are not installed.
            */
           trait DrushTestTrait {
-            // Extremely light stubs. Extend if your tests actually call them.
             protected function drush($command, array $args = [], array $options = [], $expectedExit = 0) {
-              // Best-effort passthrough to vendor/bin/drush if invoked.
               $root = dirname(__DIR__, 2); // -> vendor
               $repo = dirname($root);      // repo root
               $drush = $repo . '/vendor/bin/drush';
               if (is_executable($drush)) {
                 $cmd = escapeshellarg($drush).' '.escapeshellarg($command);
-                // Flatten args/options if passed (keep it simple, best-effort)
                 foreach ($args as $a) { $cmd .= ' '.escapeshellarg($a); }
                 foreach ($options as $k => $v) {
                   $flag = '--'.preg_replace('/^--?/', '', (string)$k);
@@ -117,11 +114,62 @@ jobs:
                 system($cmd, $exit);
                 return $exit === (int)$expectedExit;
               }
-              return true; // no-op success
+              return true; // no-op
             }
-            protected function drushBatchProcess() {
-              // no-op
+            protected function drushBatchProcess() { return true; }
+          }
+          PHP
+
+      - name: Provide Symfony Filesystem shim (PHP 5.6)
+        run: |
+          mkdir -p vendor/Symfony/Component/Filesystem
+          cat > vendor/Symfony/Component/Filesystem/Filesystem.php <<'PHP'
+          <?php
+          namespace Symfony\Component\Filesystem;
+          /**
+           * Minimal shim for Symfony Filesystem used by tests/Fixtures on PHP 5.6.
+           * Implements a subset: exists, mkdir, dumpFile, copy, remove.
+           */
+          class Filesystem {
+            public function exists($files) {
+              foreach ((array)$files as $f) {
+                if (!file_exists($f)) return false;
+              }
               return true;
+            }
+            public function mkdir($dirs, $mode = 0777) {
+              foreach ((array)$dirs as $d) {
+                if (!is_dir($d) && !@mkdir($d, $mode, true) && !is_dir($d)) {
+                  throw new \RuntimeException("Unable to create directory: $d");
+                }
+              }
+            }
+            public function dumpFile($filename, $content) {
+              $dir = dirname($filename);
+              if (!is_dir($dir)) $this->mkdir($dir);
+              if (file_put_contents($filename, $content) === false) {
+                throw new \RuntimeException("Unable to write file: $filename");
+              }
+            }
+            public function copy($originFile, $targetFile, $overwriteNewerFiles = false) {
+              if (!$overwriteNewerFiles && file_exists($targetFile) && filemtime($targetFile) >= @filemtime($originFile)) {
+                return;
+              }
+              $dir = dirname($targetFile);
+              if (!is_dir($dir)) $this->mkdir($dir);
+              if (!@copy($originFile, $targetFile)) {
+                throw new \RuntimeException("Unable to copy $originFile to $targetFile");
+              }
+            }
+            public function remove($files) {
+              foreach ((array)$files as $file) {
+                if (is_dir($file) && !is_link($file)) {
+                  $this->remove(glob(rtrim($file,'/'). '/*', GLOB_NOSORT) ?: []);
+                  @rmdir($file);
+                } elseif (file_exists($file) || is_link($file)) {
+                  @unlink($file);
+                }
+              }
             }
           }
           PHP
@@ -131,24 +179,22 @@ jobs:
           mkdir -p vendor
           cat > vendor/autoload.php <<'PHP'
           <?php
+          /**
+           * Tiny PSR-4 style autoloader that supports multiple base dirs per prefix.
+           */
           spl_autoload_register(function ($class) {
               $prefixes = [
-                  'SiteAudit\\'          => __DIR__ . '/../src/',
-                  // Load fixtures/helpers under tests/src as well.
-                  'SiteAudit\\'          => __DIR__ . '/../tests/src/',
-                  // Shim namespace for Drush TestTraits.
-                  'Drush\\TestTraits\\'  => __DIR__ . '/Drush/TestTraits/',
+                  'SiteAudit\\'                 => [__DIR__ . '/../src/', __DIR__ . '/../tests/src/'],
+                  'Drush\\TestTraits\\'         => [__DIR__ . '/Drush/TestTraits/'],
+                  'Symfony\\Component\\Filesystem\\' => [__DIR__ . '/Symfony/Component/Filesystem/'],
               ];
-              foreach ($prefixes as $prefix => $baseDir) {
+              foreach ($prefixes as $prefix => $baseDirs) {
                   $len = strlen($prefix);
-                  if (strncmp($prefix, $class, $len) !== 0) {
-                      continue;
-                  }
+                  if (strncmp($prefix, $class, $len) !== 0) continue;
                   $relative = str_replace('\\', '/', substr($class, $len)) . '.php';
-                  $file = $baseDir . $relative;
-                  if (is_file($file)) {
-                      require $file;
-                      return true;
+                  foreach ($baseDirs as $baseDir) {
+                      $file = $baseDir . $relative;
+                      if (is_file($file)) { require $file; return true; }
                   }
               }
               return false;
@@ -229,7 +275,6 @@ jobs:
           SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
           [ -f "$SITES_DIR/settings.php" ] || { cp "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php && chmod 644 "$SITES_DIR"/settings.php; }
 
-          # Write a tiny PHP script to avoid tricky shell escaping in `php -r`
           cat > /tmp/provision.php <<'PHP'
           <?php
           require 'vendor/autoload.php';
@@ -237,7 +282,6 @@ jobs:
           $f->createSut();
           echo "SUT ready\n";
           PHP
-
           php -d xdebug.mode=off /tmp/provision.php
 
           # Drush via wrapper (points to tools/drush.phar)
@@ -246,7 +290,6 @@ jobs:
             --uri="$DRUSH_OPTIONS_URI" \
             status --yes --no-interaction \
             --fields=bootstrap,db-status,db-driver,db-hostname,db-name
-
 
       - name: Check SUT path
         run: |
