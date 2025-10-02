@@ -56,6 +56,9 @@ jobs:
       - name: Copy PHP ini
         run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/
 
+      - name: Delete lock file
+        run: rm composer.lock
+
       - name: Install Legacy Scenario Dependencies
         env:
           COMPOSER_MEMORY_LIMIT: -1
@@ -149,4 +152,3 @@ jobs:
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
-
