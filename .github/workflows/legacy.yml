@@ -66,30 +66,33 @@ jobs:
       - name: Add Legacy PHPUnit Requirement
         run: composer require phpunit/phpunit:"^5.0" --dev --no-update
 
-      - name: Resolve Dependencies (Composer v2)
+      - name: Install Legacy Dependencies
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
           # Force Composer to resolve dependencies for PHP 5.6.
           composer config platform.php 5.6
-          # Run update without installing to generate a compatible lock file,
-          # ignoring platform reqs to get past the v1 plugin API conflict.
-          composer update --prefer-dist --ignore-platform-reqs --no-install
+          # Run a single update command with Composer v2, ignoring all platform
+          # requirements. This is the key to bypassing the v1 plugin API conflict
+          # and forcing the installation of compatible legacy packages.
+          composer update --prefer-dist --ignore-platform-reqs
 
-      - name: Downgrade Composer to v1
+      - name: Manual Drupal Scaffold
         run: |
-          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-          php composer-setup.php --install-dir=/usr/local/bin --filename=composer --1
-          php -r "unlink('composer-setup.php');"
-          composer --version
+          set -ex
+          # Create the web root directory structure expected by the tests.
+          mkdir -p sut/web/sites/default
 
-      - name: Install Dependencies with Composer v1
-        env:
-          COMPOSER_MEMORY_LIMIT: -1
-        run: composer install --prefer-dist
+          # Manually download the scaffold files from the official Drupal repo for a compatible version.
+          DRUPAL_VERSION="8.6.18" # Last version to support PHP 5.6 is 8.6.x
+          SCAFFOLD_URL="https://raw.githubusercontent.com/drupal/drupal/${DRUPAL_VERSION}"
+          WEB_ROOT="sut/web"
 
-      - name: Drupal scaffold
-        run: composer drupal:scaffold
+          wget -q -O "${WEB_ROOT}/.htaccess" "${SCAFFOLD_URL}/.htaccess"
+          wget -q -O "${WEB_ROOT}/index.php" "${SCAFFOLD_URL}/index.php"
+          wget -q -O "${WEB_ROOT}/robots.txt" "${SCAFFOLD_URL}/robots.txt"
+          wget -q -O "${WEB_ROOT}/update.php" "${SCAFFOLD_URL}/update.php"
+          wget -q -O "${WEB_ROOT}/sites/default/default.settings.php" "${SCAFFOLD_URL}/sites/default/default.settings.php"
 
       - name: Install dockerize (for DB wait)
         run: |
@@ -170,3 +173,4 @@ jobs:
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
+
