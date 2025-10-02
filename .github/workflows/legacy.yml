@@ -59,7 +59,7 @@ jobs:
       - name: Prepare Legacy Composer Environment
         run: |
           # Delete the modern lock file to prevent conflicts.
-          rm composer.lock
+          rm -f composer.lock
           # Overwrite the modern composer.json with the one from the legacy scenario.
           mv .scenarios.lock/php56/composer.json composer.json
 
@@ -73,6 +73,13 @@ jobs:
         # and --ignore-platform-reqs to bypass the plugin API version check.
         # This will create a new, fully compatible composer.lock and vendor directory.
         run: composer update --no-plugins --prefer-dist --ignore-platform-reqs
+
+      - name: Downgrade Composer to v1 for Plugin Execution
+        run: |
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          php composer-setup.php --1 --install-dir=/usr/local/bin --filename=composer
+          php -r "unlink('composer-setup.php');"
+          composer --version
 
       - name: Drupal scaffold
         run: composer drupal:scaffold
@@ -156,4 +163,3 @@ jobs:
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
-
