@@ -275,13 +275,20 @@ jobs:
           SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
           [ -f "$SITES_DIR/settings.php" ] || { cp "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php && chmod 644 "$SITES_DIR"/settings.php; }
 
+          # Use reflection to bypass the private constructor in SiteAudit\Fixtures.
           cat > /tmp/provision.php <<'PHP'
           <?php
           require 'vendor/autoload.php';
-          $f = new \SiteAudit\Fixtures();
-          $f->createSut();
+          $ref = new \ReflectionClass('\SiteAudit\Fixtures');
+          $obj = $ref->newInstanceWithoutConstructor();
+          if ($ctor = $ref->getConstructor()) {
+              $ctor->setAccessible(true);
+              $ctor->invoke($obj); // pass args here if your ctor needs any
+          }
+          $obj->createSut();
           echo "SUT ready\n";
           PHP
+
           php -d xdebug.mode=off /tmp/provision.php
 
           # Drush via wrapper (points to tools/drush.phar)
