@@ -66,9 +66,10 @@ jobs:
       - name: Install Legacy Dependencies
         env:
           COMPOSER_MEMORY_LIMIT: -1
-        # Run update with --no-plugins to bypass API conflicts during resolution.
+        # Run update with --no-plugins to bypass API conflicts during resolution,
+        # and --ignore-platform-reqs to bypass the plugin API version check.
         # This will create a new, fully compatible composer.lock and vendor directory.
-        run: composer update --no-plugins --prefer-dist
+        run: composer update --no-plugins --prefer-dist --ignore-platform-reqs
 
       - name: Install Legacy PHPUnit
         env:
