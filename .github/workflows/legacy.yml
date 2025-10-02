@@ -81,8 +81,8 @@ jobs:
           mkdir -p sut/web/sites/default
           
           # Manually copy the scaffold files, replicating the plugin's actions.
-          # Source files are located within the drupal-composer/drupal-scaffold package.
-          SCAFFOLD_DIR="vendor/drupal-composer/drupal-scaffold/resources"
+          # Source files are located within the downloaded drupal/core package.
+          SCAFFOLD_DIR="vendor/drupal/core/assets/scaffold/files"
           WEB_ROOT="sut/web"
           
           cp -f "${SCAFFOLD_DIR}/htaccess" "${WEB_ROOT}/.htaccess"
