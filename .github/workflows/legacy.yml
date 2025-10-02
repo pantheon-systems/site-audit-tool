@@ -63,6 +63,9 @@ jobs:
           # Overwrite the modern composer.json with the one from the legacy scenario.
           mv .scenarios.lock/php56/composer.json composer.json
 
+      - name: Add Legacy PHPUnit Requirement
+        run: composer require phpunit/phpunit:"^5.0" --dev --no-update
+
       - name: Install Legacy Dependencies
         env:
           COMPOSER_MEMORY_LIMIT: -1
@@ -86,11 +89,6 @@ jobs:
           wget -q -O "${WEB_ROOT}/robots.txt" "${SCAFFOLD_URL}/robots.txt"
           wget -q -O "${WEB_ROOT}/update.php" "${SCAFFOLD_URL}/update.php"
           wget -q -O "${WEB_ROOT}/sites/default/default.settings.php" "${SCAFFOLD_URL}/sites/default/default.settings.php"
-
-      - name: Install Legacy PHPUnit
-        env:
-          COMPOSER_MEMORY_LIMIT: -1
-        run: composer require phpunit/phpunit:"^5.0" --dev --update-with-all-dependencies
 
       - name: Install dockerize (for DB wait)
         run: |
