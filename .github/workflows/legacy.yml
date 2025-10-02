@@ -63,6 +63,9 @@ jobs:
           # Overwrite the modern composer.json with the one from the legacy scenario.
           mv .scenarios.lock/php56/composer.json composer.json
 
+      - name: Add Legacy PHPUnit Requirement
+        run: composer require phpunit/phpunit:"^5.0" --dev --no-update
+
       - name: Install Legacy Dependencies
         env:
           COMPOSER_MEMORY_LIMIT: -1
@@ -70,11 +73,6 @@ jobs:
         # and --ignore-platform-reqs to bypass the plugin API version check.
         # This will create a new, fully compatible composer.lock and vendor directory.
         run: composer update --no-plugins --prefer-dist --ignore-platform-reqs
-
-      - name: Install Legacy PHPUnit
-        env:
-          COMPOSER_MEMORY_LIMIT: -1
-        run: composer require phpunit/phpunit "^5.0" --dev
 
       - name: Drupal scaffold
         run: composer drupal:scaffold
@@ -158,3 +156,4 @@ jobs:
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
+
