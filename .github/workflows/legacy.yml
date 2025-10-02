@@ -82,7 +82,7 @@ jobs:
           
           # Manually copy the scaffold files, replicating the plugin's actions.
           # Source files are located within the drupal-composer/drupal-scaffold package for this legacy version.
-          SCAFFOLD_DIR="vendor/drupal-composer/drupal-scaffold/assets"
+          SCAFFOLD_DIR="vendor/drupal-composer/drupal-scaffold/resources"
           WEB_ROOT="sut/web"
           
           cp -f "${SCAFFOLD_DIR}/htaccess" "${WEB_ROOT}/.htaccess"
