@@ -56,19 +56,24 @@ jobs:
       - name: Copy PHP ini
         run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/
 
-      - name: Delete lock file
-        run: rm composer.lock
+      - name: Prepare Legacy Composer Environment
+        run: |
+          # Delete the modern lock file to prevent conflicts.
+          rm composer.lock
+          # Overwrite the modern composer.json with the one from the legacy scenario.
+          mv .scenarios.lock/php56/composer.json composer.json
 
-      - name: Install Legacy Scenario Dependencies
+      - name: Install Legacy Dependencies
         env:
           COMPOSER_MEMORY_LIMIT: -1
-        # This script creates a compatible composer.json and runs install
-        run: .scenarios.lock/install php56 || true
+        # Run update with --no-plugins to bypass API conflicts during resolution.
+        # This will create a new, fully compatible composer.lock and vendor directory.
+        run: composer update --no-plugins --prefer-dist
 
       - name: Install Legacy PHPUnit
         env:
           COMPOSER_MEMORY_LIMIT: -1
-        run: composer require phpunit/phpunit "^5.0" --dev -W
+        run: composer require phpunit/phpunit "^5.0" --dev
 
       - name: Drupal scaffold
         run: composer drupal:scaffold
