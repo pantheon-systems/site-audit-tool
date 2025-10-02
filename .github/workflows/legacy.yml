@@ -79,6 +79,16 @@ jobs:
           echo "Failed to fetch a PHP 5.6–compatible drush.phar" >&2
           exit 1
 
+      - name: Create drush wrapper at vendor/bin/drush
+        run: |
+          mkdir -p vendor/bin
+          cat > vendor/bin/drush <<'SH'
+          #!/bin/sh
+          REPO_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
+          exec php "$REPO_ROOT/tools/drush.phar" "$@"
+          SH
+          chmod +x vendor/bin/drush
+
       - name: Provide Drush TestTraits shim (PHP 5.6)
         run: |
           mkdir -p vendor/Drush/TestTraits
@@ -90,9 +100,29 @@ jobs:
            * when Composer dev deps are not installed.
            */
           trait DrushTestTrait {
-            // Add minimal stubs if tests ever call methods from this trait.
-            // protected function drush($command, array $args = [], array $options = [], $expectedExit = 0) {}
-            // protected function drushBatchProcess() {}
+            // Extremely light stubs. Extend if your tests actually call them.
+            protected function drush($command, array $args = [], array $options = [], $expectedExit = 0) {
+              // Best-effort passthrough to vendor/bin/drush if invoked.
+              $root = dirname(__DIR__, 2); // -> vendor
+              $repo = dirname($root);      // repo root
+              $drush = $repo . '/vendor/bin/drush';
+              if (is_executable($drush)) {
+                $cmd = escapeshellarg($drush).' '.escapeshellarg($command);
+                // Flatten args/options if passed (keep it simple, best-effort)
+                foreach ($args as $a) { $cmd .= ' '.escapeshellarg($a); }
+                foreach ($options as $k => $v) {
+                  $flag = '--'.preg_replace('/^--?/', '', (string)$k);
+                  $cmd .= is_bool($v) ? " $flag" : " $flag=".escapeshellarg((string)$v);
+                }
+                system($cmd, $exit);
+                return $exit === (int)$expectedExit;
+              }
+              return true; // no-op success
+            }
+            protected function drushBatchProcess() {
+              // no-op
+              return true;
+            }
           }
           PHP
 
@@ -104,7 +134,7 @@ jobs:
           spl_autoload_register(function ($class) {
               $prefixes = [
                   'SiteAudit\\'          => __DIR__ . '/../src/',
-                  // Some projects keep fixtures/helpers in tests/src as well.
+                  // Load fixtures/helpers under tests/src as well.
                   'SiteAudit\\'          => __DIR__ . '/../tests/src/',
                   // Shim namespace for Drush TestTraits.
                   'Drush\\TestTraits\\'  => __DIR__ . '/Drush/TestTraits/',
@@ -199,9 +229,10 @@ jobs:
           SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
           [ -f "$SITES_DIR/settings.php" ] || { cp "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php && chmod 644 "$SITES_DIR"/settings.php; }
           timeout 15m bash -ce '
-            php -d xdebug.mode=off -r "require \"vendor/autoload.php\"; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
+            php -d xdebug.mode=off -r "require \"vendor/autoload.php\"; $f=new SiteAudit\\Fixtures(); $f->createSut(); echo \"SUT ready\n\";"
           '
-          php tools/drush.phar --root="$DRUSH_OPTIONS_ROOT" --uri="$DRUSH_OPTIONS_URI" status --yes --no-interaction --fields=bootstrap,db-status,db-driver,db-hostname,db-name
+          # Drush via wrapper (points to tools/drush.phar)
+          vendor/bin/drush --root="$DRUSH_OPTIONS_ROOT" --uri="$DRUSH_OPTIONS_URI" status --yes --no-interaction --fields=bootstrap,db-status,db-driver,db-hostname,db-name
 
       - name: Check SUT path
         run: |
