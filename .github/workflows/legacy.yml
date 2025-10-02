@@ -1,4 +1,4 @@
-name: Legacy PHP 5.6 Build
+name: Legacy PHP 5.6 Build (No-Composer)
 
 on:
   pull_request:
@@ -10,13 +10,10 @@ env:
   PHPUNIT_ARGS: ""
   PHP_SENDMAIL_PATH: /dev/null
   DOCKERIZE_VERSION: v0.6.1
-  COMPOSER_ALLOW_SUPERUSER: "1"
-  COMPOSER_MEMORY_LIMIT: -1
-  COMPOSER_DISABLE_XDEBUG_WARN: "1"
 
 jobs:
   legacy-test:
-    name: php 5.6 / drupal 8.6 (Legacy)
+    name: php 5.6 / drupal 8.6 (Legacy, Composer-free)
     runs-on: ubuntu-latest
 
     container:
@@ -48,50 +45,57 @@ jobs:
 
       - name: Install required tools (Alpine)
         run: |
-          apk add --no-cache git unzip bash mariadb-client wget coreutils jq ca-certificates
-
-      - name: Install Composer v1 (explicit)
-        run: |
-          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-          php composer-setup.php --1 --install-dir=/usr/local/bin --filename=composer
-          php -r "unlink('composer-setup.php');"
-          composer --version
-          # Ensure packagist is configured explicitly
-          composer config -g repos.packagist composer https://repo.packagist.org
+          apk add --no-cache bash wget curl git unzip ca-certificates mariadb-client coreutils
 
       - name: Copy PHP ini
-        run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/
+        run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/ || true
 
-      - name: Prepare Legacy Composer Environment (strip packages.drupal.org)
+      # -------------------------------
+      # Composer-free tooling
+      # -------------------------------
+      - name: Fetch PHPUnit 5 PHAR
         run: |
-          # Start from the legacy scenario definition
-          rm -f composer.lock
-          cp .scenarios.lock/php56/composer.json composer.json
+          mkdir -p tools
+          # official archives still host legacy phars; use a pinned v5.x
+          wget -q -O tools/phpunit.phar https://phar.phpunit.de/phpunit-5.7.27.phar
+          chmod +x tools/phpunit.phar
+          php tools/phpunit.phar --version
 
-          # If the legacy composer.json contains the Drupal.org repo, remove it for Composer 1 compatibility
-          # This deletes any repository whose URL matches packages.drupal.org
-          if jq -e '.repositories' composer.json >/dev/null 2>&1; then
-            jq 'if .repositories then
-                  .repositories |= (map(select((.url? // "") | test("packages\\.drupal\\.org") | not)))
-                else . end' composer.json > composer.cleaned.json
-            mv composer.cleaned.json composer.json
-          fi
-
-          # Sanity: show which repos remain
-          jq '.repositories // []' composer.json || true
-
-      - name: Add Legacy Dev Requirements (PHPUnit 5 + Drush 8)
+      - name: Fetch Drush 8 PHAR
         run: |
-          composer config platform.php 5.6
-          # Add dev requirements without triggering an install yet
-          composer require --dev phpunit/phpunit:"^5.0" drush/drush:"^8.4" --no-update
+          mkdir -p tools
+          # latest stable drush8 phar (works with PHP 5.6 / Drupal 8.6)
+          wget -q -O tools/drush.phar https://github.com/drush-ops/drush/releases/download/8.4.12/drush.phar || \
+          wget -q -O tools/drush.phar https://github.com/drush-ops/drush/releases/download/8.4.11/drush.phar
+          chmod +x tools/drush.phar
+          php tools/drush.phar version
 
-      - name: Install Legacy Dependencies
+      - name: Create minimal PSR-4 autoloader (no Composer)
         run: |
-          # Ignore platform reqs to let Composer resolve on a PHP 5.6 target while Composer 1 runs fine
-          composer update --prefer-dist --no-interaction --ignore-platform-reqs
-          composer dump-autoload -o
-          test -f vendor/autoload.php || (echo "vendor/autoload.php missing!" && exit 1)
+          mkdir -p vendor
+          cat > vendor/autoload.php <<'PHP'
+          <?php
+          spl_autoload_register(function ($class) {
+              $prefixes = [
+                  'SiteAudit\\' => __DIR__ . '/../src/',
+                  'SiteAudit\\' => __DIR__ . '/../tests/src/', // dev/test classes (Fixtures, etc.)
+              ];
+              foreach ($prefixes as $prefix => $baseDir) {
+                  $len = strlen($prefix);
+                  if (strncmp($prefix, $class, $len) !== 0) {
+                      continue;
+                  }
+                  $relative = str_replace('\\', '/', substr($class, $len)) . '.php';
+                  $file = $baseDir . $relative;
+                  if (is_file($file)) {
+                      require $file;
+                      return true;
+                  }
+              }
+              return false;
+          });
+          PHP
+          php -r "require 'vendor/autoload.php'; echo 'Autoloader OK'.PHP_EOL;"
 
       - name: Lint tests and check class
         run: |
@@ -99,6 +103,9 @@ jobs:
           ls -l vendor/autoload.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
 
+      # -------------------------------
+      # Manual Drupal scaffold (8.6.18)
+      # -------------------------------
       - name: Manual Drupal Scaffold (8.6.18)
         run: |
           set -ex
@@ -165,7 +172,7 @@ jobs:
           timeout 15m bash -ce '
             php -d xdebug.mode=off -r "require \"vendor/autoload.php\"; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
           '
-          vendor/bin/drush status --yes --no-interaction --fields=bootstrap,db-status,db-driver,db-hostname,db-name
+          php tools/drush.phar --root="$DRUSH_OPTIONS_ROOT" --uri="$DRUSH_OPTIONS_URI" status --yes --no-interaction --fields=bootstrap,db-status,db-driver,db-hostname,db-name
 
       - name: Check SUT path
         run: |
@@ -177,10 +184,10 @@ jobs:
           rm -f sut/web/test.php
           mkdir -p sut/web/modules/contrib/php
 
-      - name: Run tests
+      - name: Run tests (PHPUnit 5 PHAR)
         env:
           DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
           DRUSH_OPTIONS_URI: http://default
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
-          vendor/bin/phpunit --colors=always ${PHPUNIT_ARGS}
+          php tools/phpunit.phar --bootstrap vendor/autoload.php --colors=always ${PHPUNIT_ARGS}
