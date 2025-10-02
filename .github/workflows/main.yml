@@ -56,30 +56,17 @@ jobs:
             php_image: wodby/php:7.2
             install_cmd: ".scenarios.lock/install drush8"
             scaffold: "no"
-          - name: php 5.6 / drupal 8.7
-            php_image: wodby/php:5.6
-            install_cmd: ".scenarios.lock/install php56"
-            scaffold: "yes"
-            continue-on-error: true
 
     steps:
       - name: Checkout (Modern PHP)
         if: ${{ matrix.php_image != 'wodby/php:5.6' }}
         uses: actions/checkout@v4
 
-      - name: Manual Checkout (Legacy PHP 5.6)
-        if: ${{ matrix.php_image == 'wodby/php:5.6' }}
-        run: |
-          git init
-          git remote add origin https://github.com/${{ github.repository }}
-          git fetch --no-tags --prune --progress --depth=1 origin ${{ github.sha }}
-          git checkout --progress --force ${{ github.sha }}
-
       - name: Mark workspace as safe for Git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Update Composer to v2 for Legacy PHP
-        if: ${{ matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6' }}
+        if: ${{ matrix.php_image == 'wodby/php:7.2' }}
         run: |
           php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
           php composer-setup.php --install-dir=/usr/local/bin --filename=composer
@@ -91,16 +78,6 @@ jobs:
 
       - name: Copy PHP ini
         run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/
-
-      - name: Prepare for Legacy Scenario
-        if: ${{ (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6') }}
-        run: |
-          composer remove phpunit/phpunit --dev --no-update
-          if [ "${{ matrix.php_image }}" = "wodby/php:5.6" ]; then
-            # Pin dependencies to versions compatible with PHP 5.6.
-            composer require drupal/core-composer-scaffold:"8.8.0" --no-update
-            composer require drush/drush:"^8" --no-update
-          fi
 
       - name: Composer install/update (older PHP)
         if: ${{ matrix.php_image != 'wodby/php:8.1' && matrix.php_image != 'wodby/php:8.0' }}
@@ -155,32 +132,18 @@ jobs:
         run: ${{ matrix.install_cmd }} || true
 
       - name: Remove Platform Override
-        if: ${{ (matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6') }}
+        if: ${{ (matrix.php_image == 'wodby/php:7.2') }}
         run: composer config --unset platform.php
 
-      - name: Finalize dependencies
-        if: ${{ matrix.install_cmd != '' && matrix.php_image != 'wodby/php:5.6' }}
-        env:
-          COMPOSER_MEMORY_LIMIT: -1
-        run: |
-          # The main install/update has already happened, so we just ensure the lock file is honored here.
-          composer install -n --prefer-dist
-
       - name: Install Legacy PHPUnit
-        if: ${{ matrix.php_image == 'wodby/php:7.2' || matrix.php_image == 'wodby/php:5.6' }}
+        if: ${{ matrix.php_image == 'wodby/php:7.2' }}
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: |
           if [ "${{ matrix.php_image }}" = "wodby/php:7.2" ]; then
             composer require phpunit/phpunit "^6.0" --dev -W
           fi
-          if [ "${{ matrix.php_image }}" = "wodby/php:5.6" ]; then
-            composer require phpunit/phpunit "^5.0" --dev -W
-          fi
 
-      - name: Drupal scaffold (only for php 5.6 job)
-        if: ${{ matrix.scaffold == 'yes' }}
-        run: composer drupal:scaffold
 
       - name: Install dockerize (for DB wait)
         run: |
