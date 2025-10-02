@@ -81,8 +81,8 @@ jobs:
           mkdir -p sut/web/sites/default
           
           # Manually copy the scaffold files, replicating the plugin's actions.
-          # Source files are located within the downloaded drupal/core package.
-          SCAFFOLD_DIR="vendor/drupal/core/assets/scaffold/files"
+          # Source files are located within the drupal-composer/drupal-scaffold package for this legacy version.
+          SCAFFOLD_DIR="vendor/drupal-composer/drupal-scaffold/assets"
           WEB_ROOT="sut/web"
           
           cp -f "${SCAFFOLD_DIR}/htaccess" "${WEB_ROOT}/.htaccess"
@@ -171,3 +171,4 @@ jobs:
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
+
