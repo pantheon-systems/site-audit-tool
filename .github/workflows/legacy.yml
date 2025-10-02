@@ -228,11 +228,25 @@ jobs:
           set -eux
           SITES_DIR="${DRUSH_OPTIONS_ROOT}/sites/default"
           [ -f "$SITES_DIR/settings.php" ] || { cp "$SITES_DIR"/default.settings.php "$SITES_DIR"/settings.php && chmod 644 "$SITES_DIR"/settings.php; }
-          timeout 15m bash -ce '
-            php -d xdebug.mode=off -r "require \"vendor/autoload.php\"; $f=new SiteAudit\\Fixtures(); $f->createSut(); echo \"SUT ready\n\";"
-          '
+
+          # Write a tiny PHP script to avoid tricky shell escaping in `php -r`
+          cat > /tmp/provision.php <<'PHP'
+          <?php
+          require 'vendor/autoload.php';
+          $f = new \SiteAudit\Fixtures();
+          $f->createSut();
+          echo "SUT ready\n";
+          PHP
+
+          php -d xdebug.mode=off /tmp/provision.php
+
           # Drush via wrapper (points to tools/drush.phar)
-          vendor/bin/drush --root="$DRUSH_OPTIONS_ROOT" --uri="$DRUSH_OPTIONS_URI" status --yes --no-interaction --fields=bootstrap,db-status,db-driver,db-hostname,db-name
+          vendor/bin/drush \
+            --root="$DRUSH_OPTIONS_ROOT" \
+            --uri="$DRUSH_OPTIONS_URI" \
+            status --yes --no-interaction \
+            --fields=bootstrap,db-status,db-driver,db-hostname,db-name
+
 
       - name: Check SUT path
         run: |
