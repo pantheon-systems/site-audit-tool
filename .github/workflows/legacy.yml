@@ -79,16 +79,17 @@ jobs:
           # Create the web root directory structure expected by the tests.
           mkdir -p sut/web/sites/default
 
-          # Manually copy the scaffold files, which are located in the root of the drupal/core package.
-          SCAFFOLD_DIR="vendor/drupal/core"
+          # Manually download the scaffold files from the official Drupal repo for a compatible version.
+          DRUPAL_VERSION="8.6.18" # Last version to support PHP 5.6 is 8.6.x
+          SCAFFOLD_URL="https://raw.githubusercontent.com/drupal/drupal/${DRUPAL_VERSION}"
           WEB_ROOT="sut/web"
 
-          cp -f "${SCAFFOLD_DIR}/.htaccess" "${WEB_ROOT}/.htaccess"
-          cp -f "${SCAFFOLD_DIR}/index.php" "${WEB_ROOT}/index.php"
-          cp -f "${SCAFFOLD_DIR}/robots.txt" "${WEB_ROOT}/robots.txt"
-          cp -f "${SCAFFOLD_DIR}/update.php" "${WEB_ROOT}/update.php"
+          wget -q -O "${WEB_ROOT}/.htaccess" "${SCAFFOLD_URL}/.htaccess"
+          wget -q -O "${WEB_ROOT}/index.php" "${SCAFFOLD_URL}/index.php"
+          wget -q -O "${WEB_ROOT}/robots.txt" "${SCAFFOLD_URL}/robots.txt"
+          wget -q -O "${WEB_ROOT}/update.php" "${SCAFFOLD_URL}/update.php"
           # Copy default settings file, which is critical for Drupal to boot.
-          cp -f "${SCAFFOLD_DIR}/sites/default/default.settings.php" "${WEB_ROOT}/sites/default/default.settings.php"
+          wget -q -O "${WEB_ROOT}/sites/default/default.settings.php" "${SCAFFOLD_URL}/sites/default/default.settings.php"
 
       - name: Install dockerize (for DB wait)
         run: |
