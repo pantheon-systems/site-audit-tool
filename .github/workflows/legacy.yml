@@ -66,13 +66,12 @@ jobs:
       - name: Add Legacy PHPUnit Requirement
         run: composer require phpunit/phpunit:"^5.0" --dev --no-update
 
-      - name: Install Legacy Dependencies
+      - name: Resolve Dependencies with Composer v2
         env:
           COMPOSER_MEMORY_LIMIT: -1
-        # Run update with --no-plugins to bypass API conflicts during resolution,
-        # and --ignore-platform-reqs to bypass the plugin API version check.
-        # This will create a new, fully compatible composer.lock and vendor directory.
-        run: composer update --no-plugins --prefer-dist --ignore-platform-reqs
+        # Use Composer v2 to resolve dependencies and create a lock file, but do not install.
+        # This bypasses all plugin conflicts while still using the modern resolver.
+        run: composer update --no-plugins --prefer-dist --ignore-platform-reqs --no-install
 
       - name: Downgrade Composer to v1 for Plugin Execution
         run: |
@@ -80,6 +79,13 @@ jobs:
           php composer-setup.php --1 --install-dir=/usr/local/bin --filename=composer
           php -r "unlink('composer-setup.php');"
           composer --version
+
+      - name: Install Dependencies with Composer v1
+        env:
+          COMPOSER_MEMORY_LIMIT: -1
+        # Use Composer v1 to install from the lock file. This creates a vendor
+        # directory that is compatible with the v1 scaffold plugin.
+        run: composer install --prefer-dist
 
       - name: Drupal scaffold
         run: composer drupal:scaffold
