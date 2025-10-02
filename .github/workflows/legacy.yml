@@ -43,58 +43,62 @@ jobs:
       - name: Mark workspace as safe for Git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      - name: Update Composer to v2
+      # Alpine base tools for Composer + MySQL + wget
+      - name: Install required tools
+        run: |
+          apk add --no-cache git unzip bash mariadb-client wget coreutils
+
+      # Install Composer v1 explicitly (Composer 2 won't run on PHP 5.6)
+      - name: Install Composer v1
+        env:
+          COMPOSER_ALLOW_SUPERUSER: "1"
         run: |
           php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-          php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+          php composer-setup.php --1 --install-dir=/usr/local/bin --filename=composer
           php -r "unlink('composer-setup.php');"
           composer --version
 
       - name: Copy PHP ini
         run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/
 
+      # Prepare legacy dependency context
       - name: Prepare Legacy Composer Environment
         run: |
-          # Delete the modern lock file to prevent conflicts.
           rm -f composer.lock
-          # Overwrite the modern composer.json with the one from the legacy scenario.
           cp .scenarios.lock/php56/composer.json composer.json
 
-      - name: Install jq
+      # Ensure PHPUnit 5 & Drush 8 are required for PHP 5.6 era
+      - name: Add Legacy Dev Requirements (PHPUnit 5 + Drush 8)
+        env:
+          COMPOSER_ALLOW_SUPERUSER: "1"
         run: |
-          apk update
-          apk add jq
-
-      - name: Remove Incompatible Scaffold Plugin
-        # This is the critical fix. The drupal-composer/drupal-scaffold package is a
-        # Composer v1 plugin and is the source of the API version conflict.
-        # We use jq to surgically remove it from the composer.json's 'require' section.
-        run: jq 'del(.require."drupal-composer/drupal-scaffold")' composer.json > composer.json.tmp && mv composer.json.tmp composer.json
-
-      - name: Add Legacy PHPUnit Requirement
-        run: composer require phpunit/phpunit:"^5.0" --dev --no-update
+          composer require --dev phpunit/phpunit:"^5.0" drush/drush:"^8.4" --no-update
 
       - name: Install Legacy Dependencies
         env:
           COMPOSER_MEMORY_LIMIT: -1
+          COMPOSER_ALLOW_SUPERUSER: "1"
         run: |
-          # Force Composer to resolve dependencies for PHP 5.6.
           composer config platform.php 5.6
-          # With the conflicting plugin removed, a standard update will now succeed
-          # while respecting the PHP 5.6 platform.
-          composer update --prefer-dist
+          composer update --prefer-dist --no-interaction --ignore-platform-reqs
+          composer dump-autoload -o
+          test -f vendor/autoload.php || (echo "vendor/autoload.php missing!" && exit 1)
 
+      # Sanity check BEFORE doing anything else that relies on classes
+      - name: Lint tests and check class
+        run: |
+          php -l tests/src/Fixtures.php
+          ls -l vendor/autoload.php
+          php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
+
+      # Manual Drupal scaffold for 8.6.18 (PHP 5.6 ceiling)
       - name: Manual Drupal Scaffold
         run: |
           set -ex
-          # Create the web root directory structure expected by the tests.
           mkdir -p sut/web/sites/default
-
-          # Manually download the scaffold files from the official Drupal repo for a compatible version.
-          DRUPAL_VERSION="8.6.18" # Last version to support PHP 5.6 is 8.6.x
+          DRUPAL_VERSION="8.6.18"
           SCAFFOLD_URL="https://raw.githubusercontent.com/drupal/drupal/${DRUPAL_VERSION}"
           WEB_ROOT="sut/web"
-
           wget -q -O "${WEB_ROOT}/.htaccess" "${SCAFFOLD_URL}/.htaccess"
           wget -q -O "${WEB_ROOT}/index.php" "${SCAFFOLD_URL}/index.php"
           wget -q -O "${WEB_ROOT}/robots.txt" "${SCAFFOLD_URL}/robots.txt"
@@ -139,11 +143,6 @@ jobs:
              CREATE DATABASE testsiteaudittooldatabase
              CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
 
-      - name: Lint tests and check class
-        run: |
-          php -l tests/src/Fixtures.php
-          php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
-
       - name: Provision SUT (single path)
         env:
           DRUSH_OPTIONS_ROOT: ${{ github.workspace }}/sut/web
@@ -159,7 +158,7 @@ jobs:
           timeout 15m bash -ce '
             php -d xdebug.mode=off -r "require \"vendor/autoload.php\"; SiteAudit\\Fixtures::createSut(); echo \"SUT ready\n\";"
           '
-          vendor/drush/drush/drush status --yes --no-interaction --fields=bootstrap,db-status,db-driver,db-hostname,db-name
+          vendor/bin/drush status --yes --no-interaction --fields=bootstrap,db-status,db-driver,db-hostname,db-name
 
       - name: Check SUT path
         run: |
@@ -168,9 +167,7 @@ jobs:
 
       - name: Clean up test environment
         run: |
-          # Remove superfluous file that causes an assertion failure.
           rm -f sut/web/test.php
-          # Create a dummy module directory expected by ExtensionsTest.
           mkdir -p sut/web/modules/contrib/php
 
       - name: Run tests
@@ -179,4 +176,4 @@ jobs:
           DRUSH_OPTIONS_URI: http://default
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
-          vendor/bin/phpunit --colors=always
+          vendor/bin/phpunit --colors=always ${PHPUNIT_ARGS}
