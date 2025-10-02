@@ -45,7 +45,7 @@ jobs:
 
       - name: Install required tools (Alpine)
         run: |
-          apk add --no-cache bash wget curl git unzip ca-certificates mariadb-client coreutils
+          apk add --no-cache bash wget curl git unzip ca-certificates mariadb-client coreutils tar
 
       - name: Copy PHP ini (optional)
         run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/ || true
@@ -95,14 +95,10 @@ jobs:
           cat > vendor/Drush/TestTraits/DrushTestTrait.php <<'PHP'
           <?php
           namespace Drush\TestTraits;
-          /**
-           * Minimal no-op shim so classes that `use DrushTestTrait` parse on PHP 5.6
-           * when Composer dev deps are not installed.
-           */
           trait DrushTestTrait {
             protected function drush($command, array $args = [], array $options = [], $expectedExit = 0) {
-              $root = dirname(__DIR__, 2); // -> vendor
-              $repo = dirname($root);      // repo root
+              $root = dirname(__DIR__, 2);
+              $repo = dirname($root);
               $drush = $repo . '/vendor/bin/drush';
               if (is_executable($drush)) {
                 $cmd = escapeshellarg($drush).' '.escapeshellarg($command);
@@ -114,7 +110,7 @@ jobs:
                 system($cmd, $exit);
                 return $exit === (int)$expectedExit;
               }
-              return true; // no-op
+              return true;
             }
             protected function drushBatchProcess() { return true; }
           }
@@ -126,51 +122,12 @@ jobs:
           cat > vendor/Symfony/Component/Filesystem/Filesystem.php <<'PHP'
           <?php
           namespace Symfony\Component\Filesystem;
-          /**
-           * Minimal shim for Symfony Filesystem used by tests/Fixtures on PHP 5.6.
-           * Implements a subset: exists, mkdir, dumpFile, copy, remove.
-           */
           class Filesystem {
-            public function exists($files) {
-              foreach ((array)$files as $f) {
-                if (!file_exists($f)) return false;
-              }
-              return true;
-            }
-            public function mkdir($dirs, $mode = 0777) {
-              foreach ((array)$dirs as $d) {
-                if (!is_dir($d) && !@mkdir($d, $mode, true) && !is_dir($d)) {
-                  throw new \RuntimeException("Unable to create directory: $d");
-                }
-              }
-            }
-            public function dumpFile($filename, $content) {
-              $dir = dirname($filename);
-              if (!is_dir($dir)) $this->mkdir($dir);
-              if (file_put_contents($filename, $content) === false) {
-                throw new \RuntimeException("Unable to write file: $filename");
-              }
-            }
-            public function copy($originFile, $targetFile, $overwriteNewerFiles = false) {
-              if (!$overwriteNewerFiles && file_exists($targetFile) && filemtime($targetFile) >= @filemtime($originFile)) {
-                return;
-              }
-              $dir = dirname($targetFile);
-              if (!is_dir($dir)) $this->mkdir($dir);
-              if (!@copy($originFile, $targetFile)) {
-                throw new \RuntimeException("Unable to copy $originFile to $targetFile");
-              }
-            }
-            public function remove($files) {
-              foreach ((array)$files as $file) {
-                if (is_dir($file) && !is_link($file)) {
-                  $this->remove(glob(rtrim($file,'/'). '/*', GLOB_NOSORT) ?: []);
-                  @rmdir($file);
-                } elseif (file_exists($file) || is_link($file)) {
-                  @unlink($file);
-                }
-              }
-            }
+            public function exists($files){foreach((array)$files as $f){if(!file_exists($f))return false;}return true;}
+            public function mkdir($dirs,$mode=0777){foreach((array)$dirs as $d){if(!is_dir($d)&&!@mkdir($d,$mode,true)&&!is_dir($d))throw new \RuntimeException("Unable to create directory: $d");}}
+            public function dumpFile($filename,$content){$dir=dirname($filename);if(!is_dir($dir))$this->mkdir($dir);if(file_put_contents($filename,$content)===false)throw new \RuntimeException("Unable to write file: $filename");}
+            public function copy($origin,$target,$overwriteNewer=false){if(!$overwriteNewer&&file_exists($target)&&filemtime($target)>=@filemtime($origin))return;$dir=dirname($target);if(!is_dir($dir))$this->mkdir($dir);if(!@copy($origin,$target))throw new \RuntimeException("Unable to copy $origin to $target");}
+            public function remove($files){foreach((array)$files as $f){if(is_dir($f)&&!is_link($f)){$this->remove(glob(rtrim($f,'/').'/*',GLOB_NOSORT)?:[]);@rmdir($f);}elseif(file_exists($f)||is_link($f)){@unlink($f);}}}
           }
           PHP
 
@@ -179,13 +136,10 @@ jobs:
           mkdir -p vendor
           cat > vendor/autoload.php <<'PHP'
           <?php
-          /**
-           * Tiny PSR-4 style autoloader that supports multiple base dirs per prefix.
-           */
           spl_autoload_register(function ($class) {
               $prefixes = [
-                  'SiteAudit\\'                 => [__DIR__ . '/../src/', __DIR__ . '/../tests/src/'],
-                  'Drush\\TestTraits\\'         => [__DIR__ . '/Drush/TestTraits/'],
+                  'SiteAudit\\'                      => [__DIR__ . '/../src/', __DIR__ . '/../tests/src/'],
+                  'Drush\\TestTraits\\'             => [__DIR__ . '/Drush/TestTraits/'],
                   'Symfony\\Component\\Filesystem\\' => [__DIR__ . '/Symfony/Component/Filesystem/'],
               ];
               foreach ($prefixes as $prefix => $baseDirs) {
@@ -209,20 +163,20 @@ jobs:
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
 
       # -------------------------------
-      # Manual Drupal scaffold (8.6.18)
+      # Install a REAL Drupal root (8.6.18 tarball)
       # -------------------------------
-      - name: Manual Drupal Scaffold (8.6.18)
+      - name: Install Drupal 8.6.18 to sut/web
         run: |
-          set -ex
-          mkdir -p sut/web/sites/default
-          DRUPAL_VERSION="8.6.18"
-          SCAFFOLD_URL="https://raw.githubusercontent.com/drupal/drupal/${DRUPAL_VERSION}"
-          WEB_ROOT="sut/web"
-          wget -q -O "${WEB_ROOT}/.htaccess" "${SCAFFOLD_URL}/.htaccess"
-          wget -q -O "${WEB_ROOT}/index.php" "${SCAFFOLD_URL}/index.php"
-          wget -q -O "${WEB_ROOT}/robots.txt" "${SCAFFOLD_URL}/robots.txt"
-          wget -q -O "${WEB_ROOT}/update.php" "${SCAFFOLD_URL}/update.php"
-          wget -q -O "${WEB_ROOT}/sites/default/default.settings.php" "${SCAFFOLD_URL}/sites/default/default.settings.php"
+          set -eux
+          mkdir -p sut
+          cd sut
+          wget -q -O drupal.tar.gz https://ftp.drupal.org/files/projects/drupal-8.6.18.tar.gz
+          tar -xzf drupal.tar.gz
+          rm drupal.tar.gz
+          mv drupal-8.6.18 web
+          # basic directories expected by many setups
+          mkdir -p web/sites/default/files
+          chmod -R 777 web/sites/default/files
 
       - name: Install dockerize (for DB wait)
         run: |
@@ -283,7 +237,7 @@ jobs:
           $obj = $ref->newInstanceWithoutConstructor();
           if ($ctor = $ref->getConstructor()) {
               $ctor->setAccessible(true);
-              $ctor->invoke($obj); // pass args here if your ctor needs any
+              $ctor->invoke($obj);
           }
           $obj->createSut();
           echo "SUT ready\n";
@@ -305,7 +259,7 @@ jobs:
 
       - name: Clean up test environment
         run: |
-          rm -f sut/web/test.php
+          rm -f sut/web/test.php || true
           mkdir -p sut/web/modules/contrib/php
 
       - name: Run tests (PHPUnit 5 PHAR)
