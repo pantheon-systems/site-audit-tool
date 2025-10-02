@@ -13,7 +13,7 @@ env:
 
 jobs:
   legacy-test:
-    name: php 5.6 / drupal 8.7 (Legacy)
+    name: php 5.6 / drupal 8.6 (Legacy)
     runs-on: ubuntu-latest
 
     container:
@@ -43,13 +43,6 @@ jobs:
       - name: Mark workspace as safe for Git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      - name: Update Composer to v2
-        run: |
-          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-          php composer-setup.php --install-dir=/usr/local/bin --filename=composer
-          php -r "unlink('composer-setup.php');"
-          composer --version
-
       - name: Force Composer to use dist everywhere
         run: composer config -g preferred-install dist
 
@@ -66,29 +59,14 @@ jobs:
       - name: Add Legacy PHPUnit Requirement
         run: composer require phpunit/phpunit:"^5.0" --dev --no-update
 
-      - name: Install Legacy Dependencies
+      - name: Install Legacy Dependencies with Composer v1
         env:
           COMPOSER_MEMORY_LIMIT: -1
-        # Run update and ignore platform requirements. This allows Composer v2 to
-        # resolve and install dependencies for PHP 5.6 despite plugin API conflicts.
-        run: composer update --prefer-dist --ignore-platform-reqs
+        # Using the container's default Composer v1 to resolve the legacy dependencies.
+        run: composer update --prefer-dist
 
-      - name: Manual Drupal Scaffold
-        run: |
-          set -ex
-          # Create the web root directory structure expected by the tests.
-          mkdir -p sut/web/sites/default
-
-          # Manually copy the scaffold files, which are located in the root of the drupal/core package.
-          SCAFFOLD_DIR="vendor/drupal/core"
-          WEB_ROOT="sut/web"
-
-          cp -f "${SCAFFOLD_DIR}/.htaccess" "${WEB_ROOT}/.htaccess"
-          cp -f "${SCAFFOLD_DIR}/index.php" "${WEB_ROOT}/index.php"
-          cp -f "${SCAFFOLD_DIR}/robots.txt" "${WEB_ROOT}/robots.txt"
-          cp -f "${SCAFFOLD_DIR}/update.php" "${WEB_ROOT}/update.php"
-          # Copy default settings file, which is critical for Drupal to boot.
-          cp -f "${SCAFFOLD_DIR}/sites/default/default.settings.php" "${WEB_ROOT}/sites/default/default.settings.php"
+      - name: Drupal scaffold
+        run: composer drupal:scaffold
 
       - name: Install dockerize (for DB wait)
         run: |
