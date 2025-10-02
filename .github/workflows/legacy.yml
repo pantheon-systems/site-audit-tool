@@ -47,13 +47,15 @@ jobs:
         run: |
           apk add --no-cache bash wget curl git unzip ca-certificates mariadb-client coreutils
 
-      - name: Copy PHP ini
+      - name: Copy PHP ini (optional)
         run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/ || true
 
+      # -------------------------------
+      # Composer-free tooling
+      # -------------------------------
       - name: Fetch PHPUnit 5 PHAR
         run: |
           mkdir -p tools
-          # official archives still host legacy phars; use a pinned v5.x
           wget -q -O tools/phpunit.phar https://phar.phpunit.de/phpunit-5.7.27.phar
           chmod +x tools/phpunit.phar
           php tools/phpunit.phar --version
@@ -62,7 +64,6 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p tools
-          # 8.4.9 predates the Box checker that uses PHP7-only syntax.
           for V in 8.4.9 8.4.1; do
             url="https://github.com/drush-ops/drush/releases/download/${V}/drush.phar"
             echo "Trying ${url}"
@@ -78,6 +79,22 @@ jobs:
           echo "Failed to fetch a PHP 5.6–compatible drush.phar" >&2
           exit 1
 
+      - name: Provide Drush TestTraits shim (PHP 5.6)
+        run: |
+          mkdir -p vendor/Drush/TestTraits
+          cat > vendor/Drush/TestTraits/DrushTestTrait.php <<'PHP'
+          <?php
+          namespace Drush\TestTraits;
+          /**
+           * Minimal no-op shim so classes that `use DrushTestTrait` parse on PHP 5.6
+           * when Composer dev deps are not installed.
+           */
+          trait DrushTestTrait {
+            // Add minimal stubs if tests ever call methods from this trait.
+            // protected function drush($command, array $args = [], array $options = [], $expectedExit = 0) {}
+            // protected function drushBatchProcess() {}
+          }
+          PHP
 
       - name: Create minimal PSR-4 autoloader (no Composer)
         run: |
@@ -86,8 +103,11 @@ jobs:
           <?php
           spl_autoload_register(function ($class) {
               $prefixes = [
-                  'SiteAudit\\' => __DIR__ . '/../src/',
-                  'SiteAudit\\' => __DIR__ . '/../tests/src/', // dev/test classes (Fixtures, etc.)
+                  'SiteAudit\\'          => __DIR__ . '/../src/',
+                  // Some projects keep fixtures/helpers in tests/src as well.
+                  'SiteAudit\\'          => __DIR__ . '/../tests/src/',
+                  // Shim namespace for Drush TestTraits.
+                  'Drush\\TestTraits\\'  => __DIR__ . '/Drush/TestTraits/',
               ];
               foreach ($prefixes as $prefix => $baseDir) {
                   $len = strlen($prefix);
@@ -112,6 +132,9 @@ jobs:
           ls -l vendor/autoload.php
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
 
+      # -------------------------------
+      # Manual Drupal scaffold (8.6.18)
+      # -------------------------------
       - name: Manual Drupal Scaffold (8.6.18)
         run: |
           set -ex
@@ -127,9 +150,9 @@ jobs:
 
       - name: Install dockerize (for DB wait)
         run: |
-          wget -q https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
-          tar -C "$HOME" -xzf dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
-          rm dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
+          wget -q "https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz"
+          tar -C "$HOME" -xzf "dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz"
+          rm "dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz"
 
       - name: Wait for MariaDB
         run: $HOME/dockerize -wait tcp://mariadb:3306 -timeout 60s
