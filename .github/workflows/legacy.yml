@@ -71,7 +71,7 @@ jobs:
           COMPOSER_MEMORY_LIMIT: -1
         # Use Composer v2 to resolve dependencies and create a lock file, but do not install.
         # This bypasses all plugin conflicts while still using the modern resolver.
-        run: composer update --no-plugins --prefer-dist --ignore-platform-reqs --no-install
+        run: composer update --prefer-dist --ignore-platform-reqs --no-install
 
       - name: Downgrade Composer to v1 for Plugin Execution
         run: |
@@ -169,3 +169,4 @@ jobs:
           UNISH_DB_URL: mysql://root:root@mariadb:3306/testsiteaudittooldatabase
         run: |
           vendor/bin/phpunit --colors=always
+
