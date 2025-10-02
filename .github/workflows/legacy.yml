@@ -69,9 +69,12 @@ jobs:
       - name: Install Legacy Dependencies
         env:
           COMPOSER_MEMORY_LIMIT: -1
-        # Run update and ignore platform requirements. This allows Composer v2 to
-        # resolve and install dependencies for PHP 5.6 despite plugin API conflicts.
-        run: composer update --prefer-dist --ignore-platform-reqs
+        run: |
+          # Force Composer to resolve dependencies for PHP 5.6.
+          composer config platform.php 5.6
+          # Run update and ignore platform requirements. This allows Composer v2 to
+          # resolve and install dependencies despite plugin API conflicts.
+          composer update --prefer-dist --ignore-platform-reqs
 
       - name: Manual Drupal Scaffold
         run: |
