@@ -134,6 +134,7 @@ jobs:
       - name: Lint tests and check class
         run: |
           php -l tests/src/Fixtures.php
+          composer install
           php -r "require 'vendor/autoload.php'; var_dump(class_exists('SiteAudit\\Fixtures'));"
 
       - name: Provision SUT (single path)
