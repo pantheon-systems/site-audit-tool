@@ -60,6 +60,17 @@ jobs:
           # Overwrite the modern composer.json with the one from the legacy scenario.
           cp .scenarios.lock/php56/composer.json composer.json
 
+      - name: Install jq
+        run: |
+          apk update
+          apk add jq
+
+      - name: Remove Incompatible Scaffold Plugin
+        # This is the critical fix. The drupal-composer/drupal-scaffold package is a
+        # Composer v1 plugin and is the source of the API version conflict.
+        # We use jq to surgically remove it from the composer.json's 'require' section.
+        run: jq 'del(.require."drupal-composer/drupal-scaffold")' composer.json > composer.json.tmp && mv composer.json.tmp composer.json
+
       - name: Add Legacy PHPUnit Requirement
         run: composer require phpunit/phpunit:"^5.0" --dev --no-update
 
@@ -69,9 +80,9 @@ jobs:
         run: |
           # Force Composer to resolve dependencies for PHP 5.6.
           composer config platform.php 5.6
-          # Run update and ignore ALL platform requirements. This is the key to bypassing
-          # the Composer v1 vs v2 plugin API conflict during dependency resolution.
-          composer update --prefer-dist --ignore-platform-reqs
+          # With the conflicting plugin removed, a standard update will now succeed
+          # while respecting the PHP 5.6 platform.
+          composer update --prefer-dist
 
       - name: Manual Drupal Scaffold
         run: |
