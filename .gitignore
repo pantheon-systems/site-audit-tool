@@ -19,3 +19,7 @@
 /update.php
 /web.config
 /.drush-lock-update
+
+# Ignore IDE
+.idea
+.codacy
