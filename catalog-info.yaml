@@ -1,0 +1,12 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: site-audit-tool
+  description: A project to extract Site Audit checks into a separate project
+  annotations:
+    github.com/project-slug: pantheon-systems/site-audit-tool
+spec:
+  type: tool
+  lifecycle: production
+  owner: site-experience
