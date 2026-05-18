@@ -4,6 +4,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   TZ: "/usr/share/zoneinfo/America/Los_Angeles"
   TERM: dumb
