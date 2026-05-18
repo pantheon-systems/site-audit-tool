@@ -82,7 +82,7 @@ jobs:
         if: ${{ matrix.php_image != 'wodby/php:8.1' && matrix.php_image != 'wodby/php:8.0' }}
         env:
           COMPOSER_MEMORY_LIMIT: -1
-        run: composer install -n --prefer-dist
+        run: composer update -n --prefer-dist
 
       - name: Install jq
         if: ${{ matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0' }}
