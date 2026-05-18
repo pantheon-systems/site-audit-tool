@@ -79,10 +79,10 @@ jobs:
         run: cp .github/workflows/zz-php.ini /usr/local/etc/php/conf.d/
 
       - name: Composer install/update (older PHP)
-        if: ${{ matrix.php_image != 'wodby/php:8.1' && matrix.php_image != 'wodby/php:8.0' }}
+        if: ${{ matrix.php_image != 'wodby/php:8.1' && matrix.php_image != 'wodby/php:8.0' && matrix.install_cmd == '' }}
         env:
           COMPOSER_MEMORY_LIMIT: -1
-        run: composer install -n --prefer-dist
+        run: composer update -n --prefer-dist
 
       - name: Install jq
         if: ${{ matrix.php_image == 'wodby/php:8.1' || matrix.php_image == 'wodby/php:8.0' }}
@@ -124,12 +124,14 @@ jobs:
       - name: Remove Platform Override
         if: ${{ matrix.php_image == 'wodby/php:7.2' }}
         run: composer config --unset platform.php
+        working-directory: .scenarios.lock/drush8
 
       - name: Install Legacy PHPUnit
         if: ${{ matrix.php_image == 'wodby/php:7.2' }}
         env:
           COMPOSER_MEMORY_LIMIT: -1
         run: composer require phpunit/phpunit "^6.0" --dev -W
+        working-directory: .scenarios.lock/drush8
 
       - name: Install dockerize (for DB wait)
         run: |
