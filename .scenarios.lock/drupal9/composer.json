@@ -43,6 +43,10 @@
             "drupal/core-composer-scaffold": true,
             "g1a/composer-test-scenarios": true
         },
+        "audit": {
+            "abandoned": "report",
+            "block-insecure": false
+        },
         "vendor-dir": "../../vendor"
     },
     "autoload": {

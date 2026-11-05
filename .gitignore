@@ -23,3 +23,7 @@
 # Ignore IDE
 .idea
 .codacy
+
+# Composer lock files — not needed for a library, and cause Dependabot noise
+composer.lock
+.scenarios.lock/**/composer.lock
