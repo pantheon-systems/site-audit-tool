@@ -28,7 +28,7 @@
         "symfony/filesystem": "^3.4.28",
         "webflo/drupal-finder": "^1.1.0",
         "webmozart/path-util": "^2.3",
-        "yoast/phpunit-polyfills": "^1.0"
+        "yoast/phpunit-polyfills": "^4.0"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
